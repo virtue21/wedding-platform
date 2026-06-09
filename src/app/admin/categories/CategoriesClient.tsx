@@ -35,7 +35,7 @@ function SubcategoryRow({
   }
 
   return (
-    <div className="flex items-center gap-2 group pl-3 border-l-2 border-rose-100">
+    <div className="flex items-center gap-2 pl-3 border-l-2 border-rose-100">
       {editing ? (
         <>
           <input
@@ -56,7 +56,7 @@ function SubcategoryRow({
           <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md">{label}</span>
           <button
             onClick={() => setEditing(true)}
-            className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity"
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors px-1.5 py-0.5 rounded hover:bg-stone-100 shrink-0"
           >
             Edit
           </button>
@@ -70,8 +70,8 @@ function SubcategoryRow({
                 })
               }
             }}
-            className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity disabled:opacity-30"
-          >✕</button>
+            className="text-xs text-red-400 hover:text-red-600 transition-colors px-1.5 py-0.5 rounded hover:bg-red-50 shrink-0 disabled:opacity-30"
+          >Delete</button>
         </>
       )}
     </div>
@@ -117,7 +117,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
   return (
     <div className="rounded-xl border border-rose-50 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 group px-3 py-2.5 bg-stone-50">
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-stone-50">
         {editing ? (
           <>
             <input
@@ -153,7 +153,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
             </button>
             <button
               onClick={() => { setEditing(true); setCatLabel(catLabel) }}
-              className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity shrink-0"
+              className="text-xs text-stone-400 hover:text-stone-600 transition-colors shrink-0 px-1.5 py-0.5 rounded hover:bg-stone-100"
             >Edit</button>
             <button
               disabled={isPending}
@@ -162,8 +162,8 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
                   startTransition(async () => { await deleteCategory(cat.id); router.refresh() })
                 }
               }}
-              className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity shrink-0 disabled:opacity-30"
-            >✕</button>
+              className="text-xs text-red-400 hover:text-red-600 transition-colors shrink-0 px-1.5 py-0.5 rounded hover:bg-red-50 disabled:opacity-30"
+            >Delete</button>
           </>
         )}
       </div>
