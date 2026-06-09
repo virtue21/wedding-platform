@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { saveCategories } from './actions'
 import type { RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 type CategoryWithSubs = RelationshipCategory & { subcategories: RelationshipSubcategory[] }
 
-// Local state types — new items use 'new:xxx' ids
-type LocalSub  = { id: string; label: string }
-type LocalCat  = { id: string; label: string; subcategories: LocalSub[]; expanded: boolean }
+// ─── local state types (new items use 'new:xxx' ids) ─────────────────────────
+type LocalSub = { id: string; label: string }
+type LocalCat = { id: string; label: string; subcategories: LocalSub[]; expanded: boolean }
 
 function uid() { return `new:${Math.random().toString(36).slice(2)}` }
 
@@ -18,193 +17,19 @@ function initCats(cats: CategoryWithSubs[]): LocalCat[] {
     id: c.id,
     label: c.label,
     expanded: false,
-    subcategories: [...c.subcategories].sort((a, b) => a.sort_order - b.sort_order)
+    subcategories: [...c.subcategories]
+      .sort((a, b) => a.sort_order - b.sort_order)
       .map(s => ({ id: s.id, label: s.label })),
   }))
 }
 
-// ── Single side panel ─────────────────────────────────────────────────────────
-function SidePanel({
-  side,
-  initialCategories,
-}: {
-  side: 'bride' | 'groom'
-  initialCategories: CategoryWithSubs[]
-}) {
-  const router = useRouter()
-  const [cats, setCats]                   = useState<LocalCat[]>(() => initCats(initialCategories))
-  const [deletedCatIds, setDeletedCatIds] = useState<string[]>([])
-  const [deletedSubIds, setDeletedSubIds] = useState<string[]>([])
-  const [newCatLabel, setNewCatLabel]     = useState('')
-  const [isDirty, setIsDirty]             = useState(false)
-  const [saving, setSaving]               = useState(false)
-  const [error, setError]                 = useState('')
-  const [saved, setSaved]                 = useState(false)
-
-  const color = side === 'bride'
-    ? { ring: 'focus:ring-rose-200', btn: 'bg-rose-500 hover:bg-rose-600', badge: 'bg-rose-50 text-rose-500 border-rose-100', save: 'bg-rose-500 hover:bg-rose-600' }
-    : { ring: 'focus:ring-blue-200', btn: 'bg-blue-500 hover:bg-blue-600', badge: 'bg-blue-50 text-blue-500 border-blue-100', save: 'bg-blue-500 hover:bg-blue-600' }
-
-  function dirty() { setIsDirty(true); setSaved(false); setError('') }
-
-  // ── Category operations ──
-  function addCat() {
-    const label = newCatLabel.trim()
-    if (!label) return
-    setCats(prev => [...prev, { id: uid(), label, expanded: false, subcategories: [] }])
-    setNewCatLabel('')
-    dirty()
-  }
-
-  function removeCat(catId: string) {
-    if (!catId.startsWith('new:')) {
-      setDeletedCatIds(prev => [...prev, catId])
-    }
-    setCats(prev => prev.filter(c => c.id !== catId))
-    dirty()
-  }
-
-  function renameCat(catId: string, label: string) {
-    setCats(prev => prev.map(c => c.id === catId ? { ...c, label } : c))
-    dirty()
-  }
-
-  function toggleExpand(catId: string) {
-    setCats(prev => prev.map(c => c.id === catId ? { ...c, expanded: !c.expanded } : c))
-  }
-
-  // ── Subcategory operations ──
-  function addSub(catId: string, label: string) {
-    if (!label.trim()) return
-    setCats(prev => prev.map(c =>
-      c.id === catId
-        ? { ...c, subcategories: [...c.subcategories, { id: uid(), label: label.trim() }] }
-        : c
-    ))
-    dirty()
-  }
-
-  function removeSub(catId: string, subId: string) {
-    if (!subId.startsWith('new:')) {
-      setDeletedSubIds(prev => [...prev, subId])
-    }
-    setCats(prev => prev.map(c =>
-      c.id === catId ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) } : c
-    ))
-    dirty()
-  }
-
-  function renameSub(catId: string, subId: string, label: string) {
-    setCats(prev => prev.map(c =>
-      c.id === catId
-        ? { ...c, subcategories: c.subcategories.map(s => s.id === subId ? { ...s, label } : s) }
-        : c
-    ))
-    dirty()
-  }
-
-  // ── Save ──
-  async function handleSave() {
-    setSaving(true)
-    setError('')
-    const result = await saveCategories(side, cats, deletedCatIds, deletedSubIds)
-    setSaving(false)
-
-    if (result?.error) {
-      setError(result.error)
-      return
-    }
-
-    setDeletedCatIds([])
-    setDeletedSubIds([])
-    setIsDirty(false)
-    setSaved(true)
-    router.refresh()
-  }
-
-  return (
-    <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6 flex flex-col gap-5">
-
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{side === 'bride' ? '👰' : '🤵'}</span>
-        <h3 className="font-serif text-lg text-stone-800 capitalize">{side}&apos;s Side</h3>
-        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border font-medium ${color.badge}`}>
-          {cats.length} {cats.length === 1 ? 'category' : 'categories'}
-        </span>
-      </div>
-
-      {/* Status messages */}
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600">{error}</div>
-      )}
-      {saved && !isDirty && (
-        <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-700 font-medium">
-          Changes saved ✓
-        </div>
-      )}
-
-      {/* Category list */}
-      <div className="space-y-2">
-        {cats.length === 0 && (
-          <p className="text-sm text-stone-300 py-2">No categories yet — add one below.</p>
-        )}
-
-        {cats.map(cat => (
-          <CategoryRow
-            key={cat.id}
-            cat={cat}
-            color={color}
-            onToggle={() => toggleExpand(cat.id)}
-            onRename={label => renameCat(cat.id, label)}
-            onRemove={() => removeCat(cat.id)}
-            onAddSub={label => addSub(cat.id, label)}
-            onRemoveSub={subId => removeSub(cat.id, subId)}
-            onRenameSub={(subId, label) => renameSub(cat.id, subId, label)}
-          />
-        ))}
-      </div>
-
-      {/* Add category */}
-      <div className="flex gap-2">
-        <input
-          value={newCatLabel}
-          onChange={e => setNewCatLabel(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') addCat() }}
-          placeholder={`Add ${side === 'bride' ? "bride's" : "groom's"} category…`}
-          className={`flex-1 px-3 py-2 border border-rose-100 rounded-xl text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 ${color.ring} bg-white`}
-        />
-        <button
-          type="button"
-          disabled={!newCatLabel.trim()}
-          onClick={addCat}
-          className={`px-4 py-2 ${color.btn} text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-40`}
-        >
-          Add
-        </button>
-      </div>
-
-      {/* Save button */}
-      <button
-        type="button"
-        disabled={!isDirty || saving}
-        onClick={handleSave}
-        className={`w-full py-3 ${color.save} text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-      >
-        {saving ? 'Saving…' : isDirty ? 'Save changes' : 'No unsaved changes'}
-      </button>
-    </div>
-  )
-}
-
-// ── Category row ──────────────────────────────────────────────────────────────
+// ─── Category row ─────────────────────────────────────────────────────────────
 function CategoryRow({
-  cat, color,
+  cat,
   onToggle, onRename, onRemove,
   onAddSub, onRemoveSub, onRenameSub,
 }: {
   cat: LocalCat
-  color: { ring: string }
   onToggle: () => void
   onRename: (label: string) => void
   onRemove: () => void
@@ -217,9 +42,13 @@ function CategoryRow({
   const [subInput, setSubInput]     = useState('')
   const MAX_SUBS = 10
 
+  // keep draft in sync if parent label changes (e.g. after save resets cats)
+  const labelRef = cat.label
+  if (!editingCat && catDraft !== labelRef) setCatDraft(labelRef)
+
   return (
     <div className="rounded-xl border border-stone-100 overflow-hidden">
-      {/* Header */}
+      {/* Header row */}
       <div className="flex items-center gap-2 px-3 py-2.5 bg-stone-50">
         {editingCat ? (
           <>
@@ -235,47 +64,46 @@ function CategoryRow({
             />
             <button
               onClick={() => { onRename(catDraft); setEditingCat(false) }}
-              className="text-xs text-rose-500 font-medium px-2 py-1 rounded hover:bg-rose-50"
-            >
-              Done
-            </button>
+              className="text-xs text-rose-500 font-medium px-2 py-1 rounded hover:bg-rose-50 shrink-0"
+            >Done</button>
             <button
               onClick={() => { setCatDraft(cat.label); setEditingCat(false) }}
-              className="text-xs text-stone-400 px-2 py-1 rounded hover:bg-stone-100"
-            >
-              Cancel
-            </button>
+              className="text-xs text-stone-400 px-2 py-1 rounded hover:bg-stone-100 shrink-0"
+            >Cancel</button>
           </>
         ) : (
           <>
-            <button type="button" onClick={onToggle} className="flex items-center gap-2 flex-1 min-w-0 text-left">
+            {/* Expand/collapse toggle */}
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex items-center gap-2 flex-1 min-w-0 text-left"
+            >
               <span className="text-sm font-medium text-stone-700 truncate">{cat.label}</span>
               {cat.subcategories.length > 0 && (
                 <span className="text-xs text-stone-400 bg-white border border-stone-200 px-1.5 py-0.5 rounded-full shrink-0">
                   {cat.subcategories.length} sub
                 </span>
               )}
-              <span className="ml-auto text-stone-300 text-xs shrink-0">{cat.expanded ? '▲' : '▼'}</span>
+              <span className="ml-auto text-stone-300 text-xs shrink-0">
+                {cat.expanded ? '▲' : '▼'}
+              </span>
             </button>
             <button
               onClick={() => { setEditingCat(true); setCatDraft(cat.label) }}
-              className="text-xs text-stone-400 hover:text-stone-600 px-1.5 py-0.5 rounded hover:bg-stone-100 shrink-0"
-            >
-              Edit
-            </button>
+              className="text-xs text-stone-400 hover:text-stone-600 px-2 py-1 rounded hover:bg-stone-100 shrink-0"
+            >Edit</button>
             <button
               onClick={onRemove}
-              className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 shrink-0"
-            >
-              Delete
-            </button>
+              className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 shrink-0"
+            >Delete</button>
           </>
         )}
       </div>
 
-      {/* Subcategories */}
+      {/* Subcategory panel */}
       {cat.expanded && (
-        <div className="px-3 py-3 space-y-2 bg-white">
+        <div className="px-3 py-3 space-y-2 bg-white border-t border-stone-50">
           {cat.subcategories.length === 0 && (
             <p className="text-xs text-stone-300 italic">No sub-categories yet.</p>
           )}
@@ -284,7 +112,6 @@ function CategoryRow({
             <SubRow
               key={sub.id}
               sub={sub}
-              color={color}
               onRename={label => onRenameSub(sub.id, label)}
               onRemove={() => onRemoveSub(sub.id)}
             />
@@ -296,22 +123,20 @@ function CategoryRow({
 
           {cat.subcategories.length < MAX_SUBS && (
             <form
-              onSubmit={e => { e.preventDefault(); onAddSub(subInput); setSubInput('') }}
+              onSubmit={e => { e.preventDefault(); if (subInput.trim()) { onAddSub(subInput); setSubInput('') } }}
               className="flex gap-2 pt-1"
             >
               <input
                 value={subInput}
                 onChange={e => setSubInput(e.target.value)}
                 placeholder="Add sub-category…"
-                className={`flex-1 px-2.5 py-1.5 border border-rose-100 rounded-lg text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 ${color.ring} bg-white`}
+                className="flex-1 px-2.5 py-1.5 border border-rose-100 rounded-lg text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-200 bg-white"
               />
               <button
                 type="submit"
                 disabled={!subInput.trim()}
                 className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-lg transition-colors disabled:opacity-40"
-              >
-                + Add
-              </button>
+              >+ Add</button>
             </form>
           )}
         </div>
@@ -320,17 +145,18 @@ function CategoryRow({
   )
 }
 
-// ── Subcategory row ───────────────────────────────────────────────────────────
+// ─── Subcategory row ──────────────────────────────────────────────────────────
 function SubRow({
-  sub, color, onRename, onRemove,
+  sub, onRename, onRemove,
 }: {
   sub: LocalSub
-  color: { ring: string }
   onRename: (label: string) => void
   onRemove: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft]     = useState(sub.label)
+
+  if (!editing && draft !== sub.label) setDraft(sub.label)
 
   return (
     <div className="flex items-center gap-2 pl-3 border-l-2 border-rose-100">
@@ -344,54 +170,299 @@ function SubRow({
               if (e.key === 'Enter') { onRename(draft); setEditing(false) }
               if (e.key === 'Escape') { setDraft(sub.label); setEditing(false) }
             }}
-            className={`flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 ${color.ring}`}
+            className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
           />
           <button
             onClick={() => { onRename(draft); setEditing(false) }}
-            className="text-xs text-rose-500 font-medium px-1.5 py-0.5 rounded hover:bg-rose-50"
-          >
-            Done
-          </button>
+            className="text-xs text-rose-500 font-medium px-1.5 py-0.5 rounded hover:bg-rose-50 shrink-0"
+          >Done</button>
           <button
             onClick={() => { setDraft(sub.label); setEditing(false) }}
-            className="text-xs text-stone-400 px-1.5 py-0.5 rounded hover:bg-stone-100"
-          >
-            Cancel
-          </button>
+            className="text-xs text-stone-400 px-1.5 py-0.5 rounded hover:bg-stone-100 shrink-0"
+          >Cancel</button>
         </>
       ) : (
         <>
-          <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md truncate">{sub.label}</span>
+          <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md truncate">
+            {sub.label}
+          </span>
           <button
             onClick={() => { setEditing(true); setDraft(sub.label) }}
             className="text-xs text-stone-400 hover:text-stone-600 px-1.5 py-0.5 rounded hover:bg-stone-100 shrink-0"
-          >
-            Edit
-          </button>
+          >Edit</button>
           <button
             onClick={onRemove}
             className="text-xs text-red-400 hover:text-red-600 px-1.5 py-0.5 rounded hover:bg-red-50 shrink-0"
-          >
-            Delete
-          </button>
+          >Delete</button>
         </>
       )}
     </div>
   )
 }
 
-// ── Root export ───────────────────────────────────────────────────────────────
+// ─── Side section (no save button — save is centralised) ──────────────────────
+function SideSection({
+  side,
+  cats,
+  onAddCat,
+  onRemoveCat,
+  onRenameCat,
+  onToggleExpand,
+  onAddSub,
+  onRemoveSub,
+  onRenameSub,
+}: {
+  side: 'bride' | 'groom'
+  cats: LocalCat[]
+  onAddCat: (label: string) => void
+  onRemoveCat: (id: string) => void
+  onRenameCat: (id: string, label: string) => void
+  onToggleExpand: (id: string) => void
+  onAddSub: (catId: string, label: string) => void
+  onRemoveSub: (catId: string, subId: string) => void
+  onRenameSub: (catId: string, subId: string, label: string) => void
+}) {
+  const [newCatLabel, setNewCatLabel] = useState('')
+  const isBride = side === 'bride'
+  const accent = isBride
+    ? 'border-rose-100 focus:ring-rose-200'
+    : 'border-blue-100 focus:ring-blue-200'
+  const addBtn = isBride
+    ? 'bg-rose-500 hover:bg-rose-600'
+    : 'bg-blue-500 hover:bg-blue-600'
+  const badge = isBride
+    ? 'bg-rose-50 text-rose-500 border-rose-100'
+    : 'bg-blue-50 text-blue-500 border-blue-100'
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{isBride ? '👰' : '🤵'}</span>
+        <h3 className="font-serif text-lg text-stone-800 capitalize">{side}&apos;s Side</h3>
+        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border font-medium ${badge}`}>
+          {cats.length} {cats.length === 1 ? 'category' : 'categories'}
+        </span>
+      </div>
+
+      {/* Category list */}
+      <div className="space-y-2">
+        {cats.length === 0 && (
+          <p className="text-sm text-stone-300 py-2">No categories yet.</p>
+        )}
+        {cats.map(cat => (
+          <CategoryRow
+            key={cat.id}
+            cat={cat}
+            onToggle={() => onToggleExpand(cat.id)}
+            onRename={label => onRenameCat(cat.id, label)}
+            onRemove={() => onRemoveCat(cat.id)}
+            onAddSub={label => onAddSub(cat.id, label)}
+            onRemoveSub={subId => onRemoveSub(cat.id, subId)}
+            onRenameSub={(subId, label) => onRenameSub(cat.id, subId, label)}
+          />
+        ))}
+      </div>
+
+      {/* Add category input */}
+      <div className="flex gap-2">
+        <input
+          value={newCatLabel}
+          onChange={e => setNewCatLabel(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && newCatLabel.trim()) {
+              onAddCat(newCatLabel.trim())
+              setNewCatLabel('')
+            }
+          }}
+          placeholder={`Add ${isBride ? "bride's" : "groom's"} category…`}
+          className={`flex-1 px-3 py-2 border ${accent} rounded-xl text-sm text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 bg-white`}
+        />
+        <button
+          type="button"
+          disabled={!newCatLabel.trim()}
+          onClick={() => { if (newCatLabel.trim()) { onAddCat(newCatLabel.trim()); setNewCatLabel('') } }}
+          className={`px-4 py-2 ${addBtn} text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-40`}
+        >Add</button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Root export ──────────────────────────────────────────────────────────────
 export default function CategoriesClient({
-  bride,
-  groom,
+  bride: initialBride,
+  groom: initialGroom,
 }: {
   bride: CategoryWithSubs[]
   groom: CategoryWithSubs[]
 }) {
+  // All state lives here — the single source of truth
+  const [brideCats, setBrideCats]             = useState<LocalCat[]>(() => initCats(initialBride))
+  const [groomCats, setGroomCats]             = useState<LocalCat[]>(() => initCats(initialGroom))
+  const [delBrideCatIds, setDelBrideCatIds]   = useState<string[]>([])
+  const [delGroomCatIds, setDelGroomCatIds]   = useState<string[]>([])
+  const [delSubIds, setDelSubIds]             = useState<string[]>([])
+  const [isDirty, setIsDirty]                 = useState(false)
+  const [saving, setSaving]                   = useState(false)
+  const [error, setError]                     = useState('')
+  const [saved, setSaved]                     = useState(false)
+
+  function dirty() { setIsDirty(true); setSaved(false); setError('') }
+
+  // ── Bride operations ──
+  function brideAddCat(label: string) {
+    setBrideCats(p => [...p, { id: uid(), label, expanded: false, subcategories: [] }])
+    dirty()
+  }
+  function brideRemoveCat(id: string) {
+    if (!id.startsWith('new:')) setDelBrideCatIds(p => [...p, id])
+    setBrideCats(p => p.filter(c => c.id !== id))
+    dirty()
+  }
+  function brideRenameCat(id: string, label: string) {
+    setBrideCats(p => p.map(c => c.id === id ? { ...c, label } : c))
+    dirty()
+  }
+  function brideToggle(id: string) {
+    setBrideCats(p => p.map(c => c.id === id ? { ...c, expanded: !c.expanded } : c))
+  }
+  function brideAddSub(catId: string, label: string) {
+    setBrideCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: [...c.subcategories, { id: uid(), label }] } : c))
+    dirty()
+  }
+  function brideRemoveSub(catId: string, subId: string) {
+    if (!subId.startsWith('new:')) setDelSubIds(p => [...p, subId])
+    setBrideCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) } : c))
+    dirty()
+  }
+  function brideRenameSub(catId: string, subId: string, label: string) {
+    setBrideCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: c.subcategories.map(s => s.id === subId ? { ...s, label } : s) } : c))
+    dirty()
+  }
+
+  // ── Groom operations ──
+  function groomAddCat(label: string) {
+    setGroomCats(p => [...p, { id: uid(), label, expanded: false, subcategories: [] }])
+    dirty()
+  }
+  function groomRemoveCat(id: string) {
+    if (!id.startsWith('new:')) setDelGroomCatIds(p => [...p, id])
+    setGroomCats(p => p.filter(c => c.id !== id))
+    dirty()
+  }
+  function groomRenameCat(id: string, label: string) {
+    setGroomCats(p => p.map(c => c.id === id ? { ...c, label } : c))
+    dirty()
+  }
+  function groomToggle(id: string) {
+    setGroomCats(p => p.map(c => c.id === id ? { ...c, expanded: !c.expanded } : c))
+  }
+  function groomAddSub(catId: string, label: string) {
+    setGroomCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: [...c.subcategories, { id: uid(), label }] } : c))
+    dirty()
+  }
+  function groomRemoveSub(catId: string, subId: string) {
+    if (!subId.startsWith('new:')) setDelSubIds(p => [...p, subId])
+    setGroomCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) } : c))
+    dirty()
+  }
+  function groomRenameSub(catId: string, subId: string, label: string) {
+    setGroomCats(p => p.map(c => c.id === catId
+      ? { ...c, subcategories: c.subcategories.map(s => s.id === subId ? { ...s, label } : s) } : c))
+    dirty()
+  }
+
+  // ── Central save ──
+  async function handleSave() {
+    setSaving(true)
+    setError('')
+
+    const result = await saveCategories(
+      brideCats,
+      groomCats,
+      delBrideCatIds,
+      delGroomCatIds,
+      delSubIds,
+    )
+
+    setSaving(false)
+
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+
+    // Reset local state from the freshly-saved DB data
+    // This replaces all temp 'new:xxx' IDs with real DB IDs
+    if (result.bride && result.groom) {
+      setBrideCats(initCats(result.bride))
+      setGroomCats(initCats(result.groom))
+    }
+
+    setDelBrideCatIds([])
+    setDelGroomCatIds([])
+    setDelSubIds([])
+    setIsDirty(false)
+    setSaved(true)
+  }
+
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <SidePanel side="bride" initialCategories={bride} />
-      <SidePanel side="groom" initialCategories={groom} />
+    <div className="space-y-8">
+      {/* Status messages */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+          {error}
+        </div>
+      )}
+      {saved && !isDirty && (
+        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700 font-medium">
+          ✓ All changes saved successfully.
+        </div>
+      )}
+
+      {/* Two columns */}
+      <div className="grid md:grid-cols-2 gap-8">
+        <SideSection
+          side="bride"
+          cats={brideCats}
+          onAddCat={brideAddCat}
+          onRemoveCat={brideRemoveCat}
+          onRenameCat={brideRenameCat}
+          onToggleExpand={brideToggle}
+          onAddSub={brideAddSub}
+          onRemoveSub={brideRemoveSub}
+          onRenameSub={brideRenameSub}
+        />
+        <SideSection
+          side="groom"
+          cats={groomCats}
+          onAddCat={groomAddCat}
+          onRemoveCat={groomRemoveCat}
+          onRenameCat={groomRenameCat}
+          onToggleExpand={groomToggle}
+          onAddSub={groomAddSub}
+          onRemoveSub={groomRemoveSub}
+          onRenameSub={groomRenameSub}
+        />
+      </div>
+
+      {/* Single central save button */}
+      <div className="pt-2 border-t border-stone-100">
+        <button
+          type="button"
+          disabled={!isDirty || saving}
+          onClick={handleSave}
+          className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.99] text-white text-sm font-semibold rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+        >
+          {saving ? 'Saving…' : isDirty ? 'Save all changes' : 'No unsaved changes'}
+        </button>
+      </div>
     </div>
   )
 }
