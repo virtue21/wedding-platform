@@ -10,11 +10,29 @@ import type { RelationshipCategory, RelationshipSubcategory } from '@/lib/supaba
 
 type CategoryWithSubs = RelationshipCategory & { subcategories: RelationshipSubcategory[] }
 
-function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
+// ── Single subcategory row ────────────────────────────────────────────────────
+function SubcategoryRow({
+  sub,
+  onDelete,
+  onRename,
+}: {
+  sub: RelationshipSubcategory
+  onDelete: (id: string) => void
+  onRename: (id: string, label: string) => void
+}) {
   const [editing, setEditing] = useState(false)
   const [label, setLabel] = useState(sub.label)
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
+
+  function save() {
+    const trimmed = label.trim()
+    if (!trimmed) return
+    startTransition(async () => {
+      await renameSubcategory(sub.id, trimmed)
+      onRename(sub.id, trimmed)
+      setEditing(false)
+    })
+  }
 
   return (
     <div className="flex items-center gap-2 group pl-3 border-l-2 border-rose-100">
@@ -25,22 +43,17 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
             value={label}
             onChange={e => setLabel(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false); router.refresh() })
-              if (e.key === 'Escape') setEditing(false)
+              if (e.key === 'Enter') save()
+              if (e.key === 'Escape') { setLabel(sub.label); setEditing(false) }
             }}
             className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
           />
-          <button
-            onClick={() => startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false); router.refresh() })}
-            className="text-xs text-rose-500 font-medium"
-          >
-            Save
-          </button>
-          <button onClick={() => setEditing(false)} className="text-xs text-stone-400">✕</button>
+          <button onClick={save} className="text-xs text-rose-500 font-medium">Save</button>
+          <button onClick={() => { setLabel(sub.label); setEditing(false) }} className="text-xs text-stone-400">✕</button>
         </>
       ) : (
         <>
-          <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md">{sub.label}</span>
+          <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md">{label}</span>
           <button
             onClick={() => setEditing(true)}
             className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity"
@@ -48,53 +61,80 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
             Edit
           </button>
           <button
+            disabled={isPending}
             onClick={() => {
-              if (confirm(`Delete "${sub.label}"?`)) {
-                startTransition(async () => { await deleteSubcategory(sub.id); router.refresh() })
+              if (confirm(`Delete "${label}"?`)) {
+                startTransition(async () => {
+                  await deleteSubcategory(sub.id)
+                  onDelete(sub.id)
+                })
               }
             }}
-            disabled={isPending}
-            className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity"
-          >
-            ✕
-          </button>
+            className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity disabled:opacity-30"
+          >✕</button>
         </>
       )}
     </div>
   )
 }
 
-function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: string; addBtn: string } }) {
-  const [expanded, setExpanded] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const [editLabel, setEditLabel] = useState(cat.label)
-  const [subLabel, setSubLabel] = useState('')
+// ── Category row (with local subs state) ─────────────────────────────────────
+function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: string } }) {
+  const [expanded, setExpanded]   = useState(false)
+  const [editing, setEditing]     = useState(false)
+  const [catLabel, setCatLabel]   = useState(cat.label)
+  const [subs, setSubs]           = useState<RelationshipSubcategory[]>(cat.subcategories)
+  const [subInput, setSubInput]   = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
+  const MAX_SUBS = 10
+
+  function handleAddSub(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = subInput.trim()
+    if (!trimmed || subs.length >= MAX_SUBS) return
+
+    startTransition(async () => {
+      // Optimistic: add a placeholder immediately so the UI updates at once
+      const tempId = `temp-${Date.now()}`
+      const optimistic: RelationshipSubcategory = {
+        id: tempId,
+        category_id: cat.id,
+        label: trimmed,
+        sort_order: subs.length,
+      }
+      setSubs(prev => [...prev, optimistic])
+      setSubInput('')
+
+      // Persist to DB — the server returns nothing, so we just refresh
+      // in the background to get the real ID (not strictly necessary for display)
+      await addSubcategory(cat.id, trimmed)
+      router.refresh()
+    })
+  }
+
   return (
     <div className="rounded-xl border border-rose-50 overflow-hidden">
-      {/* Category header row */}
+      {/* Header */}
       <div className="flex items-center gap-2 group px-3 py-2.5 bg-stone-50">
         {editing ? (
           <>
             <input
               autoFocus
-              value={editLabel}
-              onChange={e => setEditLabel(e.target.value)}
+              value={catLabel}
+              onChange={e => setCatLabel(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false); router.refresh() })
-                if (e.key === 'Escape') setEditing(false)
+                if (e.key === 'Enter') startTransition(async () => { await renameCategory(cat.id, catLabel); setEditing(false); router.refresh() })
+                if (e.key === 'Escape') { setCatLabel(cat.label); setEditing(false) }
               }}
               className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
             />
             <button
-              onClick={() => startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false); router.refresh() })}
+              onClick={() => startTransition(async () => { await renameCategory(cat.id, catLabel); setEditing(false); router.refresh() })}
               className="text-xs text-rose-500 font-medium"
-            >
-              Save
-            </button>
-            <button onClick={() => setEditing(false)} className="text-xs text-stone-400">Cancel</button>
+            >Save</button>
+            <button onClick={() => { setCatLabel(cat.label); setEditing(false) }} className="text-xs text-stone-400">Cancel</button>
           </>
         ) : (
           <>
@@ -103,31 +143,27 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               onClick={() => setExpanded(v => !v)}
               className="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
-              <span className="text-sm font-medium text-stone-700">{cat.label}</span>
-              {cat.subcategories.length > 0 && (
+              <span className="text-sm font-medium text-stone-700">{catLabel}</span>
+              {subs.length > 0 && (
                 <span className="text-xs text-stone-400 bg-white border border-stone-200 px-1.5 py-0.5 rounded-full">
-                  {cat.subcategories.length} sub
+                  {subs.length} sub
                 </span>
               )}
               <span className="ml-auto text-stone-300 text-xs">{expanded ? '▲' : '▼'}</span>
             </button>
             <button
-              onClick={() => { setEditing(true); setEditLabel(cat.label) }}
+              onClick={() => { setEditing(true); setCatLabel(catLabel) }}
               className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity shrink-0"
-            >
-              Edit
-            </button>
+            >Edit</button>
             <button
+              disabled={isPending}
               onClick={() => {
-                if (confirm(`Delete "${cat.label}" and all its subcategories?`)) {
+                if (confirm(`Delete "${catLabel}" and all its sub-categories?`)) {
                   startTransition(async () => { await deleteCategory(cat.id); router.refresh() })
                 }
               }}
-              disabled={isPending}
-              className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity shrink-0"
-            >
-              ✕
-            </button>
+              className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity shrink-0 disabled:opacity-30"
+            >✕</button>
           </>
         )}
       </div>
@@ -135,55 +171,56 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
       {/* Subcategories panel */}
       {expanded && (
         <div className="px-3 py-3 space-y-2 bg-white">
-          {cat.subcategories.length === 0 && (
-            <p className="text-xs text-stone-300 italic py-1">No sub-categories yet</p>
+          {subs.length === 0 && (
+            <p className="text-xs text-stone-300 italic py-1">No sub-categories yet — add one below.</p>
           )}
-          {cat.subcategories.map(sub => (
-            <SubcategoryRow key={sub.id} sub={sub} />
+
+          {subs.map(sub => (
+            <SubcategoryRow
+              key={sub.id}
+              sub={sub}
+              onDelete={id => setSubs(prev => prev.filter(s => s.id !== id))}
+              onRename={(id, label) => setSubs(prev => prev.map(s => s.id === id ? { ...s, label } : s))}
+            />
           ))}
 
-          {/* Add subcategory form */}
-          <form
-            onSubmit={e => {
-              e.preventDefault()
-              const trimmed = subLabel.trim()
-              if (!trimmed) return
-              startTransition(async () => {
-                await addSubcategory(cat.id, trimmed)
-                setSubLabel('')
-                router.refresh()
-              })
-            }}
-            className="flex gap-2 mt-2"
-          >
-            <input
-              value={subLabel}
-              onChange={e => setSubLabel(e.target.value)}
-              placeholder="Add sub-category…"
-              className={`flex-1 px-2.5 py-1.5 border border-rose-100 rounded-lg text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 ${color.ring} bg-white`}
-            />
-            <button
-              type="submit"
-              disabled={isPending || !subLabel.trim()}
-              className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-lg transition-colors disabled:opacity-40"
-            >
-              {isPending ? '…' : '+ Add'}
-            </button>
-          </form>
+          {subs.length >= MAX_SUBS && (
+            <p className="text-xs text-amber-500 py-1">Maximum {MAX_SUBS} sub-categories reached.</p>
+          )}
+
+          {/* Add sub-category */}
+          {subs.length < MAX_SUBS && (
+            <form onSubmit={handleAddSub} className="flex gap-2 mt-2">
+              <input
+                value={subInput}
+                onChange={e => setSubInput(e.target.value)}
+                placeholder="Add sub-category…"
+                className={`flex-1 px-2.5 py-1.5 border border-rose-100 rounded-lg text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 ${color.ring} bg-white`}
+              />
+              <button
+                type="submit"
+                disabled={isPending || !subInput.trim()}
+                className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-lg transition-colors disabled:opacity-40"
+              >
+                {isPending ? '…' : '+ Add'}
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+// ── Category list (bride or groom side) ──────────────────────────────────────
 function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categories: CategoryWithSubs[] }) {
   const [label, setLabel] = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
   const color = side === 'bride'
-    ? { ring: 'focus:ring-rose-200', btn: 'bg-rose-500 hover:bg-rose-600', badge: 'bg-rose-50 text-rose-500 border-rose-100', addBtn: 'focus:ring-rose-200' }
-    : { ring: 'focus:ring-blue-200', btn: 'bg-blue-500 hover:bg-blue-600', badge: 'bg-blue-50 text-blue-500 border-blue-100', addBtn: 'focus:ring-blue-200' }
+    ? { ring: 'focus:ring-rose-200', btn: 'bg-rose-500 hover:bg-rose-600', badge: 'bg-rose-50 text-rose-500 border-rose-100' }
+    : { ring: 'focus:ring-blue-200', btn: 'bg-blue-500 hover:bg-blue-600', badge: 'bg-blue-50 text-blue-500 border-blue-100' }
 
   return (
     <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">
@@ -195,7 +232,9 @@ function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categorie
         </span>
       </div>
 
-      <p className="text-xs text-stone-400 mb-4">Click a category to expand and manage sub-categories (optional).</p>
+      <p className="text-xs text-stone-400 mb-4">
+        Click a category to expand and add sub-categories (up to 10 each).
+      </p>
 
       <div className="space-y-2 mb-5">
         {categories.length === 0 && (
@@ -241,6 +280,7 @@ function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categorie
   )
 }
 
+// ── Root export ───────────────────────────────────────────────────────────────
 export default function CategoriesClient({
   bride,
   groom,
