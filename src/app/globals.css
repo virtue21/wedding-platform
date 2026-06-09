@@ -49,6 +49,15 @@
   }
 }
 
+/* Step number bounce-in animation */
+@keyframes stepBounce {
+  0%   { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+  55%  { transform: scale(1.25) rotate(4deg); opacity: 1; }
+  75%  { transform: scale(0.88) rotate(-2deg); }
+  90%  { transform: scale(1.06) rotate(1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
 /* Hide scrollbars on snap carousels */
 .snap-carousel::-webkit-scrollbar { display: none; }
 .snap-carousel { scrollbar-width: none; -ms-overflow-style: none; }
