@@ -26,13 +26,5 @@ export default async function CategoriesPage() {
   const bride = all.filter(c => c.side === 'bride')
   const groom = all.filter(c => c.side === 'groom')
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Relationship Categories</h1>
-        <p className="text-stone-400 text-sm">Guests pick a category when RSVPing. Add optional sub-categories to drill down further.</p>
-      </div>
-      <CategoriesClient bride={bride} groom={groom} />
-    </div>
-  )
+  return <CategoriesClient bride={bride} groom={groom} />
 }

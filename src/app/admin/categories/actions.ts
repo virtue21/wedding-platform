@@ -77,11 +77,13 @@ async function saveSide(
     for (let j = 0; j < cat.subcategories.length; j++) {
       const sub = cat.subcategories[j]
       if (sub.id.startsWith('new:')) {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('relationship_subcategories')
           .insert({ category_id: realCatId, label: sub.label.trim(), sort_order: j })
-        if (error) {
-          return { error: `Failed to create sub-category "${sub.label}": ${error.message}` }
+          .select('id')
+          .single()
+        if (error || !inserted) {
+          return { error: `Failed to save sub-category "${sub.label}"${error ? `: ${error.message}` : '. Check RLS policies on relationship_subcategories.'}` }
         }
       } else {
         const { error } = await supabase

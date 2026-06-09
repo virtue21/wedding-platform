@@ -12,15 +12,19 @@ type LocalCat = { id: string; label: string; subcategories: LocalSub[]; expanded
 
 function uid() { return `new:${Math.random().toString(36).slice(2)}` }
 
-function initCats(cats: CategoryWithSubs[]): LocalCat[] {
+function initCats(cats: CategoryWithSubs[], preserveExpanded?: Map<string, boolean>): LocalCat[] {
   return cats.map(c => ({
     id: c.id,
     label: c.label,
-    expanded: false,
+    expanded: preserveExpanded?.get(c.id) ?? false,
     subcategories: [...c.subcategories]
       .sort((a, b) => a.sort_order - b.sort_order)
       .map(s => ({ id: s.id, label: s.label })),
   }))
+}
+
+function expandedMap(cats: LocalCat[]): Map<string, boolean> {
+  return new Map(cats.map(c => [c.id, c.expanded]))
 }
 
 // ─── Category row ─────────────────────────────────────────────────────────────
@@ -398,11 +402,11 @@ export default function CategoriesClient({
       return
     }
 
-    // Reset local state from the freshly-saved DB data
-    // This replaces all temp 'new:xxx' IDs with real DB IDs
+    // Reset local state from the freshly-saved DB data (real IDs replace temp 'new:xxx' IDs)
+    // Preserve which categories are currently expanded so the UI doesn't collapse everything
     if (result.bride && result.groom) {
-      setBrideCats(initCats(result.bride))
-      setGroomCats(initCats(result.groom))
+      setBrideCats(prev => initCats(result.bride!, expandedMap(prev)))
+      setGroomCats(prev => initCats(result.groom!, expandedMap(prev)))
     }
 
     setDelBrideCatIds([])
@@ -414,6 +418,26 @@ export default function CategoriesClient({
 
   return (
     <div className="space-y-8">
+
+      {/* Page header — title left, save button right */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl text-stone-800 mb-1">Relationship Categories</h1>
+          <p className="text-stone-400 text-sm">
+            Guests pick a category when RSVPing. Add optional sub-categories to drill down further.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          disabled={!isDirty || saving}
+          onClick={handleSave}
+          className="shrink-0 px-5 py-2.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm whitespace-nowrap"
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+      </div>
+
       {/* Status messages */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
@@ -450,18 +474,6 @@ export default function CategoriesClient({
           onRemoveSub={groomRemoveSub}
           onRenameSub={groomRenameSub}
         />
-      </div>
-
-      {/* Single central save button */}
-      <div className="pt-2 border-t border-stone-100">
-        <button
-          type="button"
-          disabled={!isDirty || saving}
-          onClick={handleSave}
-          className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.99] text-white text-sm font-semibold rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-        >
-          {saving ? 'Saving…' : isDirty ? 'Save all changes' : 'No unsaved changes'}
-        </button>
       </div>
     </div>
   )
