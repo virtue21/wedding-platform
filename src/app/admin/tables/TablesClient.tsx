@@ -113,7 +113,8 @@ export default function TablesClient({
     if (subcategoryId) return subs.find(s => s.id === subcategoryId)?.label ?? ''
     if (categoryId) return selectedCategory?.label ?? ''
     return ''
-  }, [categoryId, subcategoryId, selectedCategory, subs])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, subcategoryId])
 
   const displayLabel = customLabel || labelSuggestion || 'Unnamed table'
 
