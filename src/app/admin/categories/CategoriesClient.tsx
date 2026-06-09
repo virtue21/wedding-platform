@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   addCategory, deleteCategory, renameCategory,
@@ -87,6 +87,16 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
   const [subInput, setSubInput]   = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  // Sync local subs state whenever the server sends fresh props
+  // (triggered after router.refresh() completes)
+  useEffect(() => {
+    setSubs(cat.subcategories)
+  }, [cat.subcategories])
+
+  useEffect(() => {
+    setCatLabel(cat.label)
+  }, [cat.label])
 
   const MAX_SUBS = 10
 
