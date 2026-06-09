@@ -92,23 +92,20 @@ export default async function RootPage() {
         <div className="max-w-5xl mx-auto px-5">
           <p className="text-center text-xs text-stone-400 uppercase tracking-widest font-medium mb-3">How it works</p>
           <h2 className="font-serif text-2xl sm:text-3xl text-stone-800 text-center mb-12">Three steps.</h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 max-w-2xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-0 max-w-2xl mx-auto">
             {[
               { n: '1', label: 'Sign up', sub: 'Create your wedding in minutes' },
               { n: '2', label: 'Share your link', sub: 'One QR code for everything' },
               { n: '3', label: 'Manage', sub: 'Watch RSVPs come in live' },
-            ].map((step, i, arr) => (
-              <div key={step.n} className="flex sm:flex-col items-center gap-5 flex-1 w-full sm:w-auto">
+            ].map((step) => (
+              <div key={step.n} className="flex sm:flex-col items-center gap-5 sm:gap-4 flex-1 sm:text-center">
                 <div className="w-14 h-14 rounded-full bg-rose-500 text-white font-bold text-xl flex items-center justify-center shrink-0 shadow-lg shadow-rose-200">
                   {step.n}
                 </div>
-                <div className="sm:text-center">
+                <div>
                   <p className="font-semibold text-stone-800 text-base">{step.label}</p>
                   <p className="text-sm text-stone-400 mt-0.5">{step.sub}</p>
                 </div>
-                {i < arr.length - 1 && (
-                  <span className="hidden sm:block text-rose-200 text-2xl ml-auto">›</span>
-                )}
               </div>
             ))}
           </div>

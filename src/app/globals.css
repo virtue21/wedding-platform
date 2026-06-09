@@ -47,3 +47,7 @@
     @apply font-serif text-stone-800 tracking-tight;
   }
 }
+
+/* Hide scrollbars on snap carousels */
+.snap-carousel::-webkit-scrollbar { display: none; }
+.snap-carousel { scrollbar-width: none; -ms-overflow-style: none; }
