@@ -82,9 +82,9 @@ export default function FeaturesSection() {
   const trackRef = useRef<HTMLDivElement>(null)
 
   return (
-    <section className="py-24 bg-white overflow-hidden">
-      <div className="max-w-5xl mx-auto px-5 mb-12">
-        <p className="text-center text-xs text-stone-400 uppercase tracking-widest font-medium mb-3">What you get</p>
+    <section className="pt-12 pb-10 sm:pt-20 sm:pb-16 bg-white overflow-hidden">
+      <div className="max-w-5xl mx-auto px-5 mb-6 sm:mb-10">
+        <p className="text-center text-xs text-stone-400 uppercase tracking-widest font-medium mb-2">What you get</p>
         <h2 className="font-serif text-2xl sm:text-3xl text-stone-800 text-center">Everything in one place.</h2>
       </div>
 
@@ -114,7 +114,7 @@ export default function FeaturesSection() {
             className="bg-[#fdf8f4] rounded-3xl border border-stone-100 overflow-hidden flex flex-col"
           >
             {/* Visual area */}
-            <div className="relative flex items-center justify-center bg-rose-50/40 overflow-hidden" style={{ height: 240 }}>
+            <div className="relative flex items-center justify-center bg-rose-50/40 overflow-hidden" style={{ height: 200 }}>
               {f.img ? (
                 <Image
                   src={f.img}

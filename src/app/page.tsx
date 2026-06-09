@@ -28,7 +28,7 @@ export default async function RootPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="relative min-h-[95vh] flex items-center justify-center text-center overflow-hidden">
+      <section className="relative min-h-[85vh] sm:min-h-[95vh] flex items-center justify-center text-center overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=85"
           alt="Wedding couple"
@@ -60,7 +60,7 @@ export default async function RootPage() {
           </Link>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#1C1917] to-transparent" />
       </section>
 
       {/* ── PROBLEM: sticky scroll book-turn panels ── */}
@@ -70,8 +70,8 @@ export default async function RootPage() {
       <FeaturesSection />
 
       {/* ── SEE IT IN ACTION: sticky scroll ── */}
-      <section>
-        <div className="bg-[#fdf8f4] pt-16 pb-4 text-center px-5">
+      <section className="pb-10 sm:pb-16">
+        <div className="bg-[#fdf8f4] pt-10 pb-4 text-center px-5">
           <p className="text-xs text-stone-400 uppercase tracking-widest font-medium mb-3">See it in action</p>
           <h2 className="font-serif text-2xl sm:text-3xl text-stone-800">
             Your dashboard, always in control.
@@ -81,11 +81,11 @@ export default async function RootPage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="bg-white border-y border-stone-100 py-20">
+      <section className="bg-white border-y border-stone-100 py-12 sm:py-20">
         <div className="max-w-5xl mx-auto px-5">
           <p className="text-center text-xs text-stone-400 uppercase tracking-widest font-medium mb-3">How it works</p>
-          <h2 className="font-serif text-2xl sm:text-3xl text-stone-800 text-center mb-12">Three steps.</h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-0 max-w-2xl mx-auto">
+          <h2 className="font-serif text-2xl sm:text-3xl text-stone-800 text-center mb-8 sm:mb-12">Three steps.</h2>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-0 max-w-2xl mx-auto">
             {[
               { n: '1', label: 'Sign up', sub: 'Create your wedding in minutes' },
               { n: '2', label: 'Share your link', sub: 'One QR code for everything' },

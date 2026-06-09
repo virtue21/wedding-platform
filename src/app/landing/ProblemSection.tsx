@@ -63,10 +63,10 @@ export default function ProblemSection() {
     const onScroll = () => {
       if (!sectionRef.current) return
       const rect = sectionRef.current.getBoundingClientRect()
-      // scrolled = how many px we've moved INTO the section
       const scrolled = Math.max(0, -rect.top)
-      const wh = window.innerHeight
-      const next = Math.min(cards.length - 1, Math.floor(scrolled / wh))
+      // Use 65vh per card so mobile doesn't scroll 600vh — feels snappier
+      const stepH = window.innerHeight * 0.65
+      const next = Math.min(cards.length - 1, Math.floor(scrolled / stepH))
       setActive(next)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -82,10 +82,11 @@ export default function ProblemSection() {
   }, [active])
 
   return (
-    // height = N * 100vh so each card gets a full viewport of scrolling room
-    <div ref={sectionRef} style={{ height: `${cards.length * 100}vh` }}>
+    // 65vh per card — total 390vh (vs 600vh), much less blank scroll on mobile
+    // Background matches first card so the scroll-room beneath the sticky card isn't cream
+    <div ref={sectionRef} style={{ height: `${cards.length * 65}vh`, backgroundColor: '#1C1917' }}>
       {/* Sticky viewport — stays at top while user scrolls through */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
+      <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
 
         {cards.map((card, i) => {
           const isPast = i < active

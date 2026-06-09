@@ -206,13 +206,13 @@ export default function ScreenshotSection() {
         {slides.map((s, i) => (
           <div
             key={i}
-            className="flex-none w-full px-5 sm:px-8"
+            className="flex-none w-full px-4 sm:px-8"
             style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
           >
             <div className="max-w-3xl mx-auto">
               {/* Caption */}
-              <div className="text-center mb-6">
-                <p className="font-serif text-xl sm:text-2xl text-stone-800 font-semibold mb-1">{s.caption}</p>
+              <div className="text-center mb-4">
+                <p className="font-serif text-lg sm:text-2xl text-stone-800 font-semibold mb-1">{s.caption}</p>
                 <p className="text-sm text-stone-400">{s.sub}</p>
               </div>
               {/* Laptop */}
@@ -223,7 +223,7 @@ export default function ScreenshotSection() {
       </div>
 
       {/* Dot nav */}
-      <div className="flex justify-center gap-2 mt-8">
+      <div className="flex justify-center gap-2 mt-5">
         {slides.map((_, i) => (
           <button
             key={i}
