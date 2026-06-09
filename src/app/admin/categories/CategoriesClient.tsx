@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   addCategory, deleteCategory, renameCategory,
   addSubcategory, deleteSubcategory, renameSubcategory,
@@ -13,6 +14,7 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
   const [editing, setEditing] = useState(false)
   const [label, setLabel] = useState(sub.label)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   return (
     <div className="flex items-center gap-2 group pl-3 border-l-2 border-rose-100">
@@ -23,13 +25,13 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
             value={label}
             onChange={e => setLabel(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false) })
+              if (e.key === 'Enter') startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false); router.refresh() })
               if (e.key === 'Escape') setEditing(false)
             }}
             className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
           />
           <button
-            onClick={() => startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false) })}
+            onClick={() => startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false); router.refresh() })}
             className="text-xs text-rose-500 font-medium"
           >
             Save
@@ -48,7 +50,7 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
           <button
             onClick={() => {
               if (confirm(`Delete "${sub.label}"?`)) {
-                startTransition(async () => { await deleteSubcategory(sub.id) })
+                startTransition(async () => { await deleteSubcategory(sub.id); router.refresh() })
               }
             }}
             disabled={isPending}
@@ -68,6 +70,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
   const [editLabel, setEditLabel] = useState(cat.label)
   const [subLabel, setSubLabel] = useState('')
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   return (
     <div className="rounded-xl border border-rose-50 overflow-hidden">
@@ -80,13 +83,13 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               value={editLabel}
               onChange={e => setEditLabel(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false) })
+                if (e.key === 'Enter') startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false); router.refresh() })
                 if (e.key === 'Escape') setEditing(false)
               }}
               className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
             />
             <button
-              onClick={() => startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false) })}
+              onClick={() => startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false); router.refresh() })}
               className="text-xs text-rose-500 font-medium"
             >
               Save
@@ -117,7 +120,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
             <button
               onClick={() => {
                 if (confirm(`Delete "${cat.label}" and all its subcategories?`)) {
-                  startTransition(async () => { await deleteCategory(cat.id) })
+                  startTransition(async () => { await deleteCategory(cat.id); router.refresh() })
                 }
               }}
               disabled={isPending}
@@ -148,6 +151,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               startTransition(async () => {
                 await addSubcategory(cat.id, trimmed)
                 setSubLabel('')
+                router.refresh()
               })
             }}
             className="flex gap-2 mt-2"
@@ -175,6 +179,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
 function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categories: CategoryWithSubs[] }) {
   const [label, setLabel] = useState('')
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const color = side === 'bride'
     ? { ring: 'focus:ring-rose-200', btn: 'bg-rose-500 hover:bg-rose-600', badge: 'bg-rose-50 text-rose-500 border-rose-100', addBtn: 'focus:ring-rose-200' }
@@ -213,6 +218,7 @@ function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categorie
           startTransition(async () => {
             await addCategory(fd)
             setLabel('')
+            router.refresh()
           })
         }}
         className="flex gap-2"
