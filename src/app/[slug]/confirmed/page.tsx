@@ -74,8 +74,30 @@ export default async function ConfirmedPage({
           <p className="text-stone-400 text-sm leading-relaxed">
             See you on {formatDate(wedding.wedding_date)}<br />at {wedding.venue_name}
           </p>
-          <p className="text-xs text-stone-300 mt-3">
-            A copy of your invitation has been sent to your email.
+
+          {/* View on Map */}
+          {(wedding.venue_lat && wedding.venue_lng) ? (
+            <a
+              href={`https://www.google.com/maps?q=${wedding.venue_lat},${wedding.venue_lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-3 text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
+            >
+              📍 View on Map
+            </a>
+          ) : wedding.venue_address ? (
+            <a
+              href={`https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 mt-3 text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
+            >
+              📍 View on Map
+            </a>
+          ) : null}
+
+          <p className="text-xs text-stone-400 mt-3 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2">
+            ✉️ A copy of your invitation has been sent to your email.
           </p>
         </div>
 
