@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { login } from '../actions'
 
-export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
+export default function LoginPage({ searchParams }: { searchParams: { error?: string; confirmed?: string } }) {
   return (
     <div className="min-h-screen bg-[#fdf8f4] flex items-center justify-center p-4">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -18,6 +18,12 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
         <div className="bg-white rounded-3xl shadow-sm shadow-rose-100 border border-rose-50 p-8">
           <h2 className="font-serif text-2xl text-stone-800 mb-1">Welcome back</h2>
           <p className="text-sm text-stone-400 mb-7">Sign in to your wedding dashboard</p>
+
+          {searchParams.confirmed && (
+            <div className="mb-5 p-3.5 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 font-medium">
+              Email confirmed! Sign in to start planning.
+            </div>
+          )}
 
           {searchParams.error && (
             <div className="mb-5 p-3.5 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">

@@ -24,6 +24,12 @@ export async function signUp(formData: FormData) {
     return redirect(`/auth/signup?error=${encodeURIComponent(error.message)}`)
   }
 
+  // Supabase's anti-enumeration protection means duplicate emails don't return
+  // an error — the identities array is empty instead. Detect and surface it.
+  if (data.user && data.user.identities?.length === 0) {
+    return redirect(`/auth/signup?error=${encodeURIComponent('An account with this email already exists. Sign in instead.')}`)
+  }
+
   // Supabase returns a session immediately if email confirmation is disabled.
   // If confirmation is enabled, session is null — show the check-your-email screen.
   if (!data.session) {

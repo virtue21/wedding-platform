@@ -10,7 +10,12 @@ export async function GET(request: Request) {
     const supabase = createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // If next is explicitly set (e.g. password reset), honour it.
+      // Otherwise redirect to sign-in with a confirmation success banner.
+      if (next !== '/admin/guests') {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+      return NextResponse.redirect(`${origin}/auth/login?confirmed=1`)
     }
   }
 
