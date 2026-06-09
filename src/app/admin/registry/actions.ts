@@ -58,6 +58,12 @@ export async function deleteRegistryItem(itemId: string) {
   revalidatePath('/admin/registry')
 }
 
+export async function toggleReceiptConfirmed(receiptId: string, current: boolean) {
+  const supabase = createClient()
+  await supabase.from('cash_gift_receipts').update({ is_confirmed: !current }).eq('id', receiptId)
+  revalidatePath('/admin/registry')
+}
+
 export async function toggleReceived(claimId: string, current: boolean) {
   const supabase = createClient()
   await supabase.from('gift_claims').update({ is_received: !current }).eq('id', claimId)

@@ -288,6 +288,85 @@ export type Database = {
           }
         ]
       }
+      wedding_payment_methods: {
+        Row: {
+          id: string
+          wedding_id: string
+          currency: string
+          bank_name: string | null
+          bank_code: string | null
+          account_number: string | null
+          account_name: string | null
+          crypto_chain: string | null
+          crypto_address: string | null
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          currency: string
+          bank_name?: string | null
+          bank_code?: string | null
+          account_number?: string | null
+          account_name?: string | null
+          crypto_chain?: string | null
+          crypto_address?: string | null
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          bank_name?: string | null
+          bank_code?: string | null
+          account_number?: string | null
+          account_name?: string | null
+          crypto_chain?: string | null
+          crypto_address?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'wedding_payment_methods_wedding_id_fkey'
+            columns: ['wedding_id']
+            isOneToOne: false
+            referencedRelation: 'weddings'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      cash_gift_receipts: {
+        Row: {
+          id: string
+          wedding_id: string
+          registry_item_id: string | null
+          guest_name: string
+          phone: string | null
+          amount: number | null
+          receipt_url: string
+          currency: string
+          note: string | null
+          submitted_at: string
+          is_confirmed: boolean
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          registry_item_id?: string | null
+          guest_name: string
+          phone?: string | null
+          amount?: number | null
+          receipt_url: string
+          currency?: string
+          note?: string | null
+          submitted_at?: string
+          is_confirmed?: boolean
+        }
+        Update: {
+          is_confirmed?: boolean
+          note?: string | null
+        }
+        Relationships: []
+      }
       gift_claims: {
         Row: {
           id: string
@@ -359,6 +438,8 @@ export type SeatTable = Tables<'seat_tables'>
 export type GuestRow = Tables<'guests'>
 export type RegistryItem = Tables<'registry_items'>
 export type GiftClaim = Tables<'gift_claims'>
+export type CashGiftReceipt = Tables<'cash_gift_receipts'>
+export type WeddingPaymentMethod = Tables<'wedding_payment_methods'>
 
 // Legacy aliases
 export type Wedding = WeddingRow

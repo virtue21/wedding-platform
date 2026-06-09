@@ -4,25 +4,17 @@ import { useState } from 'react'
 import Image from 'next/image'
 import BankDetails from './BankDetails'
 import ClaimButton from './ClaimButton'
-import type { WeddingRow, RegistryItem } from '@/lib/supabase/database.types'
-
-type PaymentInfo = Pick<WeddingRow, 'id' | 'bank_name' | 'account_number' | 'account_name' | 'currency' | 'crypto_chain' | 'crypto_address'>
+import type { RegistryItem, WeddingPaymentMethod } from '@/lib/supabase/database.types'
 
 type Props = {
-  wedding: PaymentInfo
+  weddingId: string
+  paymentMethods: WeddingPaymentMethod[]
   items: RegistryItem[]
   sessionGuest: { id: string; full_name: string; phone: string } | null
 }
 
-export default function RegistryTabs({ wedding, items, sessionGuest }: Props) {
+export default function RegistryTabs({ weddingId, paymentMethods, items, sessionGuest }: Props) {
   const [tab, setTab] = useState<'items' | 'cash'>('items')
-
-  const symbol =
-    wedding.currency === 'NGN' ? '₦' :
-    wedding.currency === 'USD' ? '$' :
-    wedding.currency === 'GBP' ? '£' : ''
-
-  const isCrypto = ['USDT', 'USDC'].includes(wedding.currency)
 
   return (
     <div>
@@ -58,6 +50,10 @@ export default function RegistryTabs({ wedding, items, sessionGuest }: Props) {
           <div className="space-y-4">
             {items.map(item => {
               const isClaimed = item.quantity_claimed >= item.quantity_needed
+              // Use first fiat method for price display, fall back to crypto
+              const primaryMethod = paymentMethods.find(m => !['USDT','USDC'].includes(m.currency)) ?? paymentMethods[0]
+              const symbol = primaryMethod?.currency === 'NGN' ? '₦' : primaryMethod?.currency === 'USD' ? '$' : primaryMethod?.currency === 'GBP' ? '£' : ''
+              const isCrypto = primaryMethod && ['USDT','USDC'].includes(primaryMethod.currency)
               return (
                 <div
                   key={item.id}
@@ -79,7 +75,7 @@ export default function RegistryTabs({ wedding, items, sessionGuest }: Props) {
                       <p className="text-xs text-stone-400 mt-0.5 line-clamp-2">{item.description}</p>
                     )}
                     <p className="text-sm font-semibold text-stone-800 mt-1">
-                      {symbol}{item.price.toLocaleString()}{isCrypto ? ` ${wedding.currency}` : ''}
+                      {symbol}{item.price.toLocaleString()}{isCrypto ? ` ${primaryMethod?.currency}` : ''}
                     </p>
                     <p className="text-xs text-stone-400">
                       {item.quantity_needed - item.quantity_claimed} of {item.quantity_needed} remaining
@@ -97,9 +93,10 @@ export default function RegistryTabs({ wedding, items, sessionGuest }: Props) {
                         </a>
                       )}
 
-                      {!isClaimed && (
+                      {!isClaimed && paymentMethods.length > 0 && (
                         <BankDetails
-                          wedding={wedding}
+                          weddingId={weddingId}
+                          paymentMethods={paymentMethods}
                           itemId={item.id}
                           price={item.price}
                           guestName={sessionGuest?.full_name ?? null}
@@ -131,18 +128,23 @@ export default function RegistryTabs({ wedding, items, sessionGuest }: Props) {
             <h2 className="font-serif text-xl text-stone-800 mt-3 mb-1">Send a cash gift</h2>
             <p className="text-sm text-stone-400">Send any amount directly to the couple — not tied to a specific item.</p>
           </div>
-          <BankDetails
-            wedding={wedding}
-            itemId={null}
-            price={null}
-            guestName={sessionGuest?.full_name ?? null}
-            guestPhone={sessionGuest?.phone ?? null}
-            trigger={
-              <button className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors">
-                Send cash gift →
-              </button>
-            }
-          />
+          {paymentMethods.length === 0 ? (
+            <p className="text-center text-sm text-stone-400">Cash gift details not set up yet.</p>
+          ) : (
+            <BankDetails
+              weddingId={weddingId}
+              paymentMethods={paymentMethods}
+              itemId={null}
+              price={null}
+              guestName={sessionGuest?.full_name ?? null}
+              guestPhone={sessionGuest?.phone ?? null}
+              trigger={
+                <button className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors">
+                  Send cash gift →
+                </button>
+              }
+            />
+          )}
         </div>
       )}
     </div>

@@ -74,6 +74,45 @@ export async function saveWeddingSetup(formData: FormData) {
   redirect('/setup?saved=1')
 }
 
+export async function addPaymentMethod(formData: FormData) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: wedding } = await supabase
+    .from('weddings').select('id').eq('user_id', user.id).single()
+  if (!wedding) return { error: 'No wedding found. Save wedding details first.' }
+
+  const currency       = formData.get('currency') as string
+  const bank_name      = (formData.get('bank_name')      as string) || null
+  const bank_code      = (formData.get('bank_code')      as string) || null
+  const account_number = (formData.get('account_number') as string) || null
+  const account_name   = (formData.get('account_name')   as string) || null
+  const crypto_chain   = (formData.get('crypto_chain')   as string) || null
+  const crypto_address = (formData.get('crypto_address') as string) || null
+
+  if (!currency) return { error: 'Please select a currency.' }
+
+  const { error } = await supabase.from('wedding_payment_methods').upsert(
+    { wedding_id: wedding.id, currency, bank_name, bank_code, account_number, account_name, crypto_chain, crypto_address },
+    { onConflict: 'wedding_id,currency' }
+  )
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/setup')
+  return { ok: true }
+}
+
+export async function removePaymentMethod(id: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  await supabase.from('wedding_payment_methods').delete().eq('id', id)
+  revalidatePath('/setup')
+}
+
 export async function uploadCoverImage(formData: FormData) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

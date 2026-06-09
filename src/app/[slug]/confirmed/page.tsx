@@ -75,26 +75,21 @@ export default async function ConfirmedPage({
             See you on {formatDate(wedding.wedding_date)}<br />at {wedding.venue_name}
           </p>
 
-          {/* View on Map */}
-          {(wedding.venue_lat && wedding.venue_lng) ? (
-            <a
-              href={`https://www.google.com/maps?q=${wedding.venue_lat},${wedding.venue_lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-3 text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
-            >
-              📍 View on Map
-            </a>
-          ) : wedding.venue_address ? (
-            <a
-              href={`https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-3 text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
-            >
-              📍 View on Map
-            </a>
-          ) : null}
+          {/* View on Map — always show, fall back through coords → address → venue name */}
+          <a
+            href={
+              (wedding.venue_lat && wedding.venue_lng)
+                ? `https://www.google.com/maps?q=${wedding.venue_lat},${wedding.venue_lng}`
+                : wedding.venue_address
+                ? `https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_address)}`
+                : `https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_name)}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
+          >
+            📍 View on Map
+          </a>
 
           <p className="text-xs text-stone-400 mt-3 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2">
             ✉️ A copy of your invitation has been sent to your email.

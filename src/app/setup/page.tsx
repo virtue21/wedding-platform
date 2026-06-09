@@ -6,7 +6,7 @@ import { slugify } from '@/lib/slugify'
 import SlugField from './SlugField'
 import QRDownload from './QRDownload'
 import VenueSearch from '@/components/VenueSearch'
-import CurrencyFields from './CurrencyFields'
+import PaymentMethodsSection from './PaymentMethodsSection'
 import CoverImageUpload from './CoverImageUpload'
 import type { Database } from '@/lib/supabase/database.types'
 
@@ -26,8 +26,13 @@ export default async function SetupPage({
     supabase.from('user_profiles').select('*').eq('id', user.id).single(),
     supabase.from('weddings').select('*').eq('user_id', user.id).single(),
   ])
-  const profile = profileResult.data as ProfileRow | null
-  const wedding = weddingResult.data as WeddingRow | null
+  const paymentMethodsResult = weddingResult.data
+    ? await supabase.from('wedding_payment_methods')
+        .select('*').eq('wedding_id', weddingResult.data.id).order('created_at')
+    : { data: [] }
+  const profile        = profileResult.data as ProfileRow | null
+  const wedding        = weddingResult.data as WeddingRow | null
+  const paymentMethods = (paymentMethodsResult.data ?? []) as import('@/lib/supabase/database.types').WeddingPaymentMethod[]
 
   const defaultSlug = wedding?.slug ?? slugify(profile?.bride_name ?? '', profile?.groom_name ?? '')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
@@ -106,18 +111,6 @@ export default async function SetupPage({
 
             <SlugField defaultValue={defaultSlug} />
 
-            <div className="border-t border-rose-50 pt-5">
-              <h3 className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-4">Payment details for cash gifts</h3>
-              <CurrencyFields
-                defaultCurrency={wedding?.currency ?? 'NGN'}
-                defaultChain={wedding?.crypto_chain}
-                defaultAddress={wedding?.crypto_address}
-                defaultBankName={wedding?.bank_name}
-                defaultBankCode={wedding?.bank_code}
-                defaultAccountNumber={wedding?.account_number}
-                defaultAccountName={wedding?.account_name}
-              />
-            </div>
 
             <div className="pt-1">
               <button type="submit" className="btn-primary">
@@ -125,6 +118,18 @@ export default async function SetupPage({
               </button>
             </div>
           </form>
+        </section>
+
+        {/* Payment Methods */}
+        <section className="card">
+          <h2 className="heading-serif text-lg mb-1">Payment methods for cash gifts</h2>
+          <p className="text-sm text-stone-400 mb-5">
+            Add one account per currency. Guests will be able to choose which one to use when sending a cash gift.
+          </p>
+          <PaymentMethodsSection
+            weddingId={wedding?.id ?? null}
+            initialMethods={paymentMethods}
+          />
         </section>
 
         {/* Cover Image */}

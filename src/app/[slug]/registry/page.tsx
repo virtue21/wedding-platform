@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import RegistryTabs from './RegistryTabs'
-import type { WeddingRow, RegistryItem, Guest } from '@/lib/supabase/database.types'
+import type { WeddingRow, RegistryItem, Guest, WeddingPaymentMethod } from '@/lib/supabase/database.types'
 
 export default async function RegistryPage({
   params,
@@ -32,6 +32,33 @@ export default async function RegistryPage({
     .select('*')
     .eq('wedding_id', wedding.id)
     .order('sort_order') as { data: RegistryItem[] | null }
+
+  // Fetch payment methods; fall back to legacy weddings fields if none configured yet
+  const { data: rawMethods } = await supabase
+    .from('wedding_payment_methods')
+    .select('*')
+    .eq('wedding_id', wedding.id)
+    .order('created_at') as { data: WeddingPaymentMethod[] | null }
+
+  let paymentMethods: WeddingPaymentMethod[] = rawMethods ?? []
+
+  // Legacy fallback: wedding table still has bank/crypto fields
+  if (paymentMethods.length === 0 && (wedding.bank_name || wedding.crypto_address)) {
+    const isCrypto = ['USDT','USDC'].includes(wedding.currency ?? '')
+    paymentMethods = [{
+      id: 'legacy',
+      wedding_id: wedding.id,
+      currency: wedding.currency ?? 'NGN',
+      bank_name: isCrypto ? null : wedding.bank_name,
+      bank_code: isCrypto ? null : (wedding.bank_code ?? null),
+      account_number: isCrypto ? null : wedding.account_number,
+      account_name: isCrypto ? null : wedding.account_name,
+      crypto_chain: isCrypto ? wedding.crypto_chain : null,
+      crypto_address: isCrypto ? wedding.crypto_address : null,
+      sort_order: 0,
+      created_at: '',
+    }]
+  }
 
   let sessionGuest: Pick<Guest, 'id' | 'full_name' | 'phone'> | null = null
   if (searchParams.guest_id) {
@@ -63,15 +90,8 @@ export default async function RegistryPage({
       </div>
 
       <RegistryTabs
-        wedding={{
-          id: wedding.id,
-          bank_name: wedding.bank_name,
-          account_number: wedding.account_number,
-          account_name: wedding.account_name,
-          currency: wedding.currency,
-          crypto_chain: wedding.crypto_chain,
-          crypto_address: wedding.crypto_address,
-        }}
+        weddingId={wedding.id}
+        paymentMethods={paymentMethods}
         items={items ?? []}
         sessionGuest={sessionGuest}
       />

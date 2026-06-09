@@ -2,12 +2,11 @@
 
 import { useState, useRef } from 'react'
 import { submitReceipt } from './actions'
-import type { WeddingRow } from '@/lib/supabase/database.types'
-
-type PaymentInfo = Pick<WeddingRow, 'id' | 'bank_name' | 'account_number' | 'account_name' | 'currency' | 'crypto_chain' | 'crypto_address'>
+import type { WeddingPaymentMethod } from '@/lib/supabase/database.types'
 
 type Props = {
-  wedding: PaymentInfo
+  weddingId: string
+  paymentMethods: WeddingPaymentMethod[]
   itemId?: string | null
   price?: number | null
   guestName?: string | null
@@ -16,26 +15,15 @@ type Props = {
 }
 
 const CRYPTO_CURRENCIES = ['USDT', 'USDC']
-const CURRENCY_SYMBOL: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£', USDT: '', USDC: '' }
+const SYMBOL: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£', USDT: '', USDC: '' }
 
-// ── Available payment methods ──────────────────────────────────────────────
-type Method = { key: 'bank' | 'crypto'; currency: string; subtitle: string }
-
-function getMethods(w: PaymentInfo): Method[] {
-  const methods: Method[] = []
-  // Bank: show when bank_name + account_number set AND currency is fiat
-  if (w.bank_name && w.account_number && !CRYPTO_CURRENCIES.includes(w.currency ?? '')) {
-    methods.push({ key: 'bank', currency: w.currency ?? 'NGN', subtitle: w.bank_name })
-  }
-  // Crypto: show when crypto_address is set
-  if (w.crypto_address) {
-    const cc = CRYPTO_CURRENCIES.includes(w.currency ?? '') ? (w.currency ?? 'USDT') : 'USDT'
-    methods.push({ key: 'crypto', currency: cc, subtitle: `${w.crypto_chain ?? 'Blockchain'} wallet` })
-  }
-  return methods
+function fmt(amount: number, pm: WeddingPaymentMethod) {
+  const sym = SYMBOL[pm.currency] ?? ''
+  const isCrypto = CRYPTO_CURRENCIES.includes(pm.currency)
+  return `${sym}${amount.toLocaleString()}${isCrypto ? ` ${pm.currency}` : ''}`
 }
 
-// ── Copy icon button ───────────────────────────────────────────────────────
+// ── Copy icon ─────────────────────────────────────────────────────────────────
 function CopyIcon({ value }: { value: string }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -52,12 +40,10 @@ function CopyIcon({ value }: { value: string }) {
       }`}
     >
       {copied ? (
-        // Checkmark
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="stroke-current" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="3 8 6.5 12 13 4" />
         </svg>
       ) : (
-        // Clipboard
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="stroke-current" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
           <rect x="5" y="2" width="9" height="12" rx="1.5" />
           <path d="M5 4H3.5A1.5 1.5 0 002 5.5v9A1.5 1.5 0 003.5 16H9a1.5 1.5 0 001.5-1.5V14" />
@@ -69,56 +55,43 @@ function CopyIcon({ value }: { value: string }) {
 
 type Step = 'idle' | 'currency' | 'details' | 'receipt' | 'done'
 
-export default function BankDetails({ wedding, itemId, price, guestName, guestPhone, trigger }: Props) {
-  const methods = getMethods(wedding)
-
-  const [step, setStep]               = useState<Step>('idle')
-  const [selectedMethod, setSelected] = useState<Method | null>(null)
+export default function BankDetails({ weddingId, paymentMethods, itemId, price, guestName, guestPhone, trigger }: Props) {
+  const [step, setStep]                 = useState<Step>('idle')
+  const [selectedMethod, setSelected]   = useState<WeddingPaymentMethod | null>(null)
   const [customAmount, setCustomAmount] = useState('')
-  const [name, setName]               = useState(guestName ?? '')
-  const [phone, setPhone]             = useState(guestPhone ?? '')
-  const [note, setNote]               = useState('')
-  const [preview, setPreview]         = useState<string | null>(null)
-  const [submitting, setSubmitting]   = useState(false)
-  const [error, setError]             = useState('')
-  const fileRef                       = useRef<HTMLInputElement>(null)
+  const [name, setName]                 = useState(guestName ?? '')
+  const [phone, setPhone]               = useState(guestPhone ?? '')
+  const [note, setNote]                 = useState('')
+  const [preview, setPreview]           = useState<string | null>(null)
+  const [submitting, setSubmitting]     = useState(false)
+  const [error, setError]               = useState('')
+  const fileRef                         = useRef<HTMLInputElement>(null)
 
-  // Nothing configured — render nothing
-  if (methods.length === 0) return null
+  if (paymentMethods.length === 0) return null
 
-  const isCrypto   = selectedMethod?.key === 'crypto'
-  const symbol     = CURRENCY_SYMBOL[selectedMethod?.currency ?? ''] ?? ''
-  const finalAmount = price ?? (customAmount ? parseFloat(customAmount) : null)
-  const formattedAmount = finalAmount
-    ? `${symbol}${finalAmount.toLocaleString()}${isCrypto ? ` ${selectedMethod?.currency}` : ''}`
-    : null
+  const isCrypto      = selectedMethod ? CRYPTO_CURRENCIES.includes(selectedMethod.currency) : false
+  const finalAmount   = price ?? (customAmount ? parseFloat(customAmount) : null)
+  const formattedAmt  = finalAmount && selectedMethod ? fmt(finalAmount, selectedMethod) : null
 
   function open() {
-    // If only one method, skip currency selection and go straight to details
-    if (methods.length === 1) {
-      setSelected(methods[0])
+    if (paymentMethods.length === 1) {
+      setSelected(paymentMethods[0])
       setStep('details')
     } else {
       setStep('currency')
     }
   }
 
-  function pickMethod(m: Method) {
-    setSelected(m)
-    setStep('details')
-  }
-
   const close = () => { setStep('idle'); setPreview(null); setError(''); setSelected(null) }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setSubmitting(true)
-    setError('')
+    setSubmitting(true); setError('')
     const fd = new FormData(e.currentTarget)
-    fd.set('wedding_id', wedding.id)
+    fd.set('wedding_id', weddingId)
     if (itemId) fd.set('registry_item_id', itemId)
     if (finalAmount) fd.set('amount', String(finalAmount))
-    fd.set('currency', selectedMethod?.currency ?? wedding.currency ?? 'NGN')
+    fd.set('currency', selectedMethod?.currency ?? 'NGN')
     const result = await submitReceipt(fd)
     setSubmitting(false)
     if (!result.ok) { setError(result.error); return }
@@ -154,36 +127,38 @@ export default function BankDetails({ wedding, itemId, price, guestName, guestPh
           )
       )}
 
-      {/* Step 1 — Currency/method selection (only shown when >1 method) */}
+      {/* Step 1 — Currency/method selection */}
       {step === 'currency' && (
         <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-stone-700 uppercase tracking-wide">Select currency</p>
             <button onClick={close} className="text-stone-400 hover:text-stone-600">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
             </button>
           </div>
           <p className="text-xs text-stone-400">Choose how you&apos;d like to send your gift.</p>
-
           <div className="space-y-2">
-            {methods.map(m => (
-              <button
-                key={m.key}
-                onClick={() => pickMethod(m)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-white border-2 border-rose-100 hover:border-rose-400 rounded-xl transition-colors group"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{m.key === 'crypto' ? '🔗' : '🏦'}</span>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-stone-800">{m.currency}</p>
-                    <p className="text-xs text-stone-400">{m.subtitle}</p>
+            {paymentMethods.map(pm => {
+              const crypto = CRYPTO_CURRENCIES.includes(pm.currency)
+              return (
+                <button
+                  key={pm.id}
+                  onClick={() => { setSelected(pm); setStep('details') }}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border-2 border-rose-100 hover:border-rose-400 rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{crypto ? '🔗' : '🏦'}</span>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-stone-800">{pm.currency}</p>
+                      <p className="text-xs text-stone-400">
+                        {crypto ? `${pm.crypto_chain ?? 'Blockchain'} wallet` : (pm.bank_name ?? 'Bank transfer')}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <span className="text-rose-400 text-lg group-hover:translate-x-1 transition-transform">→</span>
-              </button>
-            ))}
+                  <span className="text-rose-400 text-lg group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -193,18 +168,16 @@ export default function BankDetails({ wedding, itemId, price, guestName, guestPh
         <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-stone-700 uppercase tracking-wide">
-              {isCrypto ? 'Crypto transfer' : 'Bank transfer'}
+              {isCrypto ? 'Crypto transfer' : 'Bank transfer'} · {selectedMethod.currency}
             </p>
             <button onClick={close} className="text-stone-400 hover:text-stone-600">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/>
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
             </button>
           </div>
 
           {/* Amount */}
           {price ? (
-            <p className="text-xl font-bold text-stone-800">{formattedAmount}</p>
+            <p className="text-xl font-bold text-stone-800">{formattedAmt}</p>
           ) : (
             <div>
               <label className="block text-xs text-stone-500 mb-1">Amount ({selectedMethod.currency})</label>
@@ -223,17 +196,17 @@ export default function BankDetails({ wedding, itemId, price, guestName, guestPh
             <div className="space-y-2 text-xs bg-white border border-stone-100 rounded-xl p-3">
               <div className="flex justify-between items-center">
                 <span className="text-stone-400">Bank</span>
-                <span className="font-medium text-stone-800">{wedding.bank_name}</span>
+                <span className="font-medium text-stone-800">{selectedMethod.bank_name}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-stone-400">Account name</span>
-                <span className="font-medium text-stone-800">{wedding.account_name}</span>
+                <span className="font-medium text-stone-800">{selectedMethod.account_name}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-stone-400">Account number</span>
                 <div className="flex items-center">
-                  <span className="font-mono font-semibold text-stone-900 select-all">{wedding.account_number}</span>
-                  <CopyIcon value={wedding.account_number ?? ''} />
+                  <span className="font-mono font-semibold text-stone-900 select-all">{selectedMethod.account_number}</span>
+                  <CopyIcon value={selectedMethod.account_number ?? ''} />
                 </div>
               </div>
             </div>
@@ -248,15 +221,15 @@ export default function BankDetails({ wedding, itemId, price, guestName, guestPh
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-stone-400">Chain</span>
-                <span className="font-medium text-stone-800 capitalize">{wedding.crypto_chain ?? '—'}</span>
+                <span className="font-medium text-stone-800 capitalize">{selectedMethod.crypto_chain ?? '—'}</span>
               </div>
               <div>
                 <p className="text-stone-400 mb-1.5">Wallet address</p>
                 <div className="flex items-start gap-1">
                   <p className="font-mono text-stone-900 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-2 break-all flex-1 select-all text-xs leading-relaxed">
-                    {wedding.crypto_address}
+                    {selectedMethod.crypto_address}
                   </p>
-                  <CopyIcon value={wedding.crypto_address ?? ''} />
+                  <CopyIcon value={selectedMethod.crypto_address ?? ''} />
                 </div>
               </div>
             </div>

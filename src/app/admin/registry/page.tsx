@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import RegistryClient from './RegistryClient'
-import type { RegistryItem, GiftClaim } from '@/lib/supabase/database.types'
+import AdminRegistryTabs from './AdminRegistryTabs'
+import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/database.types'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
@@ -24,40 +24,31 @@ export default async function RegistryPage() {
     )
   }
 
-  const { data: items } = await supabase
-    .from('registry_items')
-    .select('*, gift_claims(*)')
-    .eq('wedding_id', wedding.id)
-    .order('sort_order') as { data: ItemWithClaims[] | null }
+  const [itemsResult, receiptsResult] = await Promise.all([
+    supabase
+      .from('registry_items')
+      .select('*, gift_claims(*)')
+      .eq('wedding_id', wedding.id)
+      .order('sort_order'),
 
-  const totalClaimed = (items ?? []).reduce((n, i) => n + i.quantity_claimed, 0)
-  const totalReceived = (items ?? []).flatMap(i => i.gift_claims).filter(c => c.is_received).length
+    supabase
+      .from('cash_gift_receipts')
+      .select('*')
+      .eq('wedding_id', wedding.id)
+      .order('submitted_at', { ascending: false }),
+  ])
 
   return (
-    <div>
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h1 className="font-serif text-3xl text-stone-800 mb-1">Gift Registry</h1>
-          <p className="text-stone-400 text-sm">Manage what guests can gift you</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-serif text-3xl text-stone-800 mb-1">Gift Registry</h1>
+        <p className="text-stone-400 text-sm">Manage gifts and cash transfers from guests</p>
       </div>
 
-      {(items ?? []).length > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'Total items',   value: (items ?? []).length },
-            { label: 'Items claimed', value: totalClaimed },
-            { label: 'Received',      value: totalReceived },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-white rounded-2xl border border-rose-50 shadow-sm p-5">
-              <p className="font-serif text-3xl text-stone-800 mb-1">{value}</p>
-              <p className="text-xs text-stone-400">{label}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <RegistryClient items={items ?? []} />
+      <AdminRegistryTabs
+        items={(itemsResult.data ?? []) as ItemWithClaims[]}
+        receipts={(receiptsResult.data ?? []) as CashGiftReceipt[]}
+      />
     </div>
   )
 }

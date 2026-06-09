@@ -27,11 +27,12 @@ export default async function WeddingPage({ params }: { params: { slug: string }
   const groomName = profile?.groom_name ?? 'Groom'
 
   const hasMap = wedding.venue_lat != null && wedding.venue_lng != null
+  // Always produce a directions URL: coords → address → venue name as last resort
   const directionsUrl = hasMap
     ? `https://maps.google.com/?q=${wedding.venue_lat},${wedding.venue_lng}`
     : wedding.venue_address
     ? `https://maps.google.com/?q=${encodeURIComponent(wedding.venue_address)}`
-    : null
+    : `https://maps.google.com/?q=${encodeURIComponent(wedding.venue_name)}`
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
@@ -80,44 +81,27 @@ export default async function WeddingPage({ params }: { params: { slug: string }
               </div>
             </div>
 
-            {/* Map */}
+            {/* Embedded map (only when coords available) */}
             {hasMap && (
-              <div className="space-y-3">
-                <VenueMap
-                  lat={wedding.venue_lat!}
-                  lng={wedding.venue_lng!}
-                  venueName={wedding.venue_name}
-                />
-                {directionsUrl && (
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                    </svg>
-                    View on Map
-                  </a>
-                )}
-              </div>
+              <VenueMap
+                lat={wedding.venue_lat!}
+                lng={wedding.venue_lng!}
+                venueName={wedding.venue_name}
+              />
             )}
 
-            {/* Directions link even without map coords */}
-            {!hasMap && directionsUrl && (
-              <a
-                href={directionsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 text-rose-500 text-sm font-medium rounded-xl bg-white"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                </svg>
-                Get Directions
-              </a>
-            )}
+            {/* View on Map — always shown */}
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+              </svg>
+              📍 View on Map
+            </a>
           </div>
 
           <Link
