@@ -364,8 +364,22 @@ export default async function RootPage() {
       </nav>
 
       {/* ── SECTION 1: HERO ── */}
-      <section className="pt-8 pb-14 sm:pt-12 sm:pb-20 bg-white">
-        <div className="max-w-5xl mx-auto px-5">
+      <section className="relative pt-8 pb-14 sm:pt-12 sm:pb-20 overflow-hidden">
+        {/* Wedding backdrop */}
+        <Image
+          src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=85"
+          alt=""
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+        />
+        {/* Left-to-right gradient: opaque white on left (text), fades to show photo on right */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 sm:via-white/80 to-white/40 sm:to-white/10" />
+        {/* Bottom fade into next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
 
             {/* Left — text */}
@@ -416,93 +430,52 @@ export default async function RootPage() {
             Everything in one dashboard.
           </h2>
           <AdminMockup />
-          {/* Feature cards */}
+          {/* Feature photo cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
 
-            {/* Gift Registry */}
-            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
-                  <Gift className="w-3.5 h-3.5 text-rose-500" strokeWidth={1.75} />
+            {[
+              {
+                img: 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=800&q=80',
+                alt: 'Wedding gifts',
+                Icon: Gift,
+                title: 'Gift Registry',
+                desc: 'Guests pick physical gifts or send cash. All tracked in one place.',
+              },
+              {
+                img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80',
+                alt: 'Wedding table setting',
+                Icon: LayoutGrid,
+                title: 'Seating Arrangement',
+                desc: 'Create tables, assign guests, and fill every seat before the day.',
+              },
+              {
+                img: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80',
+                alt: 'Wedding guests',
+                Icon: Users,
+                title: 'Guest Management',
+                desc: 'Every RSVP in one dashboard. Filter, search, and export anytime.',
+              },
+            ].map(({ img, alt, Icon, title, desc }) => (
+              <div key={title} className="rounded-2xl overflow-hidden border border-stone-100 bg-white">
+                <div className="relative h-44">
+                  <Image
+                    src={img}
+                    alt={alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                    loading="lazy"
+                  />
                 </div>
-                <span className="font-semibold text-stone-800 text-sm">Gift Registry</span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {[
-                  { name: 'Samsung 500L Fridge',  price: '₦699,000', claimed: false },
-                  { name: 'Dinner Table Set',      price: '₦280,000', claimed: true  },
-                  { name: 'LG 55" Smart TV',       price: '₦450,000', claimed: false },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-stone-700 leading-none mb-0.5 truncate">{item.name}</p>
-                      <p className="text-[10px] text-stone-400">{item.price}</p>
-                    </div>
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium shrink-0 ${item.claimed ? 'bg-green-50 text-green-600' : 'bg-white text-stone-400 border border-stone-200'}`}>
-                      {item.claimed ? 'Claimed' : 'Open'}
-                    </span>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Icon className="w-4 h-4 text-rose-500" strokeWidth={1.75} />
+                    <span className="font-semibold text-stone-800 text-sm">{title}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Seating */}
-            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <LayoutGrid className="w-3.5 h-3.5 text-blue-500" strokeWidth={1.75} />
-                </div>
-                <span className="font-semibold text-stone-800 text-sm">Seating</span>
-              </div>
-              <div className="flex flex-col gap-3.5">
-                {[
-                  { name: 'Head Table',    filled: 6,  cap: 8  },
-                  { name: 'Family Table A', filled: 10, cap: 10 },
-                  { name: 'Church Table',  filled: 5,  cap: 8  },
-                ].map((t, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-[11px] font-medium text-stone-600">{t.name}</span>
-                      <span className={`text-[10px] font-semibold ${t.filled === t.cap ? 'text-green-500' : 'text-stone-400'}`}>
-                        {t.filled}/{t.cap}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-1.5 rounded-full ${t.filled === t.cap ? 'bg-green-400' : 'bg-rose-400'}`}
-                        style={{ width: `${(t.filled / t.cap) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Guest RSVPs */}
-            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
-                  <Users className="w-3.5 h-3.5 text-violet-500" strokeWidth={1.75} />
-                </div>
-                <span className="font-semibold text-stone-800 text-sm">Guest RSVPs</span>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="bg-white rounded-xl p-3 text-center border border-stone-100">
-                  <p className="text-3xl font-bold text-stone-900 leading-none tracking-tight">127</p>
-                  <p className="text-[10px] text-stone-400 mt-1.5">Confirmed guests</p>
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 bg-white rounded-xl p-3 text-center border border-stone-100">
-                    <p className="text-lg font-bold text-rose-500 leading-none">68</p>
-                    <p className="text-[9px] text-stone-400 mt-1">Bride&apos;s side</p>
-                  </div>
-                  <div className="flex-1 bg-white rounded-xl p-3 text-center border border-stone-100">
-                    <p className="text-lg font-bold text-blue-500 leading-none">59</p>
-                    <p className="text-[9px] text-stone-400 mt-1">Groom&apos;s side</p>
-                  </div>
+                  <p className="text-stone-400 text-xs leading-relaxed">{desc}</p>
                 </div>
               </div>
-            </div>
+            ))}
 
           </div>
         </div>
