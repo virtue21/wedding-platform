@@ -21,7 +21,10 @@ export async function signUp(formData: FormData) {
   })
 
   if (error) {
-    return redirect(`/auth/signup?error=${encodeURIComponent(error.message)}`)
+    const msg = error.message.toLowerCase().includes('security purposes') || error.message.toLowerCase().includes('after')
+      ? 'Too many attempts. Please wait a moment and try again.'
+      : error.message
+    return redirect(`/auth/signup?error=${encodeURIComponent(msg)}`)
   }
 
   // Supabase's anti-enumeration protection means duplicate emails don't return
