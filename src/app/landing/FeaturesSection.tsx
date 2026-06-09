@@ -64,8 +64,8 @@ const features = [
     Icon: Users,
     title: 'Guest Management',
     desc: 'Every RSVP lands in your dashboard. Filter, search, export to CSV.',
-    img: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=700&q=80',
-    imgAlt: 'Wedding guests',
+    img: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=700&q=80',
+    imgAlt: 'Group of guests',
   },
   {
     Icon: LayoutGrid,

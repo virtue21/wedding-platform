@@ -70,16 +70,8 @@ export default async function RootPage() {
       {/* ── FEATURES ── */}
       <FeaturesSection />
 
-      {/* ── SEE IT IN ACTION: sticky scroll ── */}
-      <section className="pb-10 sm:pb-16">
-        <div className="bg-[#fdf8f4] pt-10 pb-4 text-center px-5">
-          <p className="text-xs text-stone-400 uppercase tracking-widest font-medium mb-3">See it in action</p>
-          <h2 className="font-serif text-2xl sm:text-3xl text-stone-800">
-            Your dashboard, always in control.
-          </h2>
-        </div>
-        <ScreenshotSection />
-      </section>
+      {/* ── SEE IT IN ACTION ── */}
+      <ScreenshotSection />
 
       {/* ── HOW IT WORKS ── */}
       <HowItWorksSection />

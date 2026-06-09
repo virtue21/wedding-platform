@@ -5,240 +5,188 @@ import { useEffect, useRef, useState } from 'react'
 const cards = [
   {
     n: '01',
-    icon: '🤔',
     q: 'How many people are actually coming?',
-    a: 'You need a number for the caterer and all you have is maybes scattered across five different conversations.',
-    bg: '#1C1917',
-    accent: '#D4547A',
+    a: 'You need a number for the caterer and all you have is maybes.',
   },
   {
     n: '02',
-    icon: '📱',
-    q: "Where's the guest list?",
-    a: "It's in three WhatsApp chats, a Notes app, a voice memo, and your mum's head.",
-    bg: '#2D1B1F',
-    accent: '#E8A0B0',
+    q: "Where's the list?",
+    a: "It's in three WhatsApp chats, a Notes app, and your mum's head.",
   },
   {
     n: '03',
-    icon: '💸',
-    q: 'Who actually sent money?',
-    a: "You've been sharing your account number all week and now you have no idea who transferred what.",
-    bg: '#1A1F2E',
-    accent: '#A5B4FC',
+    q: 'Who sent money?',
+    a: "You've been forwarding your account number all week and lost track.",
   },
   {
     n: '04',
-    icon: '🪑',
-    q: 'Who sits where?',
-    a: "The venue needs a seating chart by Friday. You haven't even confirmed half the RSVPs yet.",
-    bg: '#2A1F1A',
-    accent: '#FCD34D',
-  },
-  {
-    n: '05',
-    icon: '😮‍💨',
-    q: 'There has to be a better way.',
-    a: "There is. One link does everything — RSVPs, gifts, seating, and the guest list. Right here.",
-    bg: '#3D0F1E',
-    accent: '#D4547A',
-    cta: true,
+    q: 'Who gave us what?',
+    a: "The wedding is over and you can't match gifts to names.",
   },
 ]
 
-const STEP_RATIO = 0.85
+// px of each card peeking below the active one
+const PEEK = 14
+// scroll distance per card (vh fraction)
+const STEP = 0.85
 
 export default function ProblemSection() {
-  const sectionRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
 
   useEffect(() => {
     const onScroll = () => {
-      if (!sectionRef.current) return
-      const rect = sectionRef.current.getBoundingClientRect()
-      const scrolled = Math.max(0, -rect.top)
-      const stepH = window.innerHeight * STEP_RATIO
-      setActive(Math.min(cards.length - 1, Math.floor(scrolled / stepH)))
+      if (!ref.current) return
+      const scrolled = Math.max(0, -ref.current.getBoundingClientRect().top)
+      setActive(Math.min(cards.length - 1, Math.floor(scrolled / (window.innerHeight * STEP))))
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  function goToCard(i: number) {
-    if (!sectionRef.current) return
-    const sectionTop = sectionRef.current.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({ top: sectionTop + i * window.innerHeight * STEP_RATIO, behavior: 'smooth' })
+  function goTo(i: number) {
+    if (!ref.current) return
+    const top = ref.current.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({ top: top + i * window.innerHeight * STEP, behavior: 'smooth' })
   }
 
   return (
-    <div
-      ref={sectionRef}
-      style={{ height: `${cards.length * STEP_RATIO * 100}vh`, backgroundColor: '#1C1917' }}
-    >
-      <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
-        {cards.map((card, i) => {
-          const isPast = i < active
-          const isCurrent = i === active
+    <div ref={ref} style={{ height: `${cards.length * STEP * 100}vh`, background: '#FDF8F4' }}>
+      <div style={{
+        position: 'sticky', top: 0, height: '100vh', width: '100%',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', padding: '0 20px',
+      }}>
 
-          return (
-            <div
-              key={i}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundColor: card.bg,
-                zIndex: cards.length - i,
-                transform: isPast ? 'translateY(-100%)' : 'translateY(0)',
-                transition: 'transform 1.1s cubic-bezier(0.76, 0, 0.24, 1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '60px 24px 48px',
-              }}
-            >
-              {/* Book spine */}
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
-                background: `linear-gradient(to bottom, transparent, ${card.accent}88, transparent)`,
-              }} />
+        {/* Eyebrow + dots */}
+        <div style={{ position: 'absolute', top: 28, left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <p style={{ fontSize: 10, color: '#A8A29E', letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif', margin: 0 }}>
+            Been here before?
+          </p>
+          <div style={{ display: 'flex', gap: 7 }}>
+            {cards.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Card ${i + 1}`}
+                style={{
+                  width: i === active ? 22 : 7, height: 7, borderRadius: 4,
+                  border: 'none', cursor: 'pointer', padding: 0,
+                  background: i <= active ? '#D4547A' : '#E7E5E4',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            ))}
+          </div>
+        </div>
 
-              {/* Bottom page shadow */}
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.5), transparent)',
-                pointerEvents: 'none',
-              }} />
+        {/* Card stack — all cards layered at the same position */}
+        <div style={{
+          position: 'relative',
+          width: '100%', maxWidth: 520,
+          // Extra height to show peeking cards below
+          height: `calc(62vh + ${(cards.length - 1) * PEEK}px)`,
+        }}>
+          {cards.map((card, i) => {
+            const isPast = i < active
+            const depth = Math.max(0, i - active) // 0 = current, 1 = first below, etc.
 
-              {/* Page number */}
-              <div style={{
-                position: 'absolute', top: 20, right: 20,
-                fontFamily: 'monospace', fontSize: 10,
-                color: `${card.accent}99`, letterSpacing: '0.15em',
-              }}>
-                {card.n} / 05
-              </div>
-
-              {/* Clickable dot nav */}
-              <div style={{
-                position: 'absolute', top: 18, left: '50%',
-                transform: 'translateX(-50%)',
-                display: 'flex', gap: 8, alignItems: 'center',
-              }}>
-                {cards.map((_, j) => (
-                  <button
-                    key={j}
-                    onClick={() => goToCard(j)}
-                    aria-label={`Go to card ${j + 1}`}
-                    style={{
-                      width: j === active ? 24 : 8,
-                      height: 8,
-                      borderRadius: 4,
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      background: j <= active ? card.accent : 'rgba(255,255,255,0.2)',
-                      transition: 'all 0.35s ease',
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Card content — always visible, no opacity tricks */}
-              <div style={{ maxWidth: 560, width: '100%', textAlign: 'center' }}>
-                {/* Emoji */}
-                <div style={{ fontSize: 'clamp(44px, 7vw, 64px)', marginBottom: 28, lineHeight: 1 }}>
-                  {card.icon}
-                </div>
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0,
+                  height: '62vh',
+                  background: '#FFF9F5',
+                  borderRadius: 20,
+                  border: '1px solid #EDE8E4',
+                  boxShadow: `0 ${4 + depth * 4}px ${16 + depth * 12}px rgba(0,0,0,${0.07 + depth * 0.02})`,
+                  zIndex: cards.length - i,
+                  // Past: fly off the top. Future/current: stack with depth offset
+                  transform: isPast
+                    ? 'translateY(-110%)'
+                    : `translateY(${depth * PEEK}px) scale(${1 - depth * 0.025})`,
+                  transformOrigin: 'top center',
+                  transition: isPast
+                    ? 'transform 0.85s cubic-bezier(0.76, 0, 0.24, 1)'
+                    : 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  padding: 'clamp(28px, 5vw, 48px) clamp(24px, 5vw, 40px)',
+                }}
+              >
+                {/* Card number */}
+                <span style={{
+                  fontFamily: 'monospace', fontSize: 10,
+                  color: '#D4547A', letterSpacing: '0.14em', marginBottom: 20,
+                }}>
+                  {card.n} / 04
+                </span>
 
                 {/* Question */}
                 <h3 style={{
                   fontFamily: 'var(--font-playfair)',
-                  fontSize: 'clamp(23px, 4.5vw, 44px)',
-                  color: '#FAFAF9',
-                  lineHeight: 1.2,
-                  marginBottom: 16,
+                  fontSize: 'clamp(20px, 4vw, 34px)',
+                  color: '#1C1917',
+                  lineHeight: 1.25,
                   fontWeight: 700,
+                  marginBottom: 18,
+                  margin: '0 0 18px 0',
                 }}>
                   {card.q}
                 </h3>
 
-                {/* Accent line */}
+                {/* Pink accent line */}
                 <div style={{
-                  width: 36, height: 2,
-                  background: card.accent,
-                  margin: '0 auto 20px',
-                  borderRadius: 2,
+                  width: 36, height: 2.5,
+                  background: 'linear-gradient(to right, #D4547A, #E8A0B0)',
+                  borderRadius: 2, margin: '0 0 18px 0',
                 }} />
 
                 {/* Answer */}
                 <p style={{
                   fontFamily: 'Arial, sans-serif',
-                  fontSize: 'clamp(15px, 2vw, 19px)',
-                  color: 'rgba(250,250,249,0.7)',
+                  fontSize: 'clamp(14px, 2vw, 17px)',
+                  color: '#78716C',
                   lineHeight: 1.7,
-                  maxWidth: 460,
-                  margin: '0 auto',
+                  margin: 0,
                 }}>
                   {card.a}
                 </p>
-
-                {/* CTA on last card */}
-                {card.cta && (
-                  <a
-                    href="/auth/signup"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginTop: 32,
-                      padding: '14px 30px',
-                      background: card.accent,
-                      color: 'white',
-                      borderRadius: 14,
-                      textDecoration: 'none',
-                      fontFamily: 'Arial, sans-serif',
-                      fontSize: 15,
-                      fontWeight: 700,
-                      boxShadow: `0 8px 28px ${card.accent}55`,
-                    }}
-                  >
-                    Plan Your Wedding →
-                  </a>
-                )}
               </div>
+            )
+          })}
+        </div>
 
-              {/* Next button */}
-              {i < cards.length - 1 && (
-                <button
-                  onClick={() => goToCard(i + 1)}
-                  aria-label="Next card"
-                  style={{
-                    position: 'absolute', bottom: 22,
-                    left: '50%', transform: 'translateX(-50%)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    opacity: isCurrent ? 0.55 : 0,
-                    transition: 'opacity 0.4s ease',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: '8px 20px',
-                    color: 'rgba(255,255,255,0.6)',
-                  }}
-                >
-                  <span style={{
-                    fontSize: 8, letterSpacing: '0.18em',
-                    textTransform: 'uppercase', fontFamily: 'Arial, sans-serif',
-                  }}>
-                    next
-                  </span>
-                  <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
-                    <path d="M6 0v13M1 8l5 6 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              )}
-            </div>
-          )
-        })}
+        {/* Next button */}
+        {active < cards.length - 1 ? (
+          <button
+            onClick={() => goTo(active + 1)}
+            style={{
+              position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#A8A29E', fontFamily: 'Arial, sans-serif',
+              fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase',
+            }}
+          >
+            next
+            <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+              <path d="M6 0v11M1 6.5l5 6 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        ) : (
+          <p style={{
+            position: 'absolute', bottom: 28,
+            fontFamily: 'Arial, sans-serif', fontSize: 11,
+            color: '#A8A29E', letterSpacing: '0.1em',
+          }}>
+            Scroll to continue ↓
+          </p>
+        )}
       </div>
     </div>
   )

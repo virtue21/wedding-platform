@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // ── Admin UI Mockups ───────────────────────────────────────────────────────
 
@@ -131,13 +131,11 @@ function SeatingMockup() {
   )
 }
 
-// ── Laptop Frame ────────────────────────────────────────────────────────────
-
 function LaptopFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full">
-      <div className="bg-stone-800 rounded-2xl p-2.5 shadow-2xl shadow-stone-900/30">
-        <div className="flex items-center gap-1.5 mb-2 px-1">
+      <div className="bg-stone-800 rounded-xl p-2 shadow-xl shadow-stone-900/20">
+        <div className="flex items-center gap-1.5 mb-1.5 px-1">
           <span className="w-2 h-2 rounded-full bg-red-400/70" />
           <span className="w-2 h-2 rounded-full bg-amber-400/70" />
           <span className="w-2 h-2 rounded-full bg-green-400/70" />
@@ -145,102 +143,157 @@ function LaptopFrame({ children }: { children: React.ReactNode }) {
             <span className="text-[7px] text-stone-500 truncate">wedding-platform-five.vercel.app/admin</span>
           </div>
         </div>
-        <div className="rounded-xl overflow-hidden border border-stone-700/50" style={{ aspectRatio: '16/10' }}>
+        <div className="rounded-lg overflow-hidden border border-stone-700/50" style={{ aspectRatio: '16/10' }}>
           {children}
         </div>
       </div>
-      <div className="mx-auto h-2.5 bg-stone-700 rounded-b-xl" style={{ width: '80%' }} />
-      <div className="mx-auto h-1.5 bg-stone-600 rounded-b-lg" style={{ width: '90%' }} />
+      <div className="mx-auto h-2 bg-stone-700 rounded-b-lg" style={{ width: '78%' }} />
+      <div className="mx-auto h-1.5 bg-stone-600 rounded-b-md" style={{ width: '88%' }} />
     </div>
   )
 }
 
-// ── Slides data ─────────────────────────────────────────────────────────────
+// ── Slide data ─────────────────────────────────────────────────────────────
 
 const slides = [
-  { caption: 'Your guest list, organized', sub: 'Every RSVP, searchable in real time', content: <GuestListMockup /> },
-  { caption: 'Your gift registry, one page', sub: 'Track claims and cash gifts automatically', content: <RegistryMockup /> },
-  { caption: 'Seating made simple', sub: 'Assign tables whenever you\'re ready', content: <SeatingMockup /> },
+  { caption: 'Your guest list, organized', sub: 'Every RSVP searchable in real time', mockup: <GuestListMockup /> },
+  { caption: 'Your gift registry, one page', sub: 'Track claims and cash gifts automatically', mockup: <RegistryMockup /> },
+  { caption: 'Seating made simple', sub: 'Assign tables whenever you\'re ready', mockup: <SeatingMockup /> },
 ]
 
-// ── Main component ──────────────────────────────────────────────────────────
+const PEEK = 12
+const STEP = 0.85
+
+// ── Stacked cards scroll section ────────────────────────────────────────────
 
 export default function ScreenshotSection() {
-  const trackRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
 
-  // Track active slide from scroll position
   useEffect(() => {
-    const el = trackRef.current
-    if (!el) return
     const onScroll = () => {
-      const slideW = el.scrollWidth / slides.length
-      const i = Math.round(el.scrollLeft / slideW)
-      setActive(Math.min(slides.length - 1, Math.max(0, i)))
+      if (!ref.current) return
+      const scrolled = Math.max(0, -ref.current.getBoundingClientRect().top)
+      setActive(Math.min(slides.length - 1, Math.floor(scrolled / (window.innerHeight * STEP))))
     }
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  function scrollTo(i: number) {
-    const el = trackRef.current
-    if (!el) return
-    const slideW = el.offsetWidth
-    el.scrollTo({ left: slideW * i, behavior: 'smooth' })
+  function goTo(i: number) {
+    if (!ref.current) return
+    const top = ref.current.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({ top: top + i * window.innerHeight * STEP, behavior: 'smooth' })
   }
 
   return (
-    <div>
-      {/* Scroll track */}
-      <div
-        ref={trackRef}
-        className="flex overflow-x-auto"
-        style={{
-          scrollSnapType: 'x mandatory',
-          scrollBehavior: 'smooth',
-          WebkitOverflowScrolling: 'touch' as never,
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
-      >
-        {slides.map((s, i) => (
-          <div
-            key={i}
-            className="flex-none w-full px-4 sm:px-8"
-            style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
-          >
-            <div className="max-w-3xl mx-auto">
-              {/* Caption */}
-              <div className="text-center mb-4">
-                <p className="font-serif text-lg sm:text-2xl text-stone-800 font-semibold mb-1">{s.caption}</p>
-                <p className="text-sm text-stone-400">{s.sub}</p>
-              </div>
-              {/* Laptop */}
-              <LaptopFrame>{s.content}</LaptopFrame>
-            </div>
+    <div ref={ref} style={{ height: `${slides.length * STEP * 100}vh`, background: '#FDF8F4' }}>
+      <div style={{
+        position: 'sticky', top: 0, height: '100vh',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '0 20px',
+      }}>
+        {/* Header */}
+        <div style={{ position: 'absolute', top: 28, left: 0, right: 0, textAlign: 'center' }}>
+          <p style={{ fontSize: 10, color: '#A8A29E', letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif', margin: '0 0 10px 0' }}>
+            See it in action
+          </p>
+          {/* Dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 7 }}>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Slide ${i + 1}`}
+                style={{
+                  width: i === active ? 22 : 7, height: 7, borderRadius: 4,
+                  border: 'none', cursor: 'pointer', padding: 0,
+                  background: i <= active ? '#D4547A' : '#E7E5E4',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Dot nav */}
-      <div className="flex justify-center gap-2 mt-5">
-        {slides.map((_, i) => (
+        {/* Stacked laptop cards */}
+        <div style={{
+          position: 'relative',
+          width: '100%', maxWidth: 580,
+          height: `calc(68vh + ${(slides.length - 1) * PEEK}px)`,
+        }}>
+          {slides.map((slide, i) => {
+            const isPast = i < active
+            const depth = Math.max(0, i - active)
+
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0,
+                  height: '68vh',
+                  background: '#FFF9F5',
+                  borderRadius: 20,
+                  border: '1px solid #EDE8E4',
+                  boxShadow: `0 ${4 + depth * 4}px ${16 + depth * 12}px rgba(0,0,0,${0.07 + depth * 0.02})`,
+                  zIndex: slides.length - i,
+                  transform: isPast
+                    ? 'translateY(-110%)'
+                    : `translateY(${depth * PEEK}px) scale(${1 - depth * 0.025})`,
+                  transformOrigin: 'top center',
+                  transition: isPast
+                    ? 'transform 0.85s cubic-bezier(0.76, 0, 0.24, 1)'
+                    : 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  padding: '20px 20px 16px',
+                  gap: 14,
+                }}
+              >
+                {/* Caption */}
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  <p style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(16px, 2.5vw, 22px)', color: '#1C1917', fontWeight: 700, margin: '0 0 3px 0' }}>
+                    {slide.caption}
+                  </p>
+                  <p style={{ fontFamily: 'Arial, sans-serif', fontSize: 12, color: '#A8A29E', margin: 0 }}>
+                    {slide.sub}
+                  </p>
+                </div>
+                {/* Laptop mockup */}
+                <div style={{ flex: 1, minHeight: 0 }}>
+                  <LaptopFrame>{slide.mockup}</LaptopFrame>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Next / continue hint */}
+        {active < slides.length - 1 ? (
           <button
-            key={i}
-            onClick={() => scrollTo(i)}
-            className="focus:outline-none transition-all duration-300"
-            aria-label={`Slide ${i + 1}`}
+            onClick={() => goTo(active + 1)}
             style={{
-              height: 6,
-              width: i === active ? 24 : 6,
-              borderRadius: 3,
-              background: i === active ? '#D4547A' : '#E7B8C5',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
+              position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#A8A29E', fontFamily: 'Arial, sans-serif',
+              fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase',
             }}
-          />
-        ))}
+          >
+            next
+            <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+              <path d="M6 0v11M1 6.5l5 6 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        ) : (
+          <p style={{ position: 'absolute', bottom: 24, fontFamily: 'Arial, sans-serif', fontSize: 11, color: '#A8A29E', letterSpacing: '0.1em' }}>
+            Scroll to continue ↓
+          </p>
+        )}
       </div>
     </div>
   )
