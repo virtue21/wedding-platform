@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { submitRsvp } from './actions'
 import PhoneInput from './PhoneInput'
 import SideAndCategory from './SideAndCategory'
-import type { WeddingRow, RelationshipCategory } from '@/lib/supabase/database.types'
+import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 export default async function RsvpPage({
   params,
@@ -31,6 +31,15 @@ export default async function RsvpPage({
     .select('*')
     .eq('wedding_id', wedding.id)
     .order('sort_order') as { data: RelationshipCategory[] | null }
+
+  const catIds = (categories ?? []).map(c => c.id)
+  const { data: subcategories } = catIds.length > 0
+    ? await supabase
+        .from('relationship_subcategories')
+        .select('id, category_id, label, sort_order')
+        .in('category_id', catIds)
+        .order('sort_order') as { data: RelationshipSubcategory[] | null }
+    : { data: [] as RelationshipSubcategory[] }
 
   const brideCategories = (categories ?? []).filter(c => c.side === 'bride')
   const groomCategories = (categories ?? []).filter(c => c.side === 'groom')
@@ -73,7 +82,11 @@ export default async function RsvpPage({
               <input name="email" type="email" placeholder="emeka@example.com" className="input" />
             </div>
 
-            <SideAndCategory brideCategories={brideCategories} groomCategories={groomCategories} />
+            <SideAndCategory
+              brideCategories={brideCategories}
+              groomCategories={groomCategories}
+              subcategories={subcategories ?? []}
+            />
 
             <button type="submit" className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-2xl transition-colors shadow-sm shadow-rose-200 mt-2">
               Confirm Attendance

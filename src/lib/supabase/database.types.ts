@@ -195,6 +195,7 @@ export type Database = {
           email: string | null
           side: 'bride' | 'groom' | 'both'
           category_id: string
+          subcategory_id: string | null
           table_id: string | null
           rsvp_date: string
           is_removed: boolean
@@ -209,6 +210,7 @@ export type Database = {
           email?: string | null
           side: 'bride' | 'groom' | 'both'
           category_id: string
+          subcategory_id?: string | null
           table_id?: string | null
           rsvp_date?: string
           is_removed?: boolean
@@ -221,6 +223,7 @@ export type Database = {
           email?: string | null
           side?: 'bride' | 'groom' | 'both'
           category_id?: string
+          subcategory_id?: string | null
           table_id?: string | null
           is_removed?: boolean
           notes?: string | null

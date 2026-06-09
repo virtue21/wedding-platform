@@ -59,6 +59,7 @@ export async function submitRsvp(slug: string, formData: FormData) {
   const full_name = (formData.get('full_name') as string).trim()
   const side = formData.get('side') as 'bride' | 'groom' | 'both'
   const category_id = formData.get('category_id') as string
+  const subcategory_id = (formData.get('subcategory_id') as string | null) || null
 
   // ── Auto-assign table based on category ───────────────────────
   // Find a table linked to this category that still has capacity
@@ -85,7 +86,7 @@ export async function submitRsvp(slug: string, formData: FormData) {
 
   const { data: guest, error } = await supabase
     .from('guests')
-    .insert({ wedding_id: wedding.id, full_name, phone, email, side, category_id, table_id })
+    .insert({ wedding_id: wedding.id, full_name, phone, email, side, category_id, subcategory_id, table_id })
     .select('id')
     .single() as { data: Pick<GuestRow, 'id'> | null; error: unknown }
 
