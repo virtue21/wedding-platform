@@ -64,14 +64,7 @@ export default async function RootPage() {
       </section>
 
       {/* ── PROBLEM: sticky scroll book-turn panels ── */}
-      <section>
-        <div className="bg-white pt-16 pb-4 text-center">
-          <h2 className="font-serif text-2xl sm:text-3xl text-stone-800">
-            Been here before?
-          </h2>
-        </div>
-        <ProblemSection />
-      </section>
+      <ProblemSection />
 
       {/* ── FEATURES ── */}
       <FeaturesSection />
