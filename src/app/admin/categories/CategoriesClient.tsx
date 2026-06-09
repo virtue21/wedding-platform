@@ -306,13 +306,12 @@ export default function CategoriesClient({
   const [groomCats, setGroomCats]             = useState<LocalCat[]>(() => initCats(initialGroom))
   const [delBrideCatIds, setDelBrideCatIds]   = useState<string[]>([])
   const [delGroomCatIds, setDelGroomCatIds]   = useState<string[]>([])
-  const [delSubIds, setDelSubIds]             = useState<string[]>([])
   const [isDirty, setIsDirty]                 = useState(false)
   const [saving, setSaving]                   = useState(false)
   const [error, setError]                     = useState('')
-  const [saved, setSaved]                     = useState(false)
+  const [saveMsg, setSaveMsg]                 = useState('')
 
-  function dirty() { setIsDirty(true); setSaved(false); setError('') }
+  function dirty() { setIsDirty(true); setSaveMsg(''); setError('') }
 
   // ── Bride operations ──
   function brideAddCat(label: string) {
@@ -337,7 +336,6 @@ export default function CategoriesClient({
     dirty()
   }
   function brideRemoveSub(catId: string, subId: string) {
-    if (!subId.startsWith('new:')) setDelSubIds(p => [...p, subId])
     setBrideCats(p => p.map(c => c.id === catId
       ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) } : c))
     dirty()
@@ -371,7 +369,6 @@ export default function CategoriesClient({
     dirty()
   }
   function groomRemoveSub(catId: string, subId: string) {
-    if (!subId.startsWith('new:')) setDelSubIds(p => [...p, subId])
     setGroomCats(p => p.map(c => c.id === catId
       ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) } : c))
     dirty()
@@ -392,7 +389,7 @@ export default function CategoriesClient({
       groomCats,
       delBrideCatIds,
       delGroomCatIds,
-      delSubIds,
+      [], // deletedSubIds no longer needed — action replaces all subs per category
     )
 
     setSaving(false)
@@ -402,18 +399,21 @@ export default function CategoriesClient({
       return
     }
 
-    // Reset local state from the freshly-saved DB data (real IDs replace temp 'new:xxx' IDs)
-    // Preserve which categories are currently expanded so the UI doesn't collapse everything
+    // Reset local state from DB data returned by action (real IDs replace temp 'new:xxx')
+    // Preserve expanded state so panels don't collapse after saving
     if (result.bride && result.groom) {
       setBrideCats(prev => initCats(result.bride!, expandedMap(prev)))
       setGroomCats(prev => initCats(result.groom!, expandedMap(prev)))
+
+      const totalSubs = [...result.bride, ...result.groom]
+        .reduce((n, c) => n + c.subcategories.length, 0)
+      const totalCats = result.bride.length + result.groom.length
+      setSaveMsg(`Saved ${totalCats} categories and ${totalSubs} sub-categories.`)
     }
 
     setDelBrideCatIds([])
     setDelGroomCatIds([])
-    setDelSubIds([])
     setIsDirty(false)
-    setSaved(true)
   }
 
   return (
@@ -444,9 +444,9 @@ export default function CategoriesClient({
           {error}
         </div>
       )}
-      {saved && !isDirty && (
+      {saveMsg && !isDirty && (
         <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700 font-medium">
-          ✓ All changes saved successfully.
+          ✓ {saveMsg}
         </div>
       )}
 

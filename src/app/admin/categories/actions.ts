@@ -10,106 +10,16 @@ export type CatInput = { id: string; label: string; subcategories: SubInput[] }
 
 type CategoryWithSubs = RelationshipCategory & { subcategories: RelationshipSubcategory[] }
 
-// Save one side to DB and return the freshly-queried result
-async function saveSide(
-  supabase: ReturnType<typeof createClient>,
-  weddingId: string,
-  side: 'bride' | 'groom',
-  categories: CatInput[],
-  deletedCategoryIds: string[],
-  deletedSubIds: string[],
-): Promise<{ error?: string }> {
-
-  // 1. Delete removed subcategories
-  if (deletedSubIds.length > 0) {
-    const { error } = await supabase
-      .from('relationship_subcategories')
-      .delete()
-      .in('id', deletedSubIds)
-    if (error) return { error: `Failed to delete sub-categories: ${error.message}` }
-  }
-
-  // 2. Delete removed categories (block if guests still assigned)
-  if (deletedCategoryIds.length > 0) {
-    const { data: blocked } = await supabase
-      .from('guests')
-      .select('id')
-      .in('category_id', deletedCategoryIds)
-      .eq('is_removed', false)
-      .limit(1)
-
-    if (blocked && blocked.length > 0) {
-      return { error: 'One of the categories you removed still has guests assigned. Reassign those guests first.' }
-    }
-
-    const { error } = await supabase
-      .from('relationship_categories')
-      .delete()
-      .in('id', deletedCategoryIds)
-    if (error) return { error: `Failed to delete categories: ${error.message}` }
-  }
-
-  // 3. Upsert categories + subcategories in order
-  for (let i = 0; i < categories.length; i++) {
-    const cat = categories[i]
-    let realCatId: string
-
-    if (cat.id.startsWith('new:')) {
-      const { data: inserted, error } = await supabase
-        .from('relationship_categories')
-        .insert({ wedding_id: weddingId, side, label: cat.label.trim(), sort_order: i })
-        .select('id')
-        .single()
-      if (error || !inserted) {
-        return { error: `Failed to create category "${cat.label}": ${error?.message}` }
-      }
-      realCatId = inserted.id
-    } else {
-      const { error } = await supabase
-        .from('relationship_categories')
-        .update({ label: cat.label.trim(), sort_order: i })
-        .eq('id', cat.id)
-      if (error) return { error: `Failed to update category "${cat.label}": ${error.message}` }
-      realCatId = cat.id
-    }
-
-    // Upsert subcategories
-    for (let j = 0; j < cat.subcategories.length; j++) {
-      const sub = cat.subcategories[j]
-      if (sub.id.startsWith('new:')) {
-        const { data: inserted, error } = await supabase
-          .from('relationship_subcategories')
-          .insert({ category_id: realCatId, label: sub.label.trim(), sort_order: j })
-          .select('id')
-          .single()
-        if (error || !inserted) {
-          return { error: `Failed to save sub-category "${sub.label}"${error ? `: ${error.message}` : '. Check RLS policies on relationship_subcategories.'}` }
-        }
-      } else {
-        const { error } = await supabase
-          .from('relationship_subcategories')
-          .update({ label: sub.label.trim(), sort_order: j })
-          .eq('id', sub.id)
-        if (error) {
-          return { error: `Failed to update sub-category "${sub.label}": ${error.message}` }
-        }
-      }
-    }
-  }
-
-  return {}
-}
-
-// Central save — both sides at once
-// Returns fresh data from DB so the client can reset its local state
 export async function saveCategories(
   brideCategories: CatInput[],
   groomCategories: CatInput[],
   deletedBrideCatIds: string[],
   deletedGroomCatIds: string[],
-  deletedSubIds: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _deletedSubIds: string[], // no longer needed — we replace all subs per category
 ): Promise<{
   error?: string
+  debug?: string
   bride?: CategoryWithSubs[]
   groom?: CategoryWithSubs[]
 }> {
@@ -121,26 +31,100 @@ export async function saveCategories(
     .from('weddings').select('id').eq('user_id', user.id).single()
   if (!wedding) return { error: 'No wedding found.' }
 
-  // Save bride side
-  const brideResult = await saveSide(
-    supabase, wedding.id, 'bride',
-    brideCategories, deletedBrideCatIds, deletedSubIds,
-  )
-  if (brideResult.error) return { error: brideResult.error }
+  const allCategories = [
+    ...brideCategories.map(c => ({ ...c, side: 'bride' as const })),
+    ...groomCategories.map(c => ({ ...c, side: 'groom' as const })),
+  ]
 
-  // Save groom side
-  const groomResult = await saveSide(
-    supabase, wedding.id, 'groom',
-    groomCategories, deletedGroomCatIds, deletedSubIds,
-  )
-  if (groomResult.error) return { error: groomResult.error }
+  const deletedCatIds = [...deletedBrideCatIds, ...deletedGroomCatIds]
 
-  // Re-query fresh data so the client can reset local state with real IDs
-  const { data: fresh } = await supabase
+  // ── 1. Block delete if guests are still assigned ──────────────────────────
+  if (deletedCatIds.length > 0) {
+    const { data: blocked } = await supabase
+      .from('guests')
+      .select('id')
+      .in('category_id', deletedCatIds)
+      .eq('is_removed', false)
+      .limit(1)
+
+    if (blocked && blocked.length > 0) {
+      return { error: 'One of the deleted categories still has guests assigned. Reassign those guests first.' }
+    }
+
+    const { error } = await supabase
+      .from('relationship_categories')
+      .delete()
+      .in('id', deletedCatIds)
+    if (error) return { error: `Could not delete categories: ${error.message}` }
+  }
+
+  // ── 2. Upsert every category, then replace its subcategories ──────────────
+  for (let i = 0; i < allCategories.length; i++) {
+    const cat = allCategories[i]
+    let realCatId: string
+
+    if (cat.id.startsWith('new:')) {
+      // Insert new category
+      const { data: inserted, error } = await supabase
+        .from('relationship_categories')
+        .insert({ wedding_id: wedding.id, side: cat.side, label: cat.label.trim(), sort_order: i })
+        .select('id')
+        .single()
+
+      if (error || !inserted) {
+        return { error: `Could not create category "${cat.label}": ${error?.message ?? 'unknown error'}` }
+      }
+      realCatId = inserted.id
+    } else {
+      // Update existing category
+      const { error } = await supabase
+        .from('relationship_categories')
+        .update({ label: cat.label.trim(), sort_order: i })
+        .eq('id', cat.id)
+        .eq('wedding_id', wedding.id) // extra safety
+
+      if (error) return { error: `Could not update category "${cat.label}": ${error.message}` }
+      realCatId = cat.id
+    }
+
+    // ── Replace subcategories: delete all then insert current set ──
+    // This is simpler and more reliable than tracking new vs existing IDs.
+    const { error: delErr } = await supabase
+      .from('relationship_subcategories')
+      .delete()
+      .eq('category_id', realCatId)
+
+    if (delErr) {
+      return { error: `Could not clear sub-categories for "${cat.label}": ${delErr.message}` }
+    }
+
+    if (cat.subcategories.length > 0) {
+      const rows = cat.subcategories.map((s, j) => ({
+        category_id: realCatId,
+        label: s.label.trim(),
+        sort_order: j,
+      }))
+
+      const { error: insErr } = await supabase
+        .from('relationship_subcategories')
+        .insert(rows)
+
+      if (insErr) {
+        return { error: `Could not save sub-categories for "${cat.label}": ${insErr.message}` }
+      }
+    }
+  }
+
+  // ── 3. Re-query and return fresh data ─────────────────────────────────────
+  const { data: fresh, error: fetchErr } = await supabase
     .from('relationship_categories')
     .select('*, relationship_subcategories(id, category_id, label, sort_order)')
     .eq('wedding_id', wedding.id)
-    .order('sort_order') as { data: CategoryWithSubs[] | null }
+    .order('sort_order') as { data: CategoryWithSubs[] | null; error: unknown }
+
+  if (fetchErr) {
+    return { error: `Saved OK but could not reload: ${JSON.stringify(fetchErr)}` }
+  }
 
   const all = (fresh ?? []).map(c => ({
     ...c,
