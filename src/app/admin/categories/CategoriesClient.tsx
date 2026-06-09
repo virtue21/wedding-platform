@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   addCategory, deleteCategory, renameCategory,
@@ -88,15 +88,6 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  // Sync local subs state whenever the server sends fresh props
-  // (triggered after router.refresh() completes)
-  useEffect(() => {
-    setSubs(cat.subcategories)
-  }, [cat.subcategories])
-
-  useEffect(() => {
-    setCatLabel(cat.label)
-  }, [cat.label])
 
   const MAX_SUBS = 10
 
@@ -106,7 +97,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
     if (!trimmed || subs.length >= MAX_SUBS) return
 
     startTransition(async () => {
-      // Optimistic: add a placeholder immediately so the UI updates at once
+      // Optimistic: show item immediately with a temp id
       const tempId = `temp-${Date.now()}`
       const optimistic: RelationshipSubcategory = {
         id: tempId,
@@ -117,10 +108,13 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
       setSubs(prev => [...prev, optimistic])
       setSubInput('')
 
-      // Persist to DB — the server returns nothing, so we just refresh
-      // in the background to get the real ID (not strictly necessary for display)
-      await addSubcategory(cat.id, trimmed)
-      router.refresh()
+      // Persist — server returns the real saved row
+      const saved = await addSubcategory(cat.id, trimmed)
+
+      // Swap temp item for the real row (real DB id)
+      if (saved) {
+        setSubs(prev => prev.map(s => s.id === tempId ? saved : s))
+      }
     })
   }
 

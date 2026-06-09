@@ -51,8 +51,13 @@ export async function addSubcategory(categoryId: string, label: string) {
     .limit(1)
 
   const sort_order = (existing?.[0]?.sort_order ?? -1) + 1
-  await supabase.from('relationship_subcategories').insert({ category_id: categoryId, label, sort_order })
+  const { data } = await supabase
+    .from('relationship_subcategories')
+    .insert({ category_id: categoryId, label, sort_order })
+    .select()
+    .single()
   revalidatePath('/admin/categories')
+  return data  // return the real saved row with its DB id
 }
 
 export async function deleteSubcategory(id: string) {
