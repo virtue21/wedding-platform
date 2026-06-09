@@ -74,6 +74,9 @@ export default async function ConfirmedPage({
           <p className="text-stone-400 text-sm leading-relaxed">
             See you on {formatDate(wedding.wedding_date)}<br />at {wedding.venue_name}
           </p>
+          <p className="text-xs text-stone-300 mt-3">
+            A copy of your invitation has been sent to your email.
+          </p>
         </div>
 
         {/* Table assignment */}

@@ -17,6 +17,7 @@ export async function saveRegistryItem(formData: FormData) {
   const name = formData.get('name') as string
   const description = (formData.get('description') as string) || null
   const price = parseFloat(formData.get('price') as string)
+  const currency = (formData.get('currency') as string) || 'NGN'
   const checkout_link = (formData.get('checkout_link') as string) || null
   const quantity_needed = parseInt(formData.get('quantity_needed') as string) || 1
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
@@ -38,11 +39,11 @@ export async function saveRegistryItem(formData: FormData) {
 
   if (id) {
     await supabase.from('registry_items')
-      .update({ name, description, price, checkout_link, quantity_needed, sort_order, ...(image_url ? { image_url } : {}) })
+      .update({ name, description, price, currency, checkout_link, quantity_needed, sort_order, ...(image_url ? { image_url } : {}) })
       .eq('id', id)
   } else {
     await supabase.from('registry_items')
-      .insert({ wedding_id: wedding.id, name, description, price, checkout_link, quantity_needed, sort_order, ...(image_url ? { image_url } : {}) })
+      .insert({ wedding_id: wedding.id, name, description, price, currency, checkout_link, quantity_needed, sort_order, ...(image_url ? { image_url } : {}) })
   }
 
   revalidatePath('/admin/registry')

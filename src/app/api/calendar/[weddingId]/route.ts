@@ -50,7 +50,7 @@ export async function GET(
   return new NextResponse(ics, {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': `attachment; filename="wedding.ics"`,
+      'Content-Disposition': `inline; filename="wedding.ics"`,
     },
   })
 }

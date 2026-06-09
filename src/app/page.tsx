@@ -329,7 +329,17 @@ function AdminMockup() {
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-export default async function RootPage() {
+export default async function RootPage({
+  searchParams,
+}: {
+  searchParams: { error?: string; error_code?: string }
+}) {
+  // Supabase sends auth errors (e.g. expired links) to the site root.
+  // Catch them and forward to a proper error page.
+  if (searchParams.error_code === 'otp_expired' || searchParams.error === 'access_denied') {
+    redirect('/auth/link-expired')
+  }
+
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/admin/guests')

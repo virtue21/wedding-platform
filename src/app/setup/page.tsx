@@ -101,6 +101,7 @@ export default async function SetupPage({
               defaultAddress={wedding?.venue_address ?? ''}
               defaultLat={wedding?.venue_lat ?? undefined}
               defaultLng={wedding?.venue_lng ?? undefined}
+              defaultState={wedding?.venue_state ?? ''}
             />
 
             <SlugField defaultValue={defaultSlug} />

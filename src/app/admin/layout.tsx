@@ -40,11 +40,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="bg-white border-b border-rose-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <div>
-              <p className="text-xs text-stone-400 leading-none mb-0.5">Wedding Guest Management</p>
-              {coupleNames && (
-                <p className="font-serif text-stone-800 text-sm leading-none">{coupleNames}</p>
-              )}
+            <div className="flex items-center gap-2.5">
+              <span className="text-lg leading-none">💍</span>
+              <div>
+                <p className="font-serif text-stone-800 text-sm leading-none tracking-tight">NemiPlanner</p>
+                {coupleNames && (
+                  <p className="text-[11px] text-stone-400 leading-none mt-0.5">{coupleNames}</p>
+                )}
+              </div>
             </div>
             <nav className="hidden md:flex items-center gap-1">
               {NAV.map(({ href, label, icon }) => (

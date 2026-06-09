@@ -23,23 +23,39 @@ function SubcategoryRow({ sub }: { sub: RelationshipSubcategory }) {
             value={label}
             onChange={e => setLabel(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') startTransition(() => { renameSubcategory(sub.id, label); setEditing(false) })
-              if (e.key === 'Escape') setEditing(null as unknown as never)
+              if (e.key === 'Enter') startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false) })
+              if (e.key === 'Escape') setEditing(false)
             }}
             className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
           />
-          <button onClick={() => startTransition(() => { renameSubcategory(sub.id, label); setEditing(false) })} className="text-xs text-rose-500 font-medium">Save</button>
+          <button
+            onClick={() => startTransition(async () => { await renameSubcategory(sub.id, label); setEditing(false) })}
+            className="text-xs text-rose-500 font-medium"
+          >
+            Save
+          </button>
           <button onClick={() => setEditing(false)} className="text-xs text-stone-400">✕</button>
         </>
       ) : (
         <>
           <span className="flex-1 text-xs text-stone-600 py-1 px-2 bg-stone-50 rounded-md">{sub.label}</span>
-          <button onClick={() => setEditing(true)} className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity">Edit</button>
           <button
-            onClick={() => { if (confirm(`Delete "${sub.label}"?`)) startTransition(() => deleteSubcategory(sub.id)) }}
+            onClick={() => setEditing(true)}
+            className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Delete "${sub.label}"?`)) {
+                startTransition(async () => { await deleteSubcategory(sub.id) })
+              }
+            }}
             disabled={isPending}
             className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity"
-          >✕</button>
+          >
+            ✕
+          </button>
         </>
       )}
     </div>
@@ -55,7 +71,7 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
 
   return (
     <div className="rounded-xl border border-rose-50 overflow-hidden">
-      {/* Category row */}
+      {/* Category header row */}
       <div className="flex items-center gap-2 group px-3 py-2.5 bg-stone-50">
         {editing ? (
           <>
@@ -64,12 +80,17 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               value={editLabel}
               onChange={e => setEditLabel(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') startTransition(() => { renameCategory(cat.id, editLabel); setEditing(false) })
+                if (e.key === 'Enter') startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false) })
                 if (e.key === 'Escape') setEditing(false)
               }}
               className="flex-1 px-2.5 py-1 border border-rose-200 rounded-lg text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
             />
-            <button onClick={() => startTransition(() => { renameCategory(cat.id, editLabel); setEditing(false) })} className="text-xs text-rose-500 font-medium">Save</button>
+            <button
+              onClick={() => startTransition(async () => { await renameCategory(cat.id, editLabel); setEditing(false) })}
+              className="text-xs text-rose-500 font-medium"
+            >
+              Save
+            </button>
             <button onClick={() => setEditing(false)} className="text-xs text-stone-400">Cancel</button>
           </>
         ) : (
@@ -87,12 +108,23 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               )}
               <span className="ml-auto text-stone-300 text-xs">{expanded ? '▲' : '▼'}</span>
             </button>
-            <button onClick={() => { setEditing(true); setEditLabel(cat.label) }} className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity shrink-0">Edit</button>
             <button
-              onClick={() => { if (confirm(`Delete "${cat.label}" and all its subcategories?`)) startTransition(() => deleteCategory(cat.id)) }}
+              onClick={() => { setEditing(true); setEditLabel(cat.label) }}
+              className="opacity-0 group-hover:opacity-100 text-xs text-stone-400 hover:text-stone-600 transition-opacity shrink-0"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Delete "${cat.label}" and all its subcategories?`)) {
+                  startTransition(async () => { await deleteCategory(cat.id) })
+                }
+              }}
               disabled={isPending}
               className="opacity-0 group-hover:opacity-100 text-xs text-red-400 hover:text-red-600 transition-opacity shrink-0"
-            >✕</button>
+            >
+              ✕
+            </button>
           </>
         )}
       </div>
@@ -107,12 +139,16 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
             <SubcategoryRow key={sub.id} sub={sub} />
           ))}
 
-          {/* Add subcategory */}
+          {/* Add subcategory form */}
           <form
             onSubmit={e => {
               e.preventDefault()
-              if (!subLabel.trim()) return
-              startTransition(() => { addSubcategory(cat.id, subLabel.trim()); setSubLabel('') })
+              const trimmed = subLabel.trim()
+              if (!trimmed) return
+              startTransition(async () => {
+                await addSubcategory(cat.id, trimmed)
+                setSubLabel('')
+              })
             }}
             className="flex gap-2 mt-2"
           >
@@ -126,7 +162,9 @@ function CategoryRow({ cat, color }: { cat: CategoryWithSubs; color: { ring: str
               type="submit"
               disabled={isPending || !subLabel.trim()}
               className="text-xs px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-lg transition-colors disabled:opacity-40"
-            >+ Add</button>
+            >
+              {isPending ? '…' : '+ Add'}
+            </button>
           </form>
         </div>
       )}
@@ -167,11 +205,15 @@ function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categorie
       <form
         onSubmit={e => {
           e.preventDefault()
-          if (!label.trim()) return
+          const trimmed = label.trim()
+          if (!trimmed) return
           const fd = new FormData()
           fd.append('side', side)
-          fd.append('label', label)
-          startTransition(() => { addCategory(fd); setLabel('') })
+          fd.append('label', trimmed)
+          startTransition(async () => {
+            await addCategory(fd)
+            setLabel('')
+          })
         }}
         className="flex gap-2"
       >
@@ -185,7 +227,9 @@ function CategoryList({ side, categories }: { side: 'bride' | 'groom'; categorie
           type="submit"
           disabled={isPending || !label.trim()}
           className={`px-4 py-2 ${color.btn} text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-40`}
-        >Add</button>
+        >
+          {isPending ? '…' : 'Add'}
+        </button>
       </form>
     </div>
   )

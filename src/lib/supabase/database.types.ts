@@ -36,6 +36,7 @@ export type Database = {
           wedding_date: string
           venue_name: string
           venue_address: string | null
+          venue_state: string | null
           venue_lat: number | null
           venue_lng: number | null
           cover_image_url: string | null
@@ -56,6 +57,7 @@ export type Database = {
           wedding_date: string
           venue_name: string
           venue_address?: string | null
+          venue_state?: string | null
           venue_lat?: number | null
           venue_lng?: number | null
           cover_image_url?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           wedding_date?: string
           venue_name?: string
           venue_address?: string | null
+          venue_state?: string | null
           venue_lat?: number | null
           venue_lng?: number | null
           cover_image_url?: string | null
@@ -240,6 +243,7 @@ export type Database = {
           description: string | null
           image_url: string | null
           price: number
+          currency: string | null
           checkout_link: string | null
           quantity_needed: number
           quantity_claimed: number
@@ -253,6 +257,7 @@ export type Database = {
           description?: string | null
           image_url?: string | null
           price: number
+          currency?: string | null
           checkout_link?: string | null
           quantity_needed?: number
           quantity_claimed?: number
@@ -264,6 +269,7 @@ export type Database = {
           description?: string | null
           image_url?: string | null
           price?: number
+          currency?: string | null
           checkout_link?: string | null
           quantity_needed?: number
           quantity_claimed?: number

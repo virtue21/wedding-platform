@@ -11,11 +11,13 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       // If next is explicitly set (e.g. password reset), honour it.
-      // Otherwise redirect to sign-in with a confirmation success banner.
       if (next !== '/admin/guests') {
         return NextResponse.redirect(`${origin}${next}`)
       }
-      return NextResponse.redirect(`${origin}/auth/login?confirmed=1`)
+      // Email confirmation flow: sign the user out immediately so the
+      // middleware doesn't intercept the redirect to the verified page.
+      await supabase.auth.signOut()
+      return NextResponse.redirect(`${origin}/auth/email-verified`)
     }
   }
 

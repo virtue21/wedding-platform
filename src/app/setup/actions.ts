@@ -17,6 +17,7 @@ export async function saveWeddingSetup(formData: FormData) {
   const wedding_date = formData.get('wedding_date') as string
   const venue_name = formData.get('venue_name') as string
   const venue_address = (formData.get('venue_address') as string) || null
+  const venue_state = (formData.get('venue_state') as string) || null
   const venue_lat = parseFloat(formData.get('venue_lat') as string) || null
   const venue_lng = parseFloat(formData.get('venue_lng') as string) || null
   const bank_name = (formData.get('bank_name') as string) || null
@@ -40,7 +41,7 @@ export async function saveWeddingSetup(formData: FormData) {
     .eq('user_id', user.id)
     .single() as { data: Pick<WeddingRow, 'id'> | null }
 
-  const payload = { slug, wedding_date, venue_name, venue_address, venue_lat, venue_lng, bank_name, bank_code, account_number, account_name, currency, crypto_chain, crypto_address }
+  const payload = { slug, wedding_date, venue_name, venue_address, venue_state, venue_lat, venue_lng, bank_name, bank_code, account_number, account_name, currency, crypto_chain, crypto_address }
 
   if (existing) {
     const { error } = await supabase.from('weddings').update(payload).eq('id', existing.id)

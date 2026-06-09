@@ -52,7 +52,7 @@ export default function RegistryClient({ items }: { items: ItemWithClaims[] }) {
                       <div>
                         <h3 className="font-medium text-stone-800">{item.name}</h3>
                         {item.description && <p className="text-xs text-stone-400 mt-0.5">{item.description}</p>}
-                        <p className="text-sm font-semibold text-rose-500 mt-1">₦{item.price.toLocaleString()}</p>
+                        <p className="text-sm font-semibold text-rose-500 mt-1">{item.currency === 'USD' ? '$' : item.currency === 'GBP' ? '£' : item.currency === 'EUR' ? '€' : '₦'}{item.price.toLocaleString()}</p>
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => setEditing(item)} className="text-xs px-3 py-1.5 border border-rose-100 text-stone-500 rounded-lg hover:bg-rose-50 transition-colors">Edit</button>

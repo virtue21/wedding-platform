@@ -22,7 +22,7 @@ function TableCard({ table, unassigned }: {
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${over ? 'border-red-100' : 'border-rose-50'}`}>
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center justify-between gap-2 mb-3">
           {editing ? (
             <div className="flex gap-2 flex-1">
               <input value={label} onChange={e => setLabel(e.target.value)} className="flex-1 px-2.5 py-1.5 border border-rose-100 rounded-lg text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200" />
@@ -184,7 +184,7 @@ export default function TablesClient({
           )}
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-3 items-end">
+        <div className="grid sm:grid-cols-3 gap-3 items-start">
           {/* Custom label */}
           <div className="sm:col-span-2">
             <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">

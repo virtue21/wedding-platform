@@ -11,20 +11,36 @@ type Props = {
   onClose: () => void
 }
 
+const CURRENCIES = [
+  { code: 'NGN', label: '₦ NGN — Nigerian Naira' },
+  { code: 'USD', label: '$ USD — US Dollar' },
+  { code: 'GBP', label: '£ GBP — British Pound' },
+  { code: 'EUR', label: '€ EUR — Euro' },
+]
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props) {
   const [pending, setPending] = useState(false)
   const [preview, setPreview] = useState<string | null>(item?.image_url ?? null)
+  const [fileInfo, setFileInfo] = useState<{ name: string; size: string; type: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file) { setFileInfo(null); return }
     if (file.size > 5 * 1024 * 1024) {
       alert('Image is too large. Please choose a file under 5 MB.')
       e.target.value = ''
+      setFileInfo(null)
       return
     }
     setPreview(URL.createObjectURL(file))
+    setFileInfo({ name: file.name, size: formatBytes(file.size), type: file.type.replace('image/', '').toUpperCase() })
   }
 
   async function handleSubmit(formData: FormData) {
@@ -74,6 +90,16 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props
               className="hidden"
               onChange={handleFileChange}
             />
+            {fileInfo && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-stone-500 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2">
+                <span>🖼️</span>
+                <span className="font-medium text-stone-700 truncate max-w-[160px]">{fileInfo.name}</span>
+                <span className="text-stone-300">·</span>
+                <span>{fileInfo.size}</span>
+                <span className="text-stone-300">·</span>
+                <span className="text-rose-500 font-medium">{fileInfo.type}</span>
+              </div>
+            )}
           </div>
 
           <div>
@@ -86,13 +112,19 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Price *</label>
-              <input name="price" type="number" required min={0} step={500} defaultValue={item?.price} placeholder="350000" className="input" />
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Currency *</label>
+              <select name="currency" defaultValue={item?.currency ?? 'NGN'} className="input">
+                {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Quantity needed</label>
               <input name="quantity_needed" type="number" required min={1} defaultValue={item?.quantity_needed ?? 1} className="input" />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Price *</label>
+            <input name="price" type="number" required min={0} step={500} defaultValue={item?.price} placeholder="350000" className="input" />
           </div>
           <div>
             <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Checkout link</label>
