@@ -2,7 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import ProblemSection from './landing/ProblemSection'
 import FeaturesSection from './landing/FeaturesSection'
 import ScreenshotSection from './landing/ScreenshotSection'
 import HowItWorksSection from './landing/HowItWorksSection'
@@ -63,9 +62,6 @@ export default async function RootPage() {
 
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#1C1917] to-transparent" />
       </section>
-
-      {/* ── PROBLEM: sticky scroll book-turn panels ── */}
-      <ProblemSection />
 
       {/* ── FEATURES ── */}
       <FeaturesSection />
