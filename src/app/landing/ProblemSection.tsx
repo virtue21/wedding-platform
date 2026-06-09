@@ -46,8 +46,9 @@ const cards = [
   },
 ]
 
-// px per card scroll step: 50vh equivalent, calculated at runtime
-const STEP_RATIO = 0.5
+// 85vh per card — user must scroll almost a full screen to advance
+// gives enough time to read each card before next one appears
+const STEP_RATIO = 0.85
 
 export default function ProblemSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -102,7 +103,7 @@ export default function ProblemSection() {
                 backgroundColor: card.bg,
                 zIndex: cards.length - i,
                 transform: isPast ? 'translateY(-100%)' : 'translateY(0)',
-                transition: 'transform 0.75s cubic-bezier(0.76, 0, 0.24, 1)',
+                transition: 'transform 1.1s cubic-bezier(0.76, 0, 0.24, 1)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -226,25 +227,30 @@ export default function ProblemSection() {
                 )}
               </div>
 
-              {/* Scroll hint */}
+              {/* Next card button — clicking advances to next card, not the page below */}
               {i < cards.length - 1 && (
-                <div style={{
-                  position: 'absolute', bottom: 20,
-                  left: '50%', transform: 'translateX(-50%)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  opacity: isCurrent && revealed.has(i) ? 0.45 : 0,
-                  transition: 'opacity 0.5s ease 0.8s',
-                  pointerEvents: 'none',
-                }}>
+                <button
+                  onClick={() => goToCard(i + 1)}
+                  aria-label="Next"
+                  style={{
+                    position: 'absolute', bottom: 20,
+                    left: '50%', transform: 'translateX(-50%)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    opacity: isCurrent && revealed.has(i) ? 0.5 : 0,
+                    transition: 'opacity 0.5s ease 0.9s',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '8px 16px',
+                  }}
+                >
                   <span style={{
-                    fontSize: 8, color: 'rgba(255,255,255,0.5)',
+                    fontSize: 8, color: 'rgba(255,255,255,0.6)',
                     letterSpacing: '0.18em', textTransform: 'uppercase',
                     fontFamily: 'Arial, sans-serif',
-                  }}>scroll</span>
+                  }}>next</span>
                   <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
-                    <path d="M6 0v13M1 8l5 6 5-6" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6 0v13M1 8l5 6 5-6" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </div>
+                </button>
               )}
             </div>
           )
