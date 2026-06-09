@@ -3,6 +3,9 @@ import { forgotPassword } from '../actions'
 
 export default function ForgotPasswordPage({ searchParams }: { searchParams: { error?: string; success?: string } }) {
   return (
+    <div className="min-h-screen bg-[#fdf8f4] flex items-center justify-center p-4">
+    <div className="w-full max-w-md">
+    <div className="text-center mb-8"><p className="text-2xl mb-2">💍</p><h1 className="font-serif text-2xl text-stone-800">NemiPlanner</h1></div>
     <div className="bg-white rounded-3xl shadow-sm shadow-rose-100 border border-rose-50 p-8">
       <h2 className="font-serif text-2xl text-stone-800 mb-1">Reset your password</h2>
       <p className="text-sm text-stone-400 mb-7">We&apos;ll send a reset link to your email</p>
@@ -36,6 +39,8 @@ export default function ForgotPasswordPage({ searchParams }: { searchParams: { e
           ← Back to sign in
         </Link>
       </p>
+    </div>
+    </div>
     </div>
   )
 }
