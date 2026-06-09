@@ -14,7 +14,7 @@ const cards = [
   {
     n: '02',
     icon: '📱',
-    q: 'Where\'s the guest list?',
+    q: "Where's the guest list?",
     a: "It's in three WhatsApp chats, a Notes app, a voice memo, and your mum's head.",
     bg: '#2D1B1F',
     accent: '#E8A0B0',
@@ -29,14 +29,6 @@ const cards = [
   },
   {
     n: '04',
-    icon: '🎁',
-    q: 'Who gave us what?',
-    a: "The wedding is over. You want to write thank-you notes but you can't match a single gift to a name.",
-    bg: '#1F2A1C',
-    accent: '#86EFAC',
-  },
-  {
-    n: '05',
     icon: '🪑',
     q: 'Who sits where?',
     a: "The venue needs a seating chart by Friday. You haven't even confirmed half the RSVPs yet.",
@@ -44,7 +36,7 @@ const cards = [
     accent: '#FCD34D',
   },
   {
-    n: '06',
+    n: '05',
     icon: '😮‍💨',
     q: 'There has to be a better way.',
     a: "There is. One link does everything — RSVPs, gifts, seating, and the guest list. Right here.",
@@ -53,6 +45,9 @@ const cards = [
     cta: true,
   },
 ]
+
+// px per card scroll step: 50vh equivalent, calculated at runtime
+const STEP_RATIO = 0.5
 
 export default function ProblemSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -64,8 +59,7 @@ export default function ProblemSection() {
       if (!sectionRef.current) return
       const rect = sectionRef.current.getBoundingClientRect()
       const scrolled = Math.max(0, -rect.top)
-      // Use 65vh per card so mobile doesn't scroll 600vh — feels snappier
-      const stepH = window.innerHeight * 0.65
+      const stepH = window.innerHeight * STEP_RATIO
       const next = Math.min(cards.length - 1, Math.floor(scrolled / stepH))
       setActive(next)
     }
@@ -77,15 +71,22 @@ export default function ProblemSection() {
   useEffect(() => {
     const t = setTimeout(() => {
       setRevealed(r => { const n = new Set(r); n.add(active); return n })
-    }, 400)
+    }, 300)
     return () => clearTimeout(t)
   }, [active])
 
+  // Jump to a specific card by scrolling to the right offset
+  function goToCard(i: number) {
+    if (!sectionRef.current) return
+    const sectionTop = sectionRef.current.getBoundingClientRect().top + window.scrollY
+    const stepH = window.innerHeight * STEP_RATIO
+    window.scrollTo({ top: sectionTop + i * stepH, behavior: 'smooth' })
+  }
+
   return (
-    // 65vh per card — total 390vh (vs 600vh), much less blank scroll on mobile
-    // Background matches first card so the scroll-room beneath the sticky card isn't cream
-    <div ref={sectionRef} style={{ height: `${cards.length * 65}vh`, backgroundColor: '#1C1917' }}>
-      {/* Sticky viewport — stays at top while user scrolls through */}
+    // 50vh per card × 5 cards = 250vh total. Much less scroll debt on mobile.
+    // bg matches first card so the scroll-room below the sticky card is dark, not cream.
+    <div ref={sectionRef} style={{ height: `${cards.length * STEP_RATIO * 100}vh`, backgroundColor: '#1C1917' }}>
       <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
 
         {cards.map((card, i) => {
@@ -99,107 +100,108 @@ export default function ProblemSection() {
                 position: 'absolute',
                 inset: 0,
                 backgroundColor: card.bg,
-                // Earlier cards have higher z-index so they appear on top
                 zIndex: cards.length - i,
-                // Past cards slide up (page-turn), current + future stay put
                 transform: isPast ? 'translateY(-100%)' : 'translateY(0)',
-                transition: 'transform 0.8s cubic-bezier(0.76, 0, 0.24, 1)',
+                transition: 'transform 0.75s cubic-bezier(0.76, 0, 0.24, 1)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '40px 24px',
+                padding: '56px 24px 40px',
               }}
             >
-              {/* Book spine line on the left */}
+              {/* Book spine */}
               <div style={{
                 position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
                 background: `linear-gradient(to bottom, transparent, ${card.accent}66, transparent)`,
               }} />
 
-              {/* Page-edge shadow at bottom — depth illusion */}
+              {/* Bottom shadow depth */}
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
                 background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)',
                 pointerEvents: 'none',
               }} />
 
-              {/* Page number top-right */}
+              {/* Page number */}
               <div style={{
-                position: 'absolute', top: 28, right: 28,
-                fontFamily: 'monospace',
-                fontSize: 11,
-                color: `${card.accent}66`,
-                letterSpacing: '0.15em',
+                position: 'absolute', top: 20, right: 20,
+                fontFamily: 'monospace', fontSize: 10,
+                color: `${card.accent}88`, letterSpacing: '0.15em',
               }}>
-                {card.n} / 06
+                {card.n} / 0{cards.length}
               </div>
 
-              {/* Progress dots */}
+              {/* Clickable dot nav — centered top */}
               <div style={{
-                position: 'absolute', top: 32, left: '50%',
+                position: 'absolute', top: 20, left: '50%',
                 transform: 'translateX(-50%)',
-                display: 'flex', gap: 6,
+                display: 'flex', gap: 7, alignItems: 'center',
               }}>
                 {cards.map((_, j) => (
-                  <div key={j} style={{
-                    width: j === i ? 20 : 5,
-                    height: 5,
-                    borderRadius: 3,
-                    background: j < i ? card.accent : j === i ? card.accent : 'rgba(255,255,255,0.15)',
-                    transition: 'all 0.4s ease',
-                  }} />
+                  <button
+                    key={j}
+                    onClick={() => goToCard(j)}
+                    aria-label={`Go to card ${j + 1}`}
+                    style={{
+                      width: j === active ? 22 : 7,
+                      height: 7,
+                      borderRadius: 4,
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      background: j <= active ? card.accent : 'rgba(255,255,255,0.18)',
+                      transition: 'all 0.35s ease',
+                      flexShrink: 0,
+                    }}
+                  />
                 ))}
               </div>
 
-              {/* Main content */}
-              <div style={{ maxWidth: 620, width: '100%', textAlign: 'center' }}>
-                {/* Icon */}
+              {/* Content */}
+              <div style={{ maxWidth: 580, width: '100%', textAlign: 'center' }}>
                 <div style={{
-                  fontSize: 'clamp(36px, 6vw, 56px)',
-                  marginBottom: 28,
-                  opacity: isCurrent ? 1 : 0.4,
-                  transition: 'opacity 0.4s',
+                  fontSize: 'clamp(40px, 7vw, 60px)',
+                  marginBottom: 24,
+                  lineHeight: 1,
                 }}>
                   {card.icon}
                 </div>
 
-                {/* Question */}
                 <h3 style={{
                   fontFamily: 'var(--font-playfair)',
-                  fontSize: 'clamp(24px, 4vw, 44px)',
+                  fontSize: 'clamp(22px, 4.5vw, 42px)',
                   color: '#FAFAF9',
-                  lineHeight: 1.25,
-                  marginBottom: 24,
+                  lineHeight: 1.2,
+                  marginBottom: 20,
                   fontWeight: 700,
                 }}>
                   {card.q}
                 </h3>
 
-                {/* Accent rule */}
                 <div style={{
-                  width: 40, height: 2,
+                  width: 36, height: 2,
                   background: card.accent,
-                  margin: '0 auto 24px',
+                  margin: '0 auto 20px',
                   borderRadius: 2,
                   opacity: revealed.has(i) ? 1 : 0,
-                  transition: 'opacity 0.4s ease 0.2s',
+                  transition: 'opacity 0.4s ease 0.15s',
                 }} />
 
-                {/* Answer */}
                 <p style={{
                   fontFamily: 'Arial, sans-serif',
-                  fontSize: 'clamp(16px, 2.2vw, 21px)',
-                  color: 'rgba(250,250,249,0.65)',
-                  lineHeight: 1.7,
+                  fontSize: 'clamp(15px, 2vw, 20px)',
+                  color: 'rgba(250,250,249,0.62)',
+                  lineHeight: 1.65,
                   opacity: revealed.has(i) ? 1 : 0,
-                  transform: revealed.has(i) ? 'translateY(0)' : 'translateY(14px)',
-                  transition: 'opacity 0.55s ease 0.25s, transform 0.55s ease 0.25s',
+                  transform: revealed.has(i) ? 'translateY(0)' : 'translateY(12px)',
+                  transition: 'opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s',
+                  maxWidth: 480,
+                  margin: '0 auto',
                 }}>
                   {card.a}
                 </p>
 
-                {/* CTA on last card */}
                 {card.cta && revealed.has(i) && (
                   <a
                     href="/auth/signup"
@@ -207,8 +209,8 @@ export default function ProblemSection() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 8,
-                      marginTop: 36,
-                      padding: '14px 32px',
+                      marginTop: 32,
+                      padding: '13px 28px',
                       background: card.accent,
                       color: 'white',
                       borderRadius: 14,
@@ -216,9 +218,7 @@ export default function ProblemSection() {
                       fontFamily: 'Arial, sans-serif',
                       fontSize: 15,
                       fontWeight: 700,
-                      opacity: revealed.has(i) ? 1 : 0,
-                      transition: 'opacity 0.5s ease 0.6s',
-                      boxShadow: `0 8px 32px ${card.accent}44`,
+                      boxShadow: `0 8px 28px ${card.accent}44`,
                     }}
                   >
                     Plan Your Wedding →
@@ -226,24 +226,23 @@ export default function ProblemSection() {
                 )}
               </div>
 
-              {/* Scroll hint — all cards except last */}
+              {/* Scroll hint */}
               {i < cards.length - 1 && (
                 <div style={{
-                  position: 'absolute', bottom: 24,
+                  position: 'absolute', bottom: 20,
                   left: '50%', transform: 'translateX(-50%)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                  opacity: revealed.has(i) && isCurrent ? 0.4 : 0,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  opacity: isCurrent && revealed.has(i) ? 0.45 : 0,
                   transition: 'opacity 0.5s ease 0.8s',
+                  pointerEvents: 'none',
                 }}>
                   <span style={{
-                    fontSize: 9, color: 'rgba(255,255,255,0.5)',
-                    letterSpacing: '0.16em', textTransform: 'uppercase',
+                    fontSize: 8, color: 'rgba(255,255,255,0.5)',
+                    letterSpacing: '0.18em', textTransform: 'uppercase',
                     fontFamily: 'Arial, sans-serif',
-                  }}>
-                    scroll
-                  </span>
-                  <svg width="14" height="20" viewBox="0 0 14 20" fill="none">
-                    <path d="M7 0v16M1 10l6 6 6-6" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  }}>scroll</span>
+                  <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+                    <path d="M6 0v13M1 8l5 6 5-6" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
               )}
