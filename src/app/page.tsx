@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Users, MessageSquare, Send, Gift, ArrowRight } from 'lucide-react'
+import { Users, MessageSquare, Send, Gift, ArrowRight, LayoutGrid } from 'lucide-react'
 
 // ── Phone mockup — RSVP form ───────────────────────────────────────────────
 
@@ -364,7 +364,7 @@ export default async function RootPage() {
       </nav>
 
       {/* ── SECTION 1: HERO ── */}
-      <section className="py-16 sm:py-24 bg-white">
+      <section className="pt-8 pb-14 sm:pt-12 sm:pb-20 bg-white">
         <div className="max-w-5xl mx-auto px-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
 
@@ -416,15 +416,94 @@ export default async function RootPage() {
             Everything in one dashboard.
           </h2>
           <AdminMockup />
-          <div className="flex flex-wrap justify-center gap-3 mt-10">
-            {['Guest Management', 'Gift Registry', 'Seating Arrangement'].map(pill => (
-              <span
-                key={pill}
-                className="px-4 py-2 bg-rose-50 text-rose-600 text-sm font-medium rounded-full border border-rose-100"
-              >
-                {pill}
-              </span>
-            ))}
+          {/* Feature cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+
+            {/* Gift Registry */}
+            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
+                  <Gift className="w-3.5 h-3.5 text-rose-500" strokeWidth={1.75} />
+                </div>
+                <span className="font-semibold text-stone-800 text-sm">Gift Registry</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {[
+                  { name: 'Samsung 500L Fridge',  price: '₦699,000', claimed: false },
+                  { name: 'Dinner Table Set',      price: '₦280,000', claimed: true  },
+                  { name: 'LG 55" Smart TV',       price: '₦450,000', claimed: false },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-medium text-stone-700 leading-none mb-0.5 truncate">{item.name}</p>
+                      <p className="text-[10px] text-stone-400">{item.price}</p>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium shrink-0 ${item.claimed ? 'bg-green-50 text-green-600' : 'bg-white text-stone-400 border border-stone-200'}`}>
+                      {item.claimed ? 'Claimed' : 'Open'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Seating */}
+            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <LayoutGrid className="w-3.5 h-3.5 text-blue-500" strokeWidth={1.75} />
+                </div>
+                <span className="font-semibold text-stone-800 text-sm">Seating</span>
+              </div>
+              <div className="flex flex-col gap-3.5">
+                {[
+                  { name: 'Head Table',    filled: 6,  cap: 8  },
+                  { name: 'Family Table A', filled: 10, cap: 10 },
+                  { name: 'Church Table',  filled: 5,  cap: 8  },
+                ].map((t, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between mb-1.5">
+                      <span className="text-[11px] font-medium text-stone-600">{t.name}</span>
+                      <span className={`text-[10px] font-semibold ${t.filled === t.cap ? 'text-green-500' : 'text-stone-400'}`}>
+                        {t.filled}/{t.cap}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-1.5 rounded-full ${t.filled === t.cap ? 'bg-green-400' : 'bg-rose-400'}`}
+                        style={{ width: `${(t.filled / t.cap) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Guest RSVPs */}
+            <div className="bg-[#fdf8f4] rounded-2xl p-5 border border-stone-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+                  <Users className="w-3.5 h-3.5 text-violet-500" strokeWidth={1.75} />
+                </div>
+                <span className="font-semibold text-stone-800 text-sm">Guest RSVPs</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className="bg-white rounded-xl p-3 text-center border border-stone-100">
+                  <p className="text-3xl font-bold text-stone-900 leading-none tracking-tight">127</p>
+                  <p className="text-[10px] text-stone-400 mt-1.5">Confirmed guests</p>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-white rounded-xl p-3 text-center border border-stone-100">
+                    <p className="text-lg font-bold text-rose-500 leading-none">68</p>
+                    <p className="text-[9px] text-stone-400 mt-1">Bride&apos;s side</p>
+                  </div>
+                  <div className="flex-1 bg-white rounded-xl p-3 text-center border border-stone-100">
+                    <p className="text-lg font-bold text-blue-500 leading-none">59</p>
+                    <p className="text-[9px] text-stone-400 mt-1">Groom&apos;s side</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
