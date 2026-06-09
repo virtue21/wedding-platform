@@ -118,7 +118,7 @@ export async function saveCategories(
   // ── 3. Re-query and return fresh data ─────────────────────────────────────
   const { data: fresh, error: fetchErr } = await supabase
     .from('relationship_categories')
-    .select('*, relationship_subcategories(id, category_id, label, sort_order)')
+    .select('*, subcategories:relationship_subcategories(id, category_id, label, sort_order)')
     .eq('wedding_id', wedding.id)
     .order('sort_order') as { data: CategoryWithSubs[] | null; error: unknown }
 

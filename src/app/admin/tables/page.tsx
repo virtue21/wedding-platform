@@ -26,7 +26,7 @@ export default async function TablesPage() {
       .eq('is_removed', false),
     supabase
       .from('relationship_categories')
-      .select('*, relationship_subcategories(id, category_id, label, sort_order)')
+      .select('*, subcategories:relationship_subcategories(id, category_id, label, sort_order)')
       .eq('wedding_id', wedding?.id ?? '')
       .order('sort_order'),
   ])
