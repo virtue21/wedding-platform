@@ -70,7 +70,8 @@ export default async function ConfirmedPage({
         {/* Hero */}
         <div className="text-center">
           <div className="text-6xl mb-5">🎉</div>
-          <h1 className="font-serif text-3xl text-stone-800 mb-2">You&apos;re in, {firstName}!</h1>
+          <h1 className="font-serif text-3xl text-stone-800 mb-2">You&apos;re on the list! 🎉</h1>
+          <p className="text-stone-500 text-sm font-medium">Hey {firstName} — we&apos;re so glad you&apos;re coming.</p>
           <p className="text-stone-400 text-sm leading-relaxed">
             See you on {formatDate(wedding.wedding_date)}<br />at {wedding.venue_name}
           </p>
@@ -135,10 +136,11 @@ export default async function ConfirmedPage({
 
         {/* Registry CTA */}
         <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-5 text-center">
-          <p className="text-sm text-stone-400 mb-4">Want to give a gift?</p>
+          <p className="font-serif text-base text-stone-700 mb-1">Want to give a gift?</p>
+          <p className="text-xs text-stone-400 mb-4">Browse our registry and help us start our new chapter.</p>
           <Link
             href={registryUrl}
-            className="block w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors text-sm"
+            className="block w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors text-sm shadow-sm shadow-rose-200"
           >
             🎁 View Gift Registry →
           </Link>

@@ -132,8 +132,14 @@ export default function GuestTable({ guests }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-stone-400 text-sm">
-          {search || sideFilter !== 'all' ? 'No guests match your search.' : 'No guests yet — share your wedding link!'}
+        <div className="text-center py-16 bg-white rounded-2xl border border-rose-50">
+          <p className="text-3xl mb-3">💌</p>
+          <p className="font-serif text-lg text-stone-600 mb-1">
+            {search || sideFilter !== 'all' ? 'No guests match your filters' : 'No guests yet'}
+          </p>
+          <p className="text-stone-400 text-sm">
+            {search || sideFilter !== 'all' ? 'Try adjusting your search or filter.' : 'Share your wedding link to start receiving RSVPs.'}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-rose-50 shadow-sm overflow-hidden">

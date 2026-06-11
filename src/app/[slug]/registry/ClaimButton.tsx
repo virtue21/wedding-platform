@@ -106,7 +106,7 @@ export default function ClaimButton({
       disabled={isPending}
       className="text-xs font-medium text-stone-700 hover:text-stone-900 underline underline-offset-2 transition-colors disabled:opacity-50"
     >
-      {isPending ? 'Claiming…' : "I'm gifting this"}
+      {isPending ? 'Claiming…' : "I'll get this 🎁"}
     </button>
   )
 }

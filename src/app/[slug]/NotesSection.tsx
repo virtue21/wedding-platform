@@ -63,7 +63,7 @@ export default function NotesSection({ weddingId, initialNotes }: Props) {
         <textarea
           value={message}
           onChange={e => setMessage(e.target.value)}
-          placeholder="Write your wishes here..."
+          placeholder="Write your wishes for the couple…"
           rows={3}
           className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none"
         />
@@ -73,7 +73,7 @@ export default function NotesSection({ weddingId, initialNotes }: Props) {
           disabled={submitting}
           className="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
         >
-          {submitting ? 'Sending…' : 'Send with Love 💌'}
+          {submitting ? 'Sending…' : 'Send Wishes 💌'}
         </button>
       </div>
 

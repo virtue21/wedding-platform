@@ -43,7 +43,17 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
       <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-medium text-stone-800 mb-1">RSVP</h2>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="font-medium text-stone-800">RSVP</h2>
+              <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                enabled
+                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                  : 'bg-stone-100 text-stone-400 border border-stone-200'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${enabled ? 'bg-emerald-400' : 'bg-stone-300'}`} />
+                {enabled ? 'Active' : 'Inactive'}
+              </span>
+            </div>
             <p className="text-sm text-stone-400">Allow guests to confirm their attendance via your wedding page.</p>
             {enabled && currentCount > 0 && (
               <p className="text-xs text-emerald-600 mt-2">{currentCount} guests confirmed so far</p>

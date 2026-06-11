@@ -70,7 +70,8 @@ export default async function SetupPage({
 
         {/* Wedding Details */}
         <section className="card">
-          <h2 className="heading-serif text-lg mb-6">Wedding details</h2>
+          <h2 className="heading-serif text-lg mb-1">Wedding Details</h2>
+          <p className="text-sm text-stone-400 mb-6">This information will be shown to your guests.</p>
           <form action={saveWeddingSetup} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -121,7 +122,7 @@ export default async function SetupPage({
 
             <div className="pt-1">
               <button type="submit" className="btn-primary">
-                Save changes
+                Save Changes
               </button>
             </div>
           </form>
@@ -129,7 +130,7 @@ export default async function SetupPage({
 
         {/* Payment Methods */}
         <section className="card">
-          <h2 className="heading-serif text-lg mb-1">Payment methods for cash gifts</h2>
+          <h2 className="heading-serif text-lg mb-1">Payment Methods for Cash Gifts</h2>
           <p className="text-sm text-stone-400 mb-5">
             Add one account per currency. Guests will be able to choose which one to use when sending a cash gift.
           </p>
@@ -141,8 +142,8 @@ export default async function SetupPage({
 
         {/* Cover Image */}
         <section className="card">
-          <h2 className="heading-serif text-lg mb-1">Cover image</h2>
-          <p className="text-sm text-stone-400 mb-5">Shown as the banner on your wedding page</p>
+          <h2 className="heading-serif text-lg mb-1">Cover Image</h2>
+          <p className="text-sm text-stone-400 mb-5">Shown as the banner on your wedding page.</p>
 
           {wedding?.cover_image_url && (
             <div className="mb-4 rounded-xl overflow-hidden border border-rose-50 aspect-[3/1] relative">
@@ -163,7 +164,7 @@ export default async function SetupPage({
         {/* QR Code */}
         {wedding?.slug && (
           <section className="card">
-            <h2 className="heading-serif text-lg mb-1">Your QR code</h2>
+            <h2 className="heading-serif text-lg mb-1">Your QR Code</h2>
             <p className="text-sm text-stone-400 mb-5">
               Guests scan this to reach your wedding page at{' '}
               <a href={guestUrl} target="_blank" className="text-rose-500 underline underline-offset-2">

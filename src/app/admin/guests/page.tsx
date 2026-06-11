@@ -53,7 +53,7 @@ export default async function GuestsPage() {
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="font-serif text-3xl text-stone-800 mb-1">Guest List</h1>
-          <p className="text-stone-400 text-sm">Click any row to view details or add notes</p>
+          <p className="text-stone-400 text-sm">{total === 0 ? 'No guests yet — share your link to get RSVPs' : `${total} ${total === 1 ? 'guest' : 'guests'} · click any row to view details`}</p>
         </div>
         <a
           href="/admin/guests/export"

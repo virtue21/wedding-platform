@@ -112,8 +112,8 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos 
                     <button
                       onClick={() => handleDeletePhoto(photo.id)}
                       disabled={isPending}
-                      className="p-1.5 bg-red-500 text-white text-xs rounded-lg disabled:opacity-40"
-                      title="Delete"
+                      className="p-1.5 bg-black/50 hover:bg-red-500/80 text-white text-xs rounded-lg disabled:opacity-40 transition-colors"
+                      title="Delete photo"
                     >
                       🗑️
                     </button>

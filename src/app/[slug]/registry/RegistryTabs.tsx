@@ -45,7 +45,11 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
       {/* Items tab */}
       {tab === 'items' && (
         items.length === 0 ? (
-          <p className="text-center text-stone-400 py-16 text-sm">No registry items yet.</p>
+          <div className="text-center py-16">
+            <p className="text-3xl mb-3">💝</p>
+            <p className="font-serif text-lg text-stone-600 mb-1">No gifts added yet</p>
+            <p className="text-sm text-stone-400">Check back soon — the couple is still building their list.</p>
+          </div>
         ) : (
           <div className="space-y-4">
             {items.map(item => {
@@ -57,7 +61,7 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
               return (
                 <div
                   key={item.id}
-                  className={`bg-white rounded-2xl border p-4 flex gap-4 ${isClaimed ? 'opacity-60' : 'border-stone-200'}`}
+                  className={`bg-white rounded-2xl border p-4 flex gap-4 shadow-sm ${isClaimed ? 'opacity-60 border-stone-100' : 'border-rose-50'}`}
                 >
                   {item.image_url ? (
                     <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-stone-100">
@@ -87,7 +91,7 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
                           href={item.checkout_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs font-medium text-stone-700 hover:text-stone-900 underline underline-offset-2"
+                          className="text-xs font-medium px-3 py-1.5 border border-stone-200 rounded-lg text-stone-700 hover:border-stone-300 hover:text-stone-900 transition-colors"
                         >
                           Buy this gift →
                         </a>

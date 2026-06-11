@@ -81,9 +81,9 @@ export default async function RsvpPage({
         {rsvpFull ? (
           <div className="bg-white rounded-3xl border border-rose-50 shadow-sm p-7 text-center">
             <p className="text-3xl mb-3">🎊</p>
-            <h2 className="font-serif text-xl text-stone-800 mb-2">RSVP is Full</h2>
-            <p className="text-stone-400 text-sm">
-              The couple has reached their guest limit. Please reach out to them directly.
+            <h2 className="font-serif text-xl text-stone-800 mb-2">RSVP is now closed</h2>
+            <p className="text-stone-400 text-sm leading-relaxed">
+              We&apos;re sorry — we&apos;ve reached our guest limit. We can&apos;t wait to celebrate with those who made it! 🎉
             </p>
           </div>
         ) : (
@@ -97,7 +97,7 @@ export default async function RsvpPage({
             <div className="bg-white rounded-3xl border border-rose-50 shadow-sm p-7">
               <form action={action} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Full name *</label>
+                  <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Full Name <span className="text-rose-400">*</span></label>
                   <input name="full_name" type="text" required placeholder="Emeka Obi" className="input" />
                 </div>
 
@@ -105,7 +105,7 @@ export default async function RsvpPage({
 
                 <div>
                   <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
-                    Email address
+                    Email Address <span className="text-stone-300">(optional)</span>
                   </label>
                   <input name="email" type="email" placeholder="emeka@example.com" className="input" />
                 </div>
@@ -117,7 +117,7 @@ export default async function RsvpPage({
                 />
 
                 <button type="submit" className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-2xl transition-colors shadow-sm shadow-rose-200 mt-2">
-                  Confirm Attendance
+                  Confirm My Attendance 🎉
                 </button>
               </form>
             </div>

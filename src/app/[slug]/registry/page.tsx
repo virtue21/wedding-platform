@@ -75,13 +75,17 @@ export default async function RegistryPage({
   const groomName = profile?.groom_name ?? 'Groom'
 
   return (
+    <div className="min-h-screen bg-[#fdf8f4]">
     <div className="max-w-lg mx-auto px-4 py-8">
       <div className="mb-6">
-        <Link href={`/${params.slug}`} className="text-sm text-stone-400 hover:text-stone-600">
+        <Link href={`/${params.slug}`} className="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-rose-400 transition-colors">
           ← Back
         </Link>
-        <h1 className="text-2xl font-semibold text-stone-800 mt-3 mb-1">Gift Registry</h1>
-        <p className="text-stone-500 text-sm">{brideName} &amp; {groomName}</p>
+        <div className="mt-4 text-center">
+          <p className="text-rose-400 text-xs tracking-widest uppercase mb-1">Gift Registry</p>
+          <h1 className="font-serif text-3xl text-stone-800 mb-1">{brideName} <span className="text-rose-400">&amp;</span> {groomName}</h1>
+          <p className="text-stone-400 text-sm">Help us start our new chapter together 💝</p>
+        </div>
         {sessionGuest && (
           <p className="mt-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
             Hi {sessionGuest.full_name.split(' ')[0]}! Your claims will be linked to your RSVP automatically.
@@ -95,6 +99,7 @@ export default async function RegistryPage({
         items={items ?? []}
         sessionGuest={sessionGuest}
       />
+    </div>
     </div>
   )
 }
