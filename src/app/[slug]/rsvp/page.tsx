@@ -105,9 +105,9 @@ export default async function RsvpPage({
 
                 <div>
                   <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
-                    Email Address <span className="text-stone-300">(optional)</span>
+                    Email Address <span className="text-rose-400">*</span>
                   </label>
-                  <input name="email" type="email" placeholder="emeka@example.com" className="input" />
+                  <input name="email" type="email" required placeholder="emeka@example.com" className="input" />
                 </div>
 
                 <SideAndCategory

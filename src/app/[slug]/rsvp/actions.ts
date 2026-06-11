@@ -27,6 +27,7 @@ export async function submitRsvp(slug: string, formData: FormData) {
 
   const phone = (formData.get('phone') as string).trim()
   const email = ((formData.get('email') as string) || '').trim().toLowerCase() || null
+  if (!email) redirect(`/${slug}/rsvp?error=${encodeURIComponent('Please enter your email address.')}`)
 
   // ── Duplicate phone check ──────────────────────────────────────
   const { data: dupPhone } = await supabase
