@@ -13,6 +13,7 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
   const [photos, setPhotos] = useState<WeddingPhoto[]>(initialPhotos)
   const [uploaderName, setUploaderName] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   // Preview before confirm
   const [previewFile, setPreviewFile] = useState<File | null>(null)
@@ -39,21 +40,27 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
   async function handleConfirmUpload() {
     if (!previewFile) return
     setUploading(true)
+    setUploadError(null)
     const sb = createClient()
     const ext = previewFile.name.split('.').pop() ?? 'jpg'
     const path = `${weddingId}/${Date.now()}.${ext}`
-    const { error: uploadError } = await sb.storage.from('wedding-moments').upload(path, previewFile)
-    if (uploadError) {
+    const { error: storageError } = await sb.storage.from('wedding-moments').upload(path, previewFile)
+    if (storageError) {
       setUploading(false)
-      alert(`Upload failed: ${uploadError.message}`)
+      setUploadError(`Storage error: ${storageError.message}`)
       return
     }
     const { data: { publicUrl } } = sb.storage.from('wedding-moments').getPublicUrl(path)
-    await sb.from('wedding_photos').insert({
+    const { error: dbError } = await sb.from('wedding_photos').insert({
       wedding_id: weddingId,
       uploader_name: uploaderName.trim() || null,
       photo_url: publicUrl,
     })
+    if (dbError) {
+      setUploading(false)
+      setUploadError(`Database error: ${dbError.message}`)
+      return
+    }
     // Refetch
     const { data } = await sb
       .from('wedding_photos')
@@ -90,7 +97,10 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
             <div className="relative rounded-xl overflow-hidden aspect-video bg-stone-100">
               <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
             </div>
-            <div className="flex gap-2">
+            {uploadError && (
+              <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{uploadError}</p>
+            )}
+          <div className="flex gap-2">
               <button
                 onClick={handleCancelPreview}
                 disabled={uploading}
