@@ -8,7 +8,9 @@ import QRDownload from './QRDownload'
 import VenueSearch from '@/components/VenueSearch'
 import PaymentMethodsSection from './PaymentMethodsSection'
 import CoverImageUpload from './CoverImageUpload'
+import StorySetup from './StorySetup'
 import type { Database } from '@/lib/supabase/database.types'
+import type { WeddingStorySlide } from '@/lib/supabase/database.types'
 
 type WeddingRow = Database['public']['Tables']['weddings']['Row']
 type ProfileRow = Database['public']['Tables']['user_profiles']['Row']
@@ -30,9 +32,14 @@ export default async function SetupPage({
     ? await supabase.from('wedding_payment_methods')
         .select('*').eq('wedding_id', weddingResult.data.id).order('created_at')
     : { data: [] }
+  const storySlidesResult = weddingResult.data
+    ? await supabase.from('wedding_story_slides')
+        .select('*').eq('wedding_id', weddingResult.data.id).order('slide_number')
+    : { data: [] }
   const profile        = profileResult.data as ProfileRow | null
   const wedding        = weddingResult.data as WeddingRow | null
   const paymentMethods = (paymentMethodsResult.data ?? []) as import('@/lib/supabase/database.types').WeddingPaymentMethod[]
+  const storySlides    = (storySlidesResult.data ?? []) as WeddingStorySlide[]
 
   const defaultSlug = wedding?.slug ?? slugify(profile?.bride_name ?? '', profile?.groom_name ?? '')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
@@ -145,6 +152,13 @@ export default async function SetupPage({
 
           <CoverImageUpload />
         </section>
+
+        {/* Love Story */}
+        {wedding && (
+          <section className="card">
+            <StorySetup weddingId={wedding.id} initialSlides={storySlides} />
+          </section>
+        )}
 
         {/* QR Code */}
         {wedding?.slug && (

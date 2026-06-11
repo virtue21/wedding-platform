@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { WeddingPhoto } from '@/lib/supabase/database.types'
 
@@ -14,22 +14,38 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
   const [uploaderName, setUploaderName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  // Preview before confirm
+  const [previewFile, setPreviewFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Max 5MB')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Max 10MB per photo')
       return
     }
+    setPreviewFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  function handleCancelPreview() {
+    setPreviewFile(null)
+    setPreviewUrl(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  async function handleConfirmUpload() {
+    if (!previewFile) return
     setUploading(true)
     const sb = createClient()
-    const ext = file.name.split('.').pop()
+    const ext = previewFile.name.split('.').pop() ?? 'jpg'
     const path = `${weddingId}/${Date.now()}.${ext}`
-    const { error: uploadError } = await sb.storage.from('wedding-moments').upload(path, file)
+    const { error: uploadError } = await sb.storage.from('wedding-moments').upload(path, previewFile)
     if (uploadError) {
       setUploading(false)
-      alert('Upload failed')
+      alert(`Upload failed: ${uploadError.message}`)
       return
     }
     const { data: { publicUrl } } = sb.storage.from('wedding-moments').getPublicUrl(path)
@@ -38,6 +54,7 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
       uploader_name: uploaderName.trim() || null,
       photo_url: publicUrl,
     })
+    // Refetch
     const { data } = await sb
       .from('wedding_photos')
       .select('*')
@@ -46,7 +63,9 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
       .limit(50)
     setPhotos(data ?? [])
     setUploading(false)
-    e.target.value = ''
+    setPreviewFile(null)
+    setPreviewUrl(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
@@ -64,20 +83,54 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
           placeholder="Your name (optional)"
           className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
-        <label className={`flex flex-col items-center justify-center w-full py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading ? 'border-rose-200 bg-rose-50 opacity-60' : 'border-stone-200 hover:border-rose-300 hover:bg-rose-50/50'}`}>
-          <span className="text-3xl mb-2">📸</span>
-          <span className="text-sm font-medium text-stone-500">
-            {uploading ? 'Uploading…' : 'Tap to add a photo'}
-          </span>
-          <span className="text-xs text-stone-300 mt-1">Max 5MB · JPG, PNG, WebP</span>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            disabled={uploading}
-            onChange={handleUpload}
-          />
-        </label>
+
+        {/* Preview state */}
+        {previewUrl ? (
+          <div className="space-y-3">
+            <div className="relative rounded-xl overflow-hidden aspect-video bg-stone-100">
+              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancelPreview}
+                disabled={uploading}
+                className="flex-1 py-2.5 border border-stone-200 text-stone-500 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmUpload}
+                disabled={uploading}
+                className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {uploading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Uploading…
+                  </>
+                ) : (
+                  '📸 Share this Moment'
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <label className="flex flex-col items-center justify-center w-full py-8 border-2 border-dashed border-stone-200 hover:border-rose-300 hover:bg-rose-50/50 rounded-xl cursor-pointer transition-colors">
+            <span className="text-3xl mb-2">📸</span>
+            <span className="text-sm font-medium text-stone-500">Tap to choose a photo</span>
+            <span className="text-xs text-stone-300 mt-1">Max 10MB · JPG, PNG, WebP</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </label>
+        )}
       </div>
 
       {/* Photos grid */}
@@ -113,9 +166,7 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
           <button
             className="absolute top-4 right-4 text-white text-3xl leading-none z-10"
             onClick={() => setLightboxSrc(null)}
-          >
-            ×
-          </button>
+          >×</button>
           <img
             src={lightboxSrc}
             alt="Full size"

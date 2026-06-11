@@ -382,6 +382,33 @@ export type Database = {
           }
         ]
       }
+      wedding_story_slides: {
+        Row: {
+          id: string
+          wedding_id: string
+          slide_number: number
+          title: string | null
+          body: string
+          image_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          slide_number?: number
+          title?: string | null
+          body: string
+          image_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          slide_number?: number
+          title?: string | null
+          body?: string
+          image_url?: string | null
+        }
+        Relationships: []
+      }
       cash_gift_receipts: {
         Row: {
           id: string
@@ -491,6 +518,7 @@ export type WeddingPaymentMethod = Tables<'wedding_payment_methods'>
 
 export type WeddingNote = Tables<'wedding_notes'>
 export type WeddingPhoto = Tables<'wedding_photos'>
+export type WeddingStorySlide = Tables<'wedding_story_slides'>
 
 // Legacy aliases
 export type Wedding = WeddingRow

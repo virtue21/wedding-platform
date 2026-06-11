@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import WeddingPageClient from './WeddingPageClient'
-import type { WeddingRow, WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
+import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@/lib/supabase/database.types'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-NG', {
@@ -15,10 +15,11 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     .from('weddings').select('*').eq('slug', params.slug).single() as { data: WeddingRow | null }
   if (!wedding) notFound()
 
-  const [profileResult, notesResult, photosResult] = await Promise.all([
+  const [profileResult, notesResult, photosResult, slidesResult] = await Promise.all([
     supabase.from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single(),
     supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
+    supabase.from('wedding_story_slides').select('*').eq('wedding_id', wedding.id).order('slide_number'),
   ])
 
   const brideName = profileResult.data?.bride_name ?? 'Bride'
@@ -40,6 +41,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       formattedDate={formatDate(wedding.wedding_date)}
       initialNotes={(notesResult.data ?? []) as WeddingNote[]}
       initialPhotos={(photosResult.data ?? []) as WeddingPhoto[]}
+      storySlides={(slidesResult.data ?? []) as WeddingStorySlide[]}
       slug={params.slug}
     />
   )

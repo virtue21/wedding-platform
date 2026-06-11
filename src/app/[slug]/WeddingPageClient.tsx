@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import type { WeddingRow, WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
+import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@/lib/supabase/database.types'
 import NotesSection from './NotesSection'
 import PhotosSection from './PhotosSection'
+import StorySection from './StorySection'
 
 const VenueMap = dynamic(() => import('@/components/VenueMap'), { ssr: false })
+
+type Tab = 'home' | 'story' | 'wishes' | 'moments'
 
 type Props = {
   wedding: WeddingRow
@@ -18,6 +21,7 @@ type Props = {
   formattedDate: string
   initialNotes: WeddingNote[]
   initialPhotos: WeddingPhoto[]
+  storySlides: WeddingStorySlide[]
   slug: string
 }
 
@@ -30,9 +34,17 @@ export default function WeddingPageClient({
   formattedDate,
   initialNotes,
   initialPhotos,
+  storySlides,
   slug,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'home' | 'wishes' | 'moments'>('home')
+  const [activeTab, setActiveTab] = useState<Tab>('home')
+
+  const tabs: { id: Tab; icon: string; label: string }[] = [
+    { id: 'home',    icon: '🏠', label: 'Home' },
+    { id: 'story',   icon: '💑', label: 'Story' },
+    { id: 'wishes',  icon: '💌', label: 'Wishes' },
+    { id: 'moments', icon: '📸', label: 'Moments' },
+  ]
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
@@ -53,7 +65,8 @@ export default function WeddingPageClient({
 
       {/* Main content */}
       <div className="pt-14 pb-20">
-        {/* Home tab */}
+
+        {/* ── HOME TAB ── */}
         {activeTab === 'home' && (
           <div className="max-w-lg mx-auto">
             {/* Cover image or gradient fallback */}
@@ -74,7 +87,7 @@ export default function WeddingPageClient({
               </div>
             ) : (
               <div className="bg-gradient-to-br from-rose-50 to-pink-100 px-8 pt-20 pb-12 text-center relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
                   <div className="absolute top-4 left-8 text-6xl rotate-12">🌸</div>
                   <div className="absolute top-8 right-6 text-5xl -rotate-12">🌹</div>
                   <div className="absolute bottom-6 left-4 text-4xl rotate-6">💐</div>
@@ -88,51 +101,46 @@ export default function WeddingPageClient({
             )}
 
             <div className="px-6 py-8 space-y-5">
-              {/* Date + Venue card */}
-              <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-5 space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">📅</span>
-                  <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-wide">Date</p>
-                    <p className="font-medium text-stone-800 mt-0.5">{formattedDate}</p>
+              {/* Date + Venue card — only shown when RSVP is enabled */}
+              {wedding.rsvp_enabled && (
+                <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-5 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">📅</span>
+                    <div>
+                      <p className="text-xs text-stone-400 uppercase tracking-wide">Date</p>
+                      <p className="font-medium text-stone-800 mt-0.5">{formattedDate}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="h-px bg-rose-50" />
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">📍</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-stone-400 uppercase tracking-wide">Venue</p>
-                    <p className="font-medium text-stone-800 mt-0.5">{wedding.venue_name}</p>
-                    {wedding.rsvp_enabled && wedding.venue_address && (
-                      <p className="text-sm text-stone-400 mt-0.5">{wedding.venue_address}</p>
-                    )}
+                  <div className="h-px bg-rose-50" />
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">📍</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-stone-400 uppercase tracking-wide">Venue</p>
+                      <p className="font-medium text-stone-800 mt-0.5">{wedding.venue_name}</p>
+                      {wedding.venue_address && (
+                        <p className="text-sm text-stone-400 mt-0.5">{wedding.venue_address}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Embedded map — only when rsvp_enabled and coords available */}
-                {wedding.rsvp_enabled && hasMap && (
-                  <VenueMap
-                    lat={wedding.venue_lat!}
-                    lng={wedding.venue_lng!}
-                    venueName={wedding.venue_name}
-                  />
-                )}
+                  {hasMap && (
+                    <VenueMap
+                      lat={wedding.venue_lat!}
+                      lng={wedding.venue_lng!}
+                      venueName={wedding.venue_name}
+                    />
+                  )}
 
-                {/* View on Map — only when rsvp_enabled */}
-                {wedding.rsvp_enabled && (
                   <a
                     href={directionsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                    </svg>
                     📍 View on Map
                   </a>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* RSVP button — only when enabled */}
               {wedding.rsvp_enabled && (
@@ -155,25 +163,26 @@ export default function WeddingPageClient({
           </div>
         )}
 
-        {/* Wishes tab */}
+        {/* ── STORY TAB ── */}
+        {activeTab === 'story' && (
+          <StorySection slides={storySlides} />
+        )}
+
+        {/* ── WISHES TAB ── */}
         {activeTab === 'wishes' && (
           <NotesSection weddingId={wedding.id} initialNotes={initialNotes} />
         )}
 
-        {/* Moments tab */}
+        {/* ── MOMENTS TAB ── */}
         {activeTab === 'moments' && (
           <PhotosSection weddingId={wedding.id} initialPhotos={initialPhotos} />
         )}
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-rose-50 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-rose-50">
         <div className="max-w-lg mx-auto flex">
-          {([
-            { id: 'home', icon: '🏠', label: 'Home' },
-            { id: 'wishes', icon: '💌', label: 'Wishes' },
-            { id: 'moments', icon: '📸', label: 'Moments' },
-          ] as const).map(tab => (
+          {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
