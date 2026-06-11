@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { Plan } from '@/lib/supabase/database.types'
 import type { PlanWithSubscription } from '@/lib/plans'
 
@@ -63,9 +62,10 @@ function getPlanFeatures(plan: Plan): { label: string; included: boolean }[] {
   ]
 }
 
-export default function PlansClient({ plans, planInfo, weddingId }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: Props) {
   const [subscribing, setSubscribing] = useState<string | null>(null)
-  const router = useRouter()
+
 
   async function handleSubscribe(planId: string) {
     setSubscribing(planId)

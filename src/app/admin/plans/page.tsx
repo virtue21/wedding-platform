@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getWeddingPlanInfo, formatPrice } from '@/lib/plans'
+import { getWeddingPlanInfo } from '@/lib/plans'
 import PlansClient from './PlansClient'
 import type { Plan } from '@/lib/supabase/database.types'
 

@@ -18,26 +18,23 @@ function assertSuperadmin() {
   if (!isValidSession(session?.value)) throw new Error('Unauthorized')
 }
 
-export async function togglePlan(id: string, isActive: boolean) {
+export async function pauseSubscription(subId: string) {
   assertSuperadmin()
   const sb = serviceClient()
-  await sb.from('plans').update({ is_active: isActive, updated_at: new Date().toISOString() }).eq('id', id)
-  revalidatePath('/superadmin/plans')
-  revalidatePath('/admin/plans')
+  await sb.from('wedding_subscriptions').update({ status: 'paused' }).eq('id', subId)
+  revalidatePath('/superadmin/subscriptions')
 }
 
-export async function updatePlan(id: string, data: {
-  name: string
-  price: number
-  guest_cap: number | null
-  registry_item_cap: number | null
-  table_cap: number | null
-  has_moments: boolean
-  moments_upload_cap: number | null
-}) {
+export async function resumeSubscription(subId: string) {
   assertSuperadmin()
   const sb = serviceClient()
-  await sb.from('plans').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id)
-  revalidatePath('/superadmin/plans')
-  revalidatePath('/admin/plans')
+  await sb.from('wedding_subscriptions').update({ status: 'active' }).eq('id', subId)
+  revalidatePath('/superadmin/subscriptions')
+}
+
+export async function cancelSubscription(subId: string) {
+  assertSuperadmin()
+  const sb = serviceClient()
+  await sb.from('wedding_subscriptions').update({ status: 'cancelled' }).eq('id', subId)
+  revalidatePath('/superadmin/subscriptions')
 }

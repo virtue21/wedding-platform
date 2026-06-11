@@ -179,7 +179,6 @@ export default function AdminRegistryTabs({
   items,
   receipts,
   atRegistryCap,
-  registryCap,
 }: {
   items: ItemWithClaims[]
   receipts: CashGiftReceipt[]

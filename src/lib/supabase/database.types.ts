@@ -532,7 +532,8 @@ export type Database = {
           wedding_id: string
           plan_id: string
           paystack_reference: string | null
-          status: 'pending' | 'active' | 'expired'
+          status: 'pending' | 'active' | 'expired' | 'paused' | 'cancelled'
+          amount_paid: number | null
           activated_at: string | null
           expires_at: string | null
           created_at: string
@@ -543,7 +544,8 @@ export type Database = {
           wedding_id: string
           plan_id: string
           paystack_reference?: string | null
-          status?: 'pending' | 'active' | 'expired'
+          status?: 'pending' | 'active' | 'expired' | 'paused' | 'cancelled'
+          amount_paid?: number | null
           activated_at?: string | null
           expires_at?: string | null
           created_at?: string
@@ -552,12 +554,21 @@ export type Database = {
         Update: {
           plan_id?: string
           paystack_reference?: string | null
-          status?: 'pending' | 'active' | 'expired'
+          status?: 'pending' | 'active' | 'expired' | 'paused' | 'cancelled'
+          amount_paid?: number | null
           activated_at?: string | null
           expires_at?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wedding_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

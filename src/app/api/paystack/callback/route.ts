@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     plan_id,
     paystack_reference: reference,
     status: 'active',
+    amount_paid: data.data.amount ?? null, // in kobo
     activated_at: new Date().toISOString(),
   }, { onConflict: 'wedding_id' })
 
