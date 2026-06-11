@@ -1,4 +1,5 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 import type { Database } from '@/lib/supabase/database.types'
 
 function serviceClient() {
@@ -32,15 +33,29 @@ export default async function CustomersPage() {
       : Promise.resolve({ data: [] }),
     sb.from('wedding_subscriptions')
       .select('wedding_id, status, plans(name)')
-      .eq('status', 'active'),
+      .in('status', ['active', 'paused']),
     sb.from('guests')
       .select('wedding_id')
       .eq('is_removed', false),
   ])
 
+  // Fetch emails from auth.users via admin API
+  const emailMap: Record<string, string> = {}
+  if (userIds.length) {
+    await Promise.all(
+      userIds.map(async (uid) => {
+        const { data } = await sb.auth.admin.getUserById(uid)
+        if (data?.user?.email) emailMap[uid] = data.user.email
+      })
+    )
+  }
+
   const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
   const subMap = Object.fromEntries(
-    (subs ?? []).map(s => [s.wedding_id, (s.plans as unknown as { name: string } | null)?.name ?? 'Active'])
+    (subs ?? []).map(s => [
+      s.wedding_id,
+      { name: (s.plans as unknown as { name: string } | null)?.name ?? 'Active', status: s.status },
+    ])
   )
   const guestCountMap: Record<string, number> = {}
   for (const g of guestCounts ?? []) {
@@ -59,25 +74,32 @@ export default async function CustomersPage() {
           <thead>
             <tr className="border-b border-stone-800">
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Customer</th>
-              <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Slug</th>
+              <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Email</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Plan</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Guests</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">RSVP</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Joined</th>
+              <th className="px-5 py-3" />
             </tr>
           </thead>
           <tbody>
             {(weddings ?? []).map(w => {
               const p = profileMap[w.user_id]
               const name = p ? `${p.bride_name} & ${p.groom_name}` : '—'
-              const plan = subMap[w.id]
+              const sub = subMap[w.id]
+              const email = emailMap[w.user_id] ?? '—'
               return (
                 <tr key={w.id} className="border-b border-stone-800/50 hover:bg-stone-800/30 transition-colors">
-                  <td className="px-5 py-3.5 text-white font-medium">{name}</td>
-                  <td className="px-5 py-3.5 text-stone-400">/{w.slug}</td>
                   <td className="px-5 py-3.5">
-                    {plan ? (
-                      <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 text-xs rounded-full">{plan}</span>
+                    <p className="text-white font-medium">{name}</p>
+                    <p className="text-stone-500 text-xs mt-0.5">/{w.slug}</p>
+                  </td>
+                  <td className="px-5 py-3.5 text-stone-400 text-xs">{email}</td>
+                  <td className="px-5 py-3.5">
+                    {sub ? (
+                      <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${sub.status === 'paused' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                        {sub.status === 'paused' ? `${sub.name} (Paused)` : sub.name}
+                      </span>
                     ) : (
                       <span className="px-2 py-0.5 bg-stone-800 text-stone-500 text-xs rounded-full">Free</span>
                     )}
@@ -89,6 +111,14 @@ export default async function CustomersPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-stone-400 text-xs">{formatDate(w.created_at)}</td>
+                  <td className="px-5 py-3.5">
+                    <Link
+                      href={`/superadmin/customers/${w.id}`}
+                      className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      View →
+                    </Link>
+                  </td>
                 </tr>
               )
             })}
