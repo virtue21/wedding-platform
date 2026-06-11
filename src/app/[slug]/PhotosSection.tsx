@@ -7,9 +7,11 @@ import type { WeddingPhoto } from '@/lib/supabase/database.types'
 type Props = {
   weddingId: string
   initialPhotos: WeddingPhoto[]
+  momentsCap?: number | null
+  momentsCount?: number
 }
 
-export default function PhotosSection({ weddingId, initialPhotos }: Props) {
+export default function PhotosSection({ weddingId, initialPhotos, momentsCap, momentsCount }: Props) {
   const [photos, setPhotos] = useState<WeddingPhoto[]>(initialPhotos)
   const [uploaderName, setUploaderName] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -84,6 +86,14 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
 
       {/* Upload area */}
       <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-5 space-y-3">
+        {momentsCap !== null && momentsCap !== undefined && (momentsCount ?? 0) >= momentsCap ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-2 text-stone-400">
+            <span className="text-3xl">📸</span>
+            <p className="text-sm font-medium text-stone-500">Moments wall is full</p>
+            <p className="text-xs text-stone-400">The upload limit has been reached for this wedding.</p>
+          </div>
+        ) : (
+        <>
         <input
           value={uploaderName}
           onChange={e => setUploaderName(e.target.value)}
@@ -140,6 +150,8 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
               onChange={handleFileSelect}
             />
           </label>
+        )}
+        </>
         )}
       </div>
 

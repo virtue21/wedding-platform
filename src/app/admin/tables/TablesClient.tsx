@@ -93,10 +93,12 @@ export default function TablesClient({
   tables,
   guests,
   categories,
+  atTableCap,
 }: {
   tables: TableWithGuests[]
   guests: Pick<Guest, 'id' | 'full_name' | 'side' | 'table_id'>[]
   categories: CategoryWithSubs[]
+  atTableCap?: boolean
 }) {
   const [isPending, startTransition] = useTransition()
 
@@ -215,8 +217,9 @@ export default function TablesClient({
           </p>
           <button
             type="submit"
-            disabled={isPending || (!customLabel.trim() && !labelSuggestion.trim())}
-            className="btn-primary"
+            disabled={isPending || (!customLabel.trim() && !labelSuggestion.trim()) || atTableCap}
+            title={atTableCap ? 'Upgrade your plan to add more tables' : undefined}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create table
           </button>

@@ -9,7 +9,7 @@ import { track } from '@/lib/mixpanel'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
-export default function RegistryClient({ items }: { items: ItemWithClaims[] }) {
+export default function RegistryClient({ items, atRegistryCap }: { items: ItemWithClaims[]; atRegistryCap?: boolean }) {
   const [editing, setEditing] = useState<RegistryItem | null>(null)
   const [adding, setAdding] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -20,8 +20,10 @@ export default function RegistryClient({ items }: { items: ItemWithClaims[] }) {
     <div>
       <div className="flex justify-end mb-5">
         <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors"
+          onClick={() => !atRegistryCap && setAdding(true)}
+          disabled={atRegistryCap}
+          title={atRegistryCap ? 'Upgrade your plan to add more items' : undefined}
+          className="flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           + Add item
         </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { saveRsvpSettings } from './actions'
 
 type Props = {
@@ -8,13 +9,15 @@ type Props = {
   initialEnabled: boolean
   initialLimit: number | null
   currentCount: number
+  hasActivePlan?: boolean
 }
 
-export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, currentCount }: Props) {
+export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, currentCount, hasActivePlan }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const [limit, setLimit] = useState<number | null>(initialLimit)
   const [saving, setSaving] = useState(false)
   const [showPlansModal, setShowPlansModal] = useState(false)
+  const router = useRouter()
 
   async function handleEnable() {
     setSaving(true)
@@ -64,7 +67,7 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
           </div>
           {/* Toggle switch */}
           <button
-            onClick={() => enabled ? handleDisable() : setShowPlansModal(true)}
+            onClick={() => enabled ? handleDisable() : (hasActivePlan ? setShowPlansModal(true) : router.push('/admin/plans'))}
             disabled={saving}
             className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${enabled ? 'bg-rose-500' : 'bg-stone-200'}`}
           >
@@ -108,9 +111,9 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
             <p className="text-2xl mb-3 text-center">💳</p>
             <h3 className="font-serif text-xl text-stone-800 text-center mb-2">Activate RSVP</h3>
-            <p className="text-sm text-stone-400 text-center mb-1">RSVP will require a paid plan in the future.</p>
+            <p className="text-sm text-stone-400 text-center mb-1">Enabling RSVP requires an active plan.</p>
             <p className="text-xs text-emerald-600 bg-emerald-50 rounded-xl px-3 py-2 text-center mb-5">
-              🎉 You&apos;re on the free beta — RSVP is free to use right now.
+              🎉 You&apos;re on the free beta — RSVP is free to use right now. Subscribe on the <a href="/admin/plans" className="underline">Plans page</a> to unlock full features.
             </p>
             <div className="space-y-2">
               <button

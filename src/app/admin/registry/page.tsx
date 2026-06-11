@@ -24,7 +24,7 @@ export default async function RegistryPage() {
     )
   }
 
-  const [itemsResult, receiptsResult] = await Promise.all([
+  const [itemsResult, receiptsResult, subResult] = await Promise.all([
     supabase
       .from('registry_items')
       .select('*, gift_claims(*)')
@@ -36,7 +36,18 @@ export default async function RegistryPage() {
       .select('*')
       .eq('wedding_id', wedding.id)
       .order('submitted_at', { ascending: false }),
+
+    supabase
+      .from('wedding_subscriptions')
+      .select('plan_id, plans(registry_item_cap)')
+      .eq('wedding_id', wedding.id)
+      .eq('status', 'active')
+      .single(),
   ])
+
+  const registryCap = (subResult.data as { plans?: { registry_item_cap?: number | null } } | null)?.plans?.registry_item_cap ?? null
+  const itemCount = (itemsResult.data ?? []).length
+  const atRegistryCap = registryCap !== null && itemCount >= registryCap
 
   return (
     <div className="space-y-6">
@@ -45,9 +56,18 @@ export default async function RegistryPage() {
         <p className="text-stone-400 text-sm">Manage gift items and track cash transfers from guests</p>
       </div>
 
+      {atRegistryCap && (
+        <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center justify-between gap-4">
+          <span>⚠️ You&apos;ve reached your plan limit of {registryCap} registry items. Upgrade to add more.</span>
+          <Link href="/admin/plans" className="text-amber-700 font-medium underline whitespace-nowrap">Upgrade →</Link>
+        </div>
+      )}
+
       <AdminRegistryTabs
         items={(itemsResult.data ?? []) as ItemWithClaims[]}
         receipts={(receiptsResult.data ?? []) as CashGiftReceipt[]}
+        atRegistryCap={atRegistryCap}
+        registryCap={registryCap}
       />
     </div>
   )

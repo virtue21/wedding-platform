@@ -39,6 +39,23 @@ export default async function RsvpPage({
     }
   }
 
+  // Check plan guest cap
+  if (!rsvpFull) {
+    const { data: activeSub } = await supabase
+      .from('wedding_subscriptions')
+      .select('plan_id, plans(guest_cap)')
+      .eq('wedding_id', wedding.id)
+      .eq('status', 'active')
+      .single()
+    const planGuestCap = (activeSub as { plans?: { guest_cap?: number | null } } | null)?.plans?.guest_cap ?? null
+    if (planGuestCap !== null) {
+      const { count: guestCount } = await supabase
+        .from('guests').select('id', { count: 'exact' })
+        .eq('wedding_id', wedding.id).eq('is_removed', false)
+      if ((guestCount ?? 0) >= planGuestCap) rsvpFull = true
+    }
+  }
+
   const { data: profile } = await supabase
     .from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single()
 

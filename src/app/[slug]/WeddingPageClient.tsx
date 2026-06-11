@@ -23,6 +23,8 @@ type Props = {
   initialPhotos: WeddingPhoto[]
   storySlides: WeddingStorySlide[]
   slug: string
+  momentsCap?: number | null
+  momentsCount?: number
 }
 
 export default function WeddingPageClient({
@@ -36,6 +38,8 @@ export default function WeddingPageClient({
   initialPhotos,
   storySlides,
   slug,
+  momentsCap,
+  momentsCount,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
 
@@ -175,7 +179,7 @@ export default function WeddingPageClient({
 
         {/* ── MOMENTS TAB ── */}
         {activeTab === 'moments' && (
-          <PhotosSection weddingId={wedding.id} initialPhotos={initialPhotos} />
+          <PhotosSection weddingId={wedding.id} initialPhotos={initialPhotos} momentsCap={momentsCap} momentsCount={momentsCount} />
         )}
       </div>
 

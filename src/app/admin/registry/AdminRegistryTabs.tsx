@@ -178,9 +178,13 @@ function GiftKPIs({ items }: { items: ItemWithClaims[] }) {
 export default function AdminRegistryTabs({
   items,
   receipts,
+  atRegistryCap,
+  registryCap,
 }: {
   items: ItemWithClaims[]
   receipts: CashGiftReceipt[]
+  atRegistryCap?: boolean
+  registryCap?: number | null
 }) {
   const [tab, setTab] = useState<'gifts' | 'cash'>('gifts')
 
@@ -219,7 +223,7 @@ export default function AdminRegistryTabs({
       {tab === 'gifts' && (
         <>
           <GiftKPIs items={items} />
-          <RegistryClient items={items} />
+          <RegistryClient items={items} atRegistryCap={atRegistryCap} />
         </>
       )}
 

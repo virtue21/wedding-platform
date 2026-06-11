@@ -474,6 +474,91 @@ export type Database = {
           }
         ]
       }
+      plans: {
+        Row: {
+          id: string
+          name: string
+          price: number
+          guest_cap: number | null
+          registry_item_cap: number | null
+          table_cap: number | null
+          has_moments: boolean
+          moments_upload_cap: number | null
+          has_cover_image: boolean
+          has_digital_iv: boolean
+          has_gate_scanner: boolean
+          is_active: boolean
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          price: number
+          guest_cap?: number | null
+          registry_item_cap?: number | null
+          table_cap?: number | null
+          has_moments?: boolean
+          moments_upload_cap?: number | null
+          has_cover_image?: boolean
+          has_digital_iv?: boolean
+          has_gate_scanner?: boolean
+          is_active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          price?: number
+          guest_cap?: number | null
+          registry_item_cap?: number | null
+          table_cap?: number | null
+          has_moments?: boolean
+          moments_upload_cap?: number | null
+          has_cover_image?: boolean
+          has_digital_iv?: boolean
+          has_gate_scanner?: boolean
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wedding_subscriptions: {
+        Row: {
+          id: string
+          wedding_id: string
+          plan_id: string
+          paystack_reference: string | null
+          status: 'pending' | 'active' | 'expired'
+          activated_at: string | null
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          plan_id: string
+          paystack_reference?: string | null
+          status?: 'pending' | 'active' | 'expired'
+          activated_at?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          plan_id?: string
+          paystack_reference?: string | null
+          status?: 'pending' | 'active' | 'expired'
+          activated_at?: string | null
+          expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -519,6 +604,9 @@ export type WeddingPaymentMethod = Tables<'wedding_payment_methods'>
 export type WeddingNote = Tables<'wedding_notes'>
 export type WeddingPhoto = Tables<'wedding_photos'>
 export type WeddingStorySlide = Tables<'wedding_story_slides'>
+
+export type Plan = Tables<'plans'>
+export type WeddingSubscription = Tables<'wedding_subscriptions'>
 
 // Legacy aliases
 export type Wedding = WeddingRow
