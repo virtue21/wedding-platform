@@ -16,6 +16,7 @@ type Props = {
 
 export default function ClaimButton({
   itemId,
+  itemName,
   sessionGuestId,
   sessionGuestName,
   sessionGuestPhone,
@@ -38,7 +39,7 @@ export default function ClaimButton({
       // Session guest — claim immediately
       startTransition(async () => {
         const result = await claimGift(itemId, sessionGuestName!, sessionGuestPhone, sessionGuestId)
-        if (result.ok) setState('done')
+        if (result.ok) { setState('done'); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
         else { setErrorMsg(result.error); setState('error') }
       })
     } else {
@@ -51,7 +52,7 @@ export default function ClaimButton({
     if (!name.trim()) return
     startTransition(async () => {
       const result = await claimGift(itemId, name.trim(), phone.trim() || null, null)
-      if (result.ok) setState('done')
+      if (result.ok) { setState('done'); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
       else { setErrorMsg(result.error); setState('error') }
     })
   }
