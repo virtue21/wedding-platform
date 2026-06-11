@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { submitRsvp } from './actions'
@@ -19,6 +19,24 @@ export default async function RsvpPage({
     .from('weddings').select('*').eq('slug', params.slug).single() as { data: WeddingRow | null }
 
   if (!wedding) notFound()
+
+  // Redirect if RSVP is disabled
+  if (wedding.rsvp_enabled === false) {
+    redirect(`/${params.slug}`)
+  }
+
+  // Check RSVP limit
+  let rsvpFull = false
+  if (wedding.rsvp_limit != null) {
+    const { count } = await supabase
+      .from('guests')
+      .select('id', { count: 'exact' })
+      .eq('wedding_id', wedding.id)
+      .eq('is_removed', false)
+    if ((count ?? 0) >= wedding.rsvp_limit) {
+      rsvpFull = true
+    }
+  }
 
   const { data: profile } = await supabase
     .from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single()
@@ -60,39 +78,51 @@ export default async function RsvpPage({
           <p className="text-stone-400 text-sm mt-1">We&apos;d love to have you there</p>
         </div>
 
-        {searchParams.error && (
-          <div className="mb-5 p-3.5 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
-            {searchParams.error}
+        {rsvpFull ? (
+          <div className="bg-white rounded-3xl border border-rose-50 shadow-sm p-7 text-center">
+            <p className="text-3xl mb-3">🎊</p>
+            <h2 className="font-serif text-xl text-stone-800 mb-2">RSVP is Full</h2>
+            <p className="text-stone-400 text-sm">
+              The couple has reached their guest limit. Please reach out to them directly.
+            </p>
           </div>
+        ) : (
+          <>
+            {searchParams.error && (
+              <div className="mb-5 p-3.5 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+                {searchParams.error}
+              </div>
+            )}
+
+            <div className="bg-white rounded-3xl border border-rose-50 shadow-sm p-7">
+              <form action={action} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Full name *</label>
+                  <input name="full_name" type="text" required placeholder="Emeka Obi" className="input" />
+                </div>
+
+                <PhoneInput />
+
+                <div>
+                  <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                    Email address
+                  </label>
+                  <input name="email" type="email" placeholder="emeka@example.com" className="input" />
+                </div>
+
+                <SideAndCategory
+                  brideCategories={brideCategories}
+                  groomCategories={groomCategories}
+                  subcategories={subcategories ?? []}
+                />
+
+                <button type="submit" className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-2xl transition-colors shadow-sm shadow-rose-200 mt-2">
+                  Confirm Attendance
+                </button>
+              </form>
+            </div>
+          </>
         )}
-
-        <div className="bg-white rounded-3xl border border-rose-50 shadow-sm p-7">
-          <form action={action} className="space-y-5">
-            <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Full name *</label>
-              <input name="full_name" type="text" required placeholder="Emeka Obi" className="input" />
-            </div>
-
-            <PhoneInput />
-
-            <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
-                Email address
-              </label>
-              <input name="email" type="email" placeholder="emeka@example.com" className="input" />
-            </div>
-
-            <SideAndCategory
-              brideCategories={brideCategories}
-              groomCategories={groomCategories}
-              subcategories={subcategories ?? []}
-            />
-
-            <button type="submit" className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-2xl transition-colors shadow-sm shadow-rose-200 mt-2">
-              Confirm Attendance
-            </button>
-          </form>
-        </div>
       </div>
     </div>
   )

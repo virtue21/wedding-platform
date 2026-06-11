@@ -11,6 +11,8 @@ const NAV = [
   { href: '/admin/registry',   label: 'Registry',   icon: '🎁' },
   { href: '/admin/tables',     label: 'Seating',    icon: '🪑' },
   { href: '/admin/categories', label: 'Categories', icon: '🏷️' },
+  { href: '/admin/wall',       label: 'Wall',       icon: '💌' },
+  { href: '/admin/settings',   label: 'Settings',   icon: '🔧' },
   { href: '/setup',            label: 'Setup',      icon: '⚙️' },
 ]
 

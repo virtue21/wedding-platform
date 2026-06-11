@@ -47,6 +47,8 @@ export type Database = {
           currency: 'NGN' | 'USD' | 'GBP' | 'USDT' | 'USDC'
           crypto_chain: string | null
           crypto_address: string | null
+          rsvp_enabled: boolean
+          rsvp_limit: number | null
           created_at: string
           updated_at: string
         }
@@ -68,6 +70,8 @@ export type Database = {
           currency?: 'NGN' | 'USD' | 'GBP' | 'USDT' | 'USDC'
           crypto_chain?: string | null
           crypto_address?: string | null
+          rsvp_enabled?: boolean
+          rsvp_limit?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -87,7 +91,51 @@ export type Database = {
           currency?: 'NGN' | 'USD' | 'GBP' | 'USDT' | 'USDC'
           crypto_chain?: string | null
           crypto_address?: string | null
+          rsvp_enabled?: boolean
+          rsvp_limit?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      wedding_notes: {
+        Row: {
+          id: string
+          wedding_id: string
+          author_name: string
+          message: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          author_name: string
+          message: string
+          created_at?: string
+        }
+        Update: {
+          message?: string
+        }
+        Relationships: []
+      }
+      wedding_photos: {
+        Row: {
+          id: string
+          wedding_id: string
+          uploader_name: string | null
+          photo_url: string
+          caption: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          wedding_id: string
+          uploader_name?: string | null
+          photo_url: string
+          caption?: string | null
+          created_at?: string
+        }
+        Update: {
+          caption?: string | null
         }
         Relationships: []
       }
@@ -440,6 +488,9 @@ export type RegistryItem = Tables<'registry_items'>
 export type GiftClaim = Tables<'gift_claims'>
 export type CashGiftReceipt = Tables<'cash_gift_receipts'>
 export type WeddingPaymentMethod = Tables<'wedding_payment_methods'>
+
+export type WeddingNote = Tables<'wedding_notes'>
+export type WeddingPhoto = Tables<'wedding_photos'>
 
 // Legacy aliases
 export type Wedding = WeddingRow
