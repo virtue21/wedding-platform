@@ -16,7 +16,7 @@ export default function SuperadminNav() {
 
   async function handleLogout() {
     await fetch('/api/superadmin/logout', { method: 'POST' })
-    router.push('/superadmin/login')
+    router.push('/auth/login')
     router.refresh()
   }
 

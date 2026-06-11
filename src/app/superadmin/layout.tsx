@@ -8,7 +8,7 @@ export default function SuperadminLayout({ children }: { children: React.ReactNo
   const session = cookieStore.get(SUPERADMIN_COOKIE)
 
   if (!isValidSession(session?.value)) {
-    redirect('/superadmin/login')
+    redirect('/auth/login')
   }
 
   return (

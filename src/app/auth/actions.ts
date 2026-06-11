@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { SUPERADMIN_COOKIE, SUPERADMIN_COOKIE_MAX_AGE, getSessionSecret } from '@/lib/superadmin-session'
 
 export async function signUp(formData: FormData) {
   const supabase = createClient()
@@ -44,11 +46,25 @@ export async function signUp(formData: FormData) {
 }
 
 export async function login(formData: FormData) {
-  const supabase = createClient()
-
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
+  // Superadmin shortcut — no Supabase account needed
+  if (
+    email === process.env.SUPERADMIN_EMAIL &&
+    password === process.env.SUPERADMIN_PASSWORD
+  ) {
+    cookies().set(SUPERADMIN_COOKIE, getSessionSecret(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: SUPERADMIN_COOKIE_MAX_AGE,
+      path: '/superadmin',
+    })
+    redirect('/superadmin')
+  }
+
+  const supabase = createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
