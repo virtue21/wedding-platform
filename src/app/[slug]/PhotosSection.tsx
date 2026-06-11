@@ -170,17 +170,48 @@ export default function PhotosSection({ weddingId, initialPhotos }: Props) {
       {/* Lightbox */}
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4"
           onClick={() => setLightboxSrc(null)}
         >
-          <button
-            className="absolute top-4 right-4 text-white text-3xl leading-none z-10"
-            onClick={() => setLightboxSrc(null)}
-          >×</button>
+          {/* Top bar */}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
+            <button
+              className="text-white/60 hover:text-white text-sm font-medium transition-colors"
+              onClick={() => setLightboxSrc(null)}
+            >
+              ← Close
+            </button>
+            <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+              {/* Download */}
+              <a
+                href={lightboxSrc}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                ⬇ Download
+              </a>
+              {/* Share (Web Share API — works on mobile) */}
+              {'share' in navigator && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.share({ url: lightboxSrc, title: 'Wedding Moment' })
+                    } catch { /* user cancelled */ }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  ↗ Share
+                </button>
+              )}
+            </div>
+          </div>
+
           <img
             src={lightboxSrc}
             alt="Full size"
-            className="max-w-full max-h-full rounded-xl object-contain"
+            className="max-w-full max-h-[85vh] rounded-xl object-contain"
             onClick={e => e.stopPropagation()}
           />
         </div>
