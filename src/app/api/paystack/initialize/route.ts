@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       email: user.email,
-      amount: plan.price,
+      amount: plan.price, // already in kobo
+      currency: 'NGN',
       reference,
       callback_url: `${baseUrl}/api/paystack/callback`,
       metadata: {
@@ -38,7 +39,10 @@ export async function POST(req: NextRequest) {
   })
 
   const data = await res.json()
-  if (!data.status) return NextResponse.json({ error: data.message }, { status: 400 })
+  if (!data.status) {
+    console.error('[Paystack initialize error]', JSON.stringify(data))
+    return NextResponse.json({ error: data.message ?? 'Paystack error', detail: data }, { status: 400 })
+  }
 
   // Create pending subscription record
   await supabase.from('wedding_subscriptions').upsert({
