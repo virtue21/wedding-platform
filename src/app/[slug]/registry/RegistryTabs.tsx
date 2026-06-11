@@ -110,6 +110,7 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
 
                       <ClaimButton
                         itemId={item.id}
+                        itemName={item.name}
                         sessionGuestId={sessionGuest?.id ?? null}
                         sessionGuestName={sessionGuest?.full_name ?? null}
                         sessionGuestPhone={sessionGuest?.phone ?? null}

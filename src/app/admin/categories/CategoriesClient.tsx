@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { revalidateAfterMutation } from './actions'
+import { track } from '@/lib/mixpanel'
 
 type Sub = { id: string; label: string; sort_order: number; category_id: string }
 type Cat = { id: string; label: string; sort_order: number; side: 'bride' | 'groom'; subcategories: Sub[] }
@@ -267,6 +268,7 @@ function SideSection({
       const { error } = await sb.from('relationship_categories')
         .insert({ wedding_id: weddingId, side, label, sort_order: nextSort })
       if (error) throw new Error(error.message)
+      track('category_created')
     })
   }
 
@@ -288,6 +290,7 @@ function SideSection({
     await run(async () => {
       const { error } = await sb.from('relationship_categories').delete().eq('id', id)
       if (error) throw new Error(error.message)
+      track('category_deleted')
     })
   }
 

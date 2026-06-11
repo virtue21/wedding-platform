@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { claimGift } from './actions'
+import { track } from '@/lib/mixpanel'
 
 type Props = {
   itemId: string
+  itemName: string
   /** Passed from URL param after RSVP — skips the name/phone prompt */
   sessionGuestId: string | null
   sessionGuestName: string | null

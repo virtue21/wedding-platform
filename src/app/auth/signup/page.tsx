@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { signUp } from '../actions'
+import SignupForm from './SignupForm'
 
 export default function SignUpPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
@@ -45,40 +45,7 @@ export default function SignUpPage({ searchParams }: { searchParams: { error?: s
             </div>
           )}
 
-          <form action={signUp} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
-                  Bride&apos;s name
-                </label>
-                <input name="bride_name" type="text" required placeholder="Ada" className="input" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
-                  Groom&apos;s name
-                </label>
-                <input name="groom_name" type="text" required placeholder="Chike" className="input" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
-                Email address
-              </label>
-              <input name="email" type="email" required placeholder="ada@example.com" className="input" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
-                Password
-              </label>
-              <input name="password" type="password" required minLength={6} placeholder="At least 6 characters" className="input" />
-            </div>
-
-            <button type="submit" className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold rounded-xl transition-colors mt-2 shadow-lg shadow-rose-200">
-              Create account →
-            </button>
-          </form>
+          <SignupForm />
 
           <p className="mt-6 text-center text-sm text-stone-400">
             Already have an account?{' '}

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { deleteRegistryItem, toggleReceived } from './actions'
 import RegistryItemForm from './RegistryItemForm'
 import type { RegistryItem, GiftClaim } from '@/lib/supabase/database.types'
+import { track } from '@/lib/mixpanel'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
@@ -57,7 +58,7 @@ export default function RegistryClient({ items }: { items: ItemWithClaims[] }) {
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => setEditing(item)} className="text-xs px-3 py-1.5 border border-rose-100 text-stone-500 rounded-lg hover:bg-rose-50 transition-colors">Edit</button>
                         <button
-                          onClick={() => { if (confirm(`Delete "${item.name}"?`)) startTransition(() => deleteRegistryItem(item.id)) }}
+                          onClick={() => { if (confirm(`Delete "${item.name}"?`)) { track('registry_item_deleted'); startTransition(() => deleteRegistryItem(item.id)) } }}
                           disabled={isPending}
                           className="text-xs px-3 py-1.5 border border-red-100 text-red-400 rounded-lg hover:bg-red-50 transition-colors"
                         >

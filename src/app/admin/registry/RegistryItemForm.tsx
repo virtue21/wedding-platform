@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { saveRegistryItem } from './actions'
 import type { RegistryItem } from '@/lib/supabase/database.types'
+import { track } from '@/lib/mixpanel'
 
 type Props = {
   item?: RegistryItem
@@ -47,6 +48,9 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props
     setPending(true)
     await saveRegistryItem(formData)
     setPending(false)
+    if (!item) {
+      track('registry_item_added')
+    }
     onClose()
   }
 

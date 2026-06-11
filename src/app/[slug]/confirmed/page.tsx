@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { WeddingRow } from '@/lib/supabase/database.types'
+import RsvpCompletedTracker from './RsvpCompletedTracker'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -65,6 +66,7 @@ export default async function ConfirmedPage({
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
+      <RsvpCompletedTracker weddingSlug={params.slug} />
       <div className="max-w-sm mx-auto px-5 py-12 space-y-5">
 
         {/* Hero */}

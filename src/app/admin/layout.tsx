@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/auth/actions'
 import type { Database } from '@/lib/supabase/database.types'
+import AdminIdentify from './AdminIdentify'
 
 type Profile = Database['public']['Tables']['user_profiles']['Row']
 
@@ -39,6 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
+      <AdminIdentify userId={user.id} />
       <header className="bg-white border-b border-rose-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">

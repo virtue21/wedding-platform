@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { submitRsvp } from './actions'
 import PhoneInput from './PhoneInput'
 import SideAndCategory from './SideAndCategory'
+import RsvpPageTracker from './RsvpPageTracker'
 import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 export default async function RsvpPage({
@@ -65,6 +66,7 @@ export default async function RsvpPage({
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
+      <RsvpPageTracker weddingSlug={params.slug} />
       <div className="max-w-lg mx-auto px-5 py-10">
         <Link href={`/${params.slug}`} className="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-rose-400 transition-colors mb-8">
           ← Back

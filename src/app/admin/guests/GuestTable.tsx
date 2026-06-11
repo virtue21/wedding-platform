@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { removeGuest, saveGuestNotes } from './actions'
 import type { Guest, RelationshipCategory } from '@/lib/supabase/database.types'
+import { track } from '@/lib/mixpanel'
 
 type GuestWithCategory = Guest & {
   relationship_categories: Pick<RelationshipCategory, 'label'> | null
@@ -76,6 +77,7 @@ function GuestRow({ guest }: { guest: GuestWithCategory }) {
                 <button
                   onClick={() => {
                     if (confirm(`Remove ${guest.full_name} from the guest list?`)) {
+                      track('guest_removed')
                       startTransition(() => removeGuest(guest.id))
                     }
                   }}

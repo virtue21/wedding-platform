@@ -9,6 +9,7 @@ import VenueSearch from '@/components/VenueSearch'
 import PaymentMethodsSection from './PaymentMethodsSection'
 import CoverImageUpload from './CoverImageUpload'
 import StorySetup from './StorySetup'
+import SetupTracker from './SetupTracker'
 import type { Database } from '@/lib/supabase/database.types'
 import type { WeddingStorySlide } from '@/lib/supabase/database.types'
 
@@ -47,6 +48,7 @@ export default async function SetupPage({
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+      <SetupTracker saved={!!searchParams.saved} />
       <header className="bg-white border-b border-rose-50">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <span className="font-serif text-stone-800 text-base">💍 Wedding Setup</span>

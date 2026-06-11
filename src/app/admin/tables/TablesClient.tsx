@@ -3,6 +3,7 @@
 import { useState, useTransition, useMemo } from 'react'
 import { saveTable, deleteTable, assignGuestToTable } from './actions'
 import type { SeatTable, Guest, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
+import { track } from '@/lib/mixpanel'
 
 type TableWithGuests = SeatTable & { guests: Pick<Guest, 'id' | 'full_name' | 'side'>[] }
 type CategoryWithSubs = RelationshipCategory & { subcategories: RelationshipSubcategory[] }
@@ -131,6 +132,7 @@ export default function TablesClient({
     fd.append('sort_order', String(nextSort))
     if (categoryId) fd.append('category_id', categoryId)
     if (subcategoryId) fd.append('subcategory_id', subcategoryId)
+    track('table_created')
     startTransition(() => {
       saveTable(fd)
       setCategoryId('')

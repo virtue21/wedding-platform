@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import QRCode from 'qrcode'
+import { track } from '@/lib/mixpanel'
 
 export default function QRDownload({ url }: { url: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,6 +20,7 @@ export default function QRDownload({ url }: { url: string }) {
     link.download = 'wedding-qr.png'
     link.href = canvas.toDataURL('image/png')
     link.click()
+    track('qr_code_downloaded')
   }
 
   return (

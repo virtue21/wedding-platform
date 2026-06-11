@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Users, MessageSquare, Send, Gift, ArrowRight, LayoutGrid } from 'lucide-react'
+import LandingTracking from './landing/LandingTracking'
+import LandingCTA from './landing/LandingCTA'
 
 // ── Phone mockup — RSVP form ───────────────────────────────────────────────
 
@@ -359,6 +361,7 @@ export default async function RootPage({
 
   return (
     <div className="min-h-screen bg-white font-sans">
+      <LandingTracking />
 
       {/* ── NAV ── */}
       <nav className="border-b border-stone-100 bg-white sticky top-0 z-40">
@@ -400,13 +403,7 @@ export default async function RootPage({
               <p className="text-stone-500 text-[1.05rem] leading-relaxed mb-8 max-w-sm">
                 Digital RSVPs, gift registry, guest management — one link, zero stress.
               </p>
-              <Link
-                href="/auth/signup"
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-semibold rounded-xl transition-colors text-[0.95rem] shadow-lg shadow-rose-200"
-              >
-                Plan Your Wedding
-                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-              </Link>
+              <LandingCTA />
             </div>
 
             {/* Right — phone mockup */}

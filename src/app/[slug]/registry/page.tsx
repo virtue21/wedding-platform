@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import RegistryTabs from './RegistryTabs'
+import RegistryViewTracker from './RegistryViewTracker'
 import type { WeddingRow, RegistryItem, Guest, WeddingPaymentMethod } from '@/lib/supabase/database.types'
 
 export default async function RegistryPage({
@@ -76,6 +77,7 @@ export default async function RegistryPage({
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
+    <RegistryViewTracker weddingSlug={params.slug} />
     <div className="max-w-lg mx-auto px-4 py-8">
       <div className="mb-6">
         <Link href={`/${params.slug}`} className="inline-flex items-center gap-1.5 text-sm text-stone-400 hover:text-rose-400 transition-colors">
