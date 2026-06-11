@@ -48,7 +48,7 @@ export default function StorySection({ slides }: Props) {
   return (
     <div className="max-w-lg mx-auto">
       {/* Slide card */}
-      <div className="relative overflow-hidden" style={{ minHeight: '72vw', maxHeight: 480 }}>
+      <div className="relative overflow-hidden aspect-video w-full">
         {/* Background */}
         {hasImage ? (
           <div className="absolute inset-0">
