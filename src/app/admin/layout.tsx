@@ -40,7 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     : null
 
   return (
-    <div className="min-h-screen bg-[#fdf8f4]">
+    <div className="min-h-screen bg-[#fdf8f4] flex flex-col">
       <AdminIdentify userId={user.id} />
       <header className="bg-white border-b border-rose-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">

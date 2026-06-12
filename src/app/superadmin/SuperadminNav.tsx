@@ -21,7 +21,7 @@ export default function SuperadminNav() {
   }
 
   return (
-    <aside className="w-56 bg-stone-900 border-r border-stone-800 flex flex-col min-h-screen sticky top-0">
+    <aside className="w-56 bg-stone-900 border-r border-stone-800 flex flex-col h-screen shrink-0">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-stone-800">
         <div className="flex items-center gap-2">
