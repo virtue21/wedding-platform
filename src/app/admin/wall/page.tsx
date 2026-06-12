@@ -12,7 +12,7 @@ export default async function WallPage() {
   const { data: wedding } = await supabase.from('weddings').select('id').eq('user_id', user.id).single()
   if (!wedding) redirect('/setup')
 
-  const [notesResult, photosResult, subResult] = await Promise.all([
+  const [notesResult, photosResult, subResult, activePlansResult] = await Promise.all([
     supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }),
     supabase.from('wedding_subscriptions')
@@ -22,11 +22,12 @@ export default async function WallPage() {
       .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
       .limit(1)
       .single(),
+    supabase.from('plans').select('id', { count: 'exact', head: true }).eq('is_active', true),
   ])
 
+  const noActivePlans = (activePlansResult.count ?? 0) === 0
   const planData = (subResult.data as { status: string; plans?: { has_moments?: boolean } } | null)
-  // Moments feature is active only when subscription is active (not paused) AND plan includes it
-  const hasMoments = planData?.status === 'active' && planData?.plans?.has_moments === true
+  const hasMoments = noActivePlans || (planData?.status === 'active' && planData?.plans?.has_moments === true)
 
   return (
     <div className="space-y-6">

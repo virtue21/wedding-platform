@@ -25,7 +25,7 @@ export default async function RegistryPage() {
     )
   }
 
-  const [itemsResult, receiptsResult, subResult, methodsResult] = await Promise.all([
+  const [itemsResult, receiptsResult, subResult, methodsResult, activePlansResult] = await Promise.all([
     supabase
       .from('registry_items')
       .select('*, gift_claims(*)')
@@ -49,9 +49,14 @@ export default async function RegistryPage() {
       .from('wedding_payment_methods')
       .select('currency')
       .eq('wedding_id', wedding.id),
+
+    supabase.from('plans').select('id', { count: 'exact', head: true }).eq('is_active', true),
   ])
 
-  const registryCap = (subResult.data as { plans?: { registry_item_cap?: number | null } } | null)?.plans?.registry_item_cap ?? null
+  const noActivePlans = (activePlansResult.count ?? 0) === 0
+  const rawRegistryCap = (subResult.data as { plans?: { registry_item_cap?: number | null } } | null)?.plans?.registry_item_cap ?? null
+  // If no plans are active in the system, remove all limits
+  const registryCap = noActivePlans ? null : rawRegistryCap
   const availableCurrencies = [...new Set((methodsResult.data ?? []).map(m => m.currency).filter(Boolean))] as string[]
   const itemCount = (itemsResult.data ?? []).length
   const atRegistryCap = registryCap !== null && itemCount >= registryCap
