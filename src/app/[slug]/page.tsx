@@ -53,6 +53,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       initialPhotos={(photosResult.data ?? []) as WeddingPhoto[]}
       storySlides={(slidesResult.data ?? []) as WeddingStorySlide[]}
       slug={params.slug}
+      hasMoments={hasMoments}
       momentsCap={momentsCap}
       momentsCount={momentsCount}
     />

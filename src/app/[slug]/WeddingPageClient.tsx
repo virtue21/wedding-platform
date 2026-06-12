@@ -23,6 +23,7 @@ type Props = {
   initialPhotos: WeddingPhoto[]
   storySlides: WeddingStorySlide[]
   slug: string
+  hasMoments: boolean
   momentsCap?: number | null
   momentsCount?: number
 }
@@ -38,6 +39,7 @@ export default function WeddingPageClient({
   initialPhotos,
   storySlides,
   slug,
+  hasMoments,
   momentsCap,
   momentsCount,
 }: Props) {
@@ -47,7 +49,7 @@ export default function WeddingPageClient({
     { id: 'home',    icon: '🏠', label: 'Home' },
     { id: 'story',   icon: '💑', label: 'Story' },
     { id: 'wishes',  icon: '💌', label: 'Wishes' },
-    { id: 'moments', icon: '📸', label: 'Moments' },
+    ...(hasMoments ? [{ id: 'moments' as Tab, icon: '📸', label: 'Moments' }] : []),
   ]
 
   return (
@@ -178,7 +180,7 @@ export default function WeddingPageClient({
         )}
 
         {/* ── MOMENTS TAB ── */}
-        {activeTab === 'moments' && (
+        {activeTab === 'moments' && hasMoments && (
           <PhotosSection weddingId={wedding.id} initialPhotos={initialPhotos} momentsCap={momentsCap} momentsCount={momentsCount} />
         )}
       </div>
