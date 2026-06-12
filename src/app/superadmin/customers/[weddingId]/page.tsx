@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
-import { SubscriptionActions, RsvpToggle } from './CustomerActions'
+import { RsvpToggle } from './CustomerActions'
+import FreeTrialForm from './FreeTrialForm'
 
 function serviceClient() {
   return createServiceClient<Database>(
@@ -59,11 +60,12 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
     { data: photos },
     { data: notes },
     { data: slides },
+    { data: plans },
     authResult,
   ] = await Promise.all([
     sb.from('user_profiles').select('*').eq('id', wedding.user_id).single(),
     sb.from('wedding_subscriptions')
-      .select('*, plans(name, price_kobo)')
+      .select('*, plans(name, price)')
       .eq('wedding_id', weddingId)
       .order('created_at', { ascending: false }),
     sb.from('guests').select('id, created_at, is_removed').eq('wedding_id', weddingId),
@@ -71,6 +73,7 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
     sb.from('wedding_photos').select('id').eq('wedding_id', weddingId),
     sb.from('wedding_notes').select('id').eq('wedding_id', weddingId),
     sb.from('wedding_story_slides').select('id').eq('wedding_id', weddingId),
+    sb.from('plans').select('id, name').eq('is_active', true).order('sort_order'),
     sb.auth.admin.getUserById(wedding.user_id),
   ])
 
@@ -179,44 +182,39 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
         <h2 className="text-white text-sm font-semibold">Current Subscription</h2>
 
         {activeSub ? (
-          <>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-              <div>
-                <p className="text-stone-500 text-xs mb-0.5">Plan</p>
-                <p className="text-stone-200">{(activeSub.plans as unknown as { name: string } | null)?.name ?? '—'}</p>
-              </div>
-              <div>
-                <p className="text-stone-500 text-xs mb-0.5">Status</p>
-                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${statusColor(activeSub.status)}`}>
-                  {activeSub.status.charAt(0).toUpperCase() + activeSub.status.slice(1)}
-                </span>
-              </div>
-              <div>
-                <p className="text-stone-500 text-xs mb-0.5">Amount paid</p>
-                <p className="text-stone-200">{formatCurrency(activeSub.amount_paid)}</p>
-              </div>
-              <div>
-                <p className="text-stone-500 text-xs mb-0.5">Activated</p>
-                <p className="text-stone-200">{formatDateTime(activeSub.activated_at)}</p>
-              </div>
-              {activeSub.paystack_reference && (
-                <div>
-                  <p className="text-stone-500 text-xs mb-0.5">Paystack reference</p>
-                  <p className="text-stone-400 text-xs font-mono">{activeSub.paystack_reference}</p>
-                </div>
-              )}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+            <div>
+              <p className="text-stone-500 text-xs mb-0.5">Plan</p>
+              <p className="text-stone-200">{(activeSub.plans as unknown as { name: string } | null)?.name ?? '—'}</p>
             </div>
-
-            <div className="pt-1 border-t border-stone-800">
-              <SubscriptionActions
-                sub={{ id: activeSub.id, status: activeSub.status, weddingId }}
-              />
+            <div>
+              <p className="text-stone-500 text-xs mb-0.5">Status</p>
+              <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${statusColor(activeSub.status)}`}>
+                {activeSub.status.charAt(0).toUpperCase() + activeSub.status.slice(1)}
+              </span>
             </div>
-          </>
+            <div>
+              <p className="text-stone-500 text-xs mb-0.5">Amount paid</p>
+              <p className="text-stone-200">{formatCurrency(activeSub.amount_paid)}</p>
+            </div>
+            <div>
+              <p className="text-stone-500 text-xs mb-0.5">Activated</p>
+              <p className="text-stone-200">{formatDateTime(activeSub.activated_at)}</p>
+            </div>
+            {activeSub.paystack_reference && (
+              <div>
+                <p className="text-stone-500 text-xs mb-0.5">Paystack reference</p>
+                <p className="text-stone-400 text-xs font-mono">{activeSub.paystack_reference}</p>
+              </div>
+            )}
+          </div>
         ) : (
           <p className="text-stone-500 text-sm">No active subscription — on free tier</p>
         )}
       </div>
+
+      {/* Free trial */}
+      <FreeTrialForm weddingId={weddingId} plans={(plans ?? []) as { id: string; name: string }[]} />
 
       {/* Purchase history */}
       <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">

@@ -20,7 +20,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_story_slides').select('*').eq('wedding_id', wedding.id).order('slide_number'),
-    supabase.from('wedding_subscriptions').select('plan_id, plans(has_moments, moments_upload_cap)').eq('wedding_id', wedding.id).eq('status', 'active').single(),
+    supabase.from('wedding_subscriptions').select('plan_id, plans(has_moments, moments_upload_cap)').eq('wedding_id', wedding.id).eq('status', 'active').or('expires_at.is.null,expires_at.gt.' + new Date().toISOString()).limit(1).single(),
   ])
 
   const planData = (activeSubResult.data as { plans?: { has_moments?: boolean; moments_upload_cap?: number | null } } | null)?.plans

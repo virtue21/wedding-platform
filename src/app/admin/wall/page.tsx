@@ -18,7 +18,9 @@ export default async function WallPage() {
     supabase.from('wedding_subscriptions')
       .select('status, plans(has_moments)')
       .eq('wedding_id', wedding.id)
-      .in('status', ['active', 'paused'])
+      .eq('status', 'active')
+      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+      .limit(1)
       .single(),
   ])
 

@@ -1,7 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
-import { pauseSubscription, resumeSubscription, cancelSubscription } from './actions'
+import Link from 'next/link'
 
 type Sub = {
   id: string
@@ -9,9 +8,11 @@ type Sub = {
   amount_paid: number | null
   paystack_reference: string | null
   created_at: string
+  activated_at?: string | null
   coupleName: string
   planName: string
   slug: string
+  wedding_id: string
 }
 
 function formatCurrency(kobo: number | null) {
@@ -19,16 +20,17 @@ function formatCurrency(kobo: number | null) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`
 }
 
-function formatDate(d: string) {
+function formatDate(d: string | null) {
+  if (!d) return '—'
   return new Date(d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     active: 'bg-green-500/20 text-green-400',
-    paused: 'bg-yellow-500/20 text-yellow-400',
+    expired: 'bg-stone-700 text-stone-400',
     cancelled: 'bg-red-500/20 text-red-400',
-    pending: 'bg-stone-700 text-stone-400',
+    pending: 'bg-yellow-500/20 text-yellow-400',
   }
   return (
     <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${styles[status] ?? 'bg-stone-700 text-stone-400'}`}>
@@ -37,70 +39,41 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function ActionButtons({ sub }: { sub: Sub }) {
-  const [pending, startTransition] = useTransition()
-
-  return (
-    <div className="flex gap-2">
-      {sub.status === 'active' && (
-        <button
-          disabled={pending}
-          onClick={() => startTransition(() => pauseSubscription(sub.id))}
-          className="px-3 py-1 text-xs bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 rounded-lg transition-colors disabled:opacity-50"
-        >
-          Pause
-        </button>
-      )}
-      {sub.status === 'paused' && (
-        <button
-          disabled={pending}
-          onClick={() => startTransition(() => resumeSubscription(sub.id))}
-          className="px-3 py-1 text-xs bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors disabled:opacity-50"
-        >
-          Resume
-        </button>
-      )}
-      {(sub.status === 'active' || sub.status === 'paused') && (
-        <button
-          disabled={pending}
-          onClick={() => {
-            if (!confirm(`Cancel subscription for ${sub.coupleName}? This is irreversible.`)) return
-            startTransition(() => cancelSubscription(sub.id))
-          }}
-          className="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors disabled:opacity-50"
-        >
-          Cancel
-        </button>
-      )}
-    </div>
-  )
-}
-
 export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
-  const stats = {
-    active: subs.filter(s => s.status === 'active').length,
-    paused: subs.filter(s => s.status === 'paused').length,
-    cancelled: subs.filter(s => s.status === 'cancelled').length,
-    revenue: subs
-      .filter(s => s.status !== 'pending')
-      .reduce((sum, s) => sum + (s.amount_paid ?? 0), 0),
-  }
+  const paidSubs = subs.filter(s => (s.amount_paid ?? 0) > 0)
+  const revenue = paidSubs
+    .filter(s => s.status === 'active' || s.status === 'expired')
+    .reduce((sum, s) => sum + (s.amount_paid ?? 0), 0)
+
+  const stats = [
+    {
+      label: 'Paid & Active',
+      value: subs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) > 0).length,
+      color: 'text-green-400',
+    },
+    {
+      label: 'Free Trials',
+      value: subs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) === 0).length,
+      color: 'text-blue-400',
+    },
+    {
+      label: 'Incomplete',
+      value: subs.filter(s => s.status === 'pending').length,
+      color: 'text-yellow-400',
+    },
+    { label: 'Revenue', value: formatCurrency(revenue), color: 'text-rose-400' },
+  ]
 
   return (
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-white text-2xl font-semibold">Subscriptions</h1>
-        <p className="text-stone-400 text-sm mt-1">Manage all customer plan subscriptions</p>
+        <p className="text-stone-400 text-sm mt-1">All plan activations — paid and free trials</p>
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: 'Active', value: stats.active, color: 'text-green-400' },
-          { label: 'Paused', value: stats.paused, color: 'text-yellow-400' },
-          { label: 'Cancelled', value: stats.cancelled, color: 'text-red-400' },
-          { label: 'Revenue', value: formatCurrency(stats.revenue), color: 'text-rose-400' },
-        ].map(s => (
+        {stats.map(s => (
           <div key={s.label} className="bg-stone-900 border border-stone-800 rounded-xl p-4">
             <p className="text-stone-500 text-xs">{s.label}</p>
             <p className={`text-xl font-bold mt-1 ${s.color}`}>{s.value}</p>
@@ -117,27 +90,36 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Amount</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Status</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Date</th>
-              <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Actions</th>
+              <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Ref</th>
             </tr>
           </thead>
           <tbody>
             {subs.map(s => (
               <tr key={s.id} className="border-b border-stone-800/50 hover:bg-stone-800/20 transition-colors">
                 <td className="px-5 py-3.5">
-                  <p className="text-white font-medium">{s.coupleName}</p>
-                  <p className="text-stone-500 text-xs">/{s.slug}</p>
+                  <Link href={`/superadmin/customers/${s.wedding_id}`} className="hover:text-rose-400 transition-colors">
+                    <p className="text-white font-medium">{s.coupleName}</p>
+                    <p className="text-stone-500 text-xs">/{s.slug}</p>
+                  </Link>
                 </td>
                 <td className="px-5 py-3.5 text-stone-300">{s.planName}</td>
-                <td className="px-5 py-3.5 text-stone-300">{formatCurrency(s.amount_paid)}</td>
+                <td className="px-5 py-3.5">
+                  {(s.amount_paid ?? 0) === 0
+                    ? <span className="px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-400 font-medium">Free trial</span>
+                    : <span className="text-stone-300 font-medium">{formatCurrency(s.amount_paid)}</span>
+                  }
+                </td>
                 <td className="px-5 py-3.5"><StatusBadge status={s.status} /></td>
-                <td className="px-5 py-3.5 text-stone-400 text-xs">{formatDate(s.created_at)}</td>
-                <td className="px-5 py-3.5"><ActionButtons sub={s} /></td>
+                <td className="px-5 py-3.5 text-stone-400 text-xs">{formatDate(s.activated_at ?? s.created_at)}</td>
+                <td className="px-5 py-3.5 text-stone-500 text-xs font-mono">
+                  {s.paystack_reference ? s.paystack_reference.slice(0, 12) + '…' : '—'}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
         {subs.length === 0 && (
-          <div className="text-center py-12 text-stone-500 text-sm">No subscriptions yet</div>
+          <div className="text-center py-12 text-stone-500 text-sm">No payments yet</div>
         )}
       </div>
     </div>
