@@ -97,7 +97,7 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
         <input
           value={uploaderName}
           onChange={e => setUploaderName(e.target.value)}
-          placeholder="Your name (optional)"
+          placeholder="Your name"
           className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-200"
         />
 
@@ -138,15 +138,22 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
             </div>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center w-full py-8 border-2 border-dashed border-stone-200 hover:border-rose-300 hover:bg-rose-50/50 rounded-xl cursor-pointer transition-colors">
+          <label className={`flex flex-col items-center justify-center w-full py-8 border-2 border-dashed rounded-xl transition-colors ${
+            uploaderName.trim()
+              ? 'border-stone-200 hover:border-rose-300 hover:bg-rose-50/50 cursor-pointer'
+              : 'border-stone-100 bg-stone-50/50 cursor-not-allowed opacity-60'
+          }`}>
             <span className="text-3xl mb-2">📸</span>
-            <span className="text-sm font-medium text-stone-500">Tap to choose a photo</span>
+            <span className="text-sm font-medium text-stone-500">
+              {uploaderName.trim() ? 'Tap to choose a photo' : 'Enter your name first'}
+            </span>
             <span className="text-xs text-stone-300 mt-1">Max 10MB · JPG, PNG, WebP</span>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               className="hidden"
+              disabled={!uploaderName.trim()}
               onChange={handleFileSelect}
             />
           </label>
