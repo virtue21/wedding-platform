@@ -24,7 +24,12 @@ export default async function WeddingPage({ params }: { params: { slug: string }
   ])
 
   const planData = (activeSubResult.data as { plans?: { has_moments?: boolean; moments_upload_cap?: number | null } } | null)?.plans
-  const momentsCap: number | null = planData?.moments_upload_cap ?? null
+  // Block moments if: no active subscription, OR plan doesn't include moments
+  // momentsCap = 0 means fully blocked; null means plan allows unlimited uploads
+  const hasMoments = planData?.has_moments === true
+  const momentsCap: number | null = !hasMoments
+    ? 0  // no active plan or plan has no moments → fully blocked
+    : (planData?.moments_upload_cap ?? null) // null = unlimited within plan
   const momentsCount: number = photosResult.count ?? (photosResult.data ?? []).length
 
   const brideName = profileResult.data?.bride_name ?? 'Bride'

@@ -89,8 +89,14 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
         {momentsCap !== null && momentsCap !== undefined && (momentsCount ?? 0) >= momentsCap ? (
           <div className="flex flex-col items-center justify-center py-8 gap-2 text-stone-400">
             <span className="text-3xl">📸</span>
-            <p className="text-sm font-medium text-stone-500">Moments wall is full</p>
-            <p className="text-xs text-stone-400">The upload limit has been reached for this wedding.</p>
+            <p className="text-sm font-medium text-stone-500">
+              {momentsCap === 0 ? 'Moments not available' : 'Moments wall is full'}
+            </p>
+            <p className="text-xs text-stone-400">
+              {momentsCap === 0
+                ? 'Photo sharing isn\'t enabled for this wedding.'
+                : 'The upload limit has been reached for this wedding.'}
+            </p>
           </div>
         ) : (
         <>
