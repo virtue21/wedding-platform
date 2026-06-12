@@ -10,13 +10,16 @@ type Props = {
   item?: RegistryItem
   nextSortOrder: number
   onClose: () => void
+  availableCurrencies?: string[]
 }
 
-const CURRENCIES = [
+const ALL_CURRENCIES = [
   { code: 'NGN', label: '₦ NGN — Nigerian Naira' },
   { code: 'USD', label: '$ USD — US Dollar' },
   { code: 'GBP', label: '£ GBP — British Pound' },
   { code: 'EUR', label: '€ EUR — Euro' },
+  { code: 'USDT', label: 'USDT — Tether' },
+  { code: 'USDC', label: 'USDC — USD Coin' },
 ]
 
 function formatBytes(bytes: number) {
@@ -25,7 +28,10 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props) {
+export default function RegistryItemForm({ item, nextSortOrder, onClose, availableCurrencies }: Props) {
+  const currencies = availableCurrencies && availableCurrencies.length > 0
+    ? ALL_CURRENCIES.filter(c => availableCurrencies.includes(c.code))
+    : ALL_CURRENCIES
   const [pending, setPending] = useState(false)
   const [preview, setPreview] = useState<string | null>(item?.image_url ?? null)
   const [fileInfo, setFileInfo] = useState<{ name: string; size: string; type: string } | null>(null)
@@ -117,9 +123,12 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose }: Props
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Currency *</label>
-              <select name="currency" defaultValue={item?.currency ?? 'NGN'} className="input">
-                {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+              <select name="currency" defaultValue={item?.currency ?? currencies[0]?.code ?? 'NGN'} className="input">
+                {currencies.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
               </select>
+              {currencies.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">Add a payment account in Setup first.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Quantity needed</label>

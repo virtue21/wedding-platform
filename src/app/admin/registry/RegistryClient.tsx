@@ -9,7 +9,7 @@ import { track } from '@/lib/mixpanel'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
-export default function RegistryClient({ items, atRegistryCap }: { items: ItemWithClaims[]; atRegistryCap?: boolean }) {
+export default function RegistryClient({ items, atRegistryCap, availableCurrencies }: { items: ItemWithClaims[]; atRegistryCap?: boolean; availableCurrencies?: string[] }) {
   const [editing, setEditing] = useState<RegistryItem | null>(null)
   const [adding, setAdding] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -118,6 +118,7 @@ export default function RegistryClient({ items, atRegistryCap }: { items: ItemWi
           item={editing ?? undefined}
           nextSortOrder={nextSortOrder}
           onClose={() => { setAdding(false); setEditing(null) }}
+          availableCurrencies={availableCurrencies}
         />
       )}
     </div>

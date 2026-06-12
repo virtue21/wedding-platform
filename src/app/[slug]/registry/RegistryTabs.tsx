@@ -111,16 +111,22 @@ export default function RegistryTabs({ weddingId, paymentMethods, items: initial
                         </a>
                       )}
 
-                      {!isClaimed && paymentMethods.length > 0 && (
-                        <BankDetails
-                          weddingId={weddingId}
-                          paymentMethods={paymentMethods}
-                          itemId={item.id}
-                          price={item.price}
-                          guestName={sessionGuest?.full_name ?? null}
-                          guestPhone={sessionGuest?.phone ?? null}
-                        />
-                      )}
+                      {!isClaimed && (() => {
+                        // Only show cash equivalent if there's a payment method matching the item's currency
+                        const matchingMethods = item.currency
+                          ? paymentMethods.filter(m => m.currency === item.currency)
+                          : paymentMethods
+                        return matchingMethods.length > 0 && (
+                          <BankDetails
+                            weddingId={weddingId}
+                            paymentMethods={matchingMethods}
+                            itemId={item.id}
+                            price={item.price}
+                            guestName={sessionGuest?.full_name ?? null}
+                            guestPhone={sessionGuest?.phone ?? null}
+                          />
+                        )
+                      })()}
 
                       <ClaimButton
                         itemId={item.id}

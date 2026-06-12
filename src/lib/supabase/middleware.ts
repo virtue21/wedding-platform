@@ -39,7 +39,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (isAuthRoute && user) {
+  // Allow reset-password page even when logged in — session was just established
+  // by exchangeCodeForSession and the user still needs to set their new password.
+  if (isAuthRoute && user && pathname !== '/auth/reset-password') {
     const url = request.nextUrl.clone()
     url.pathname = '/admin/guests'
     return NextResponse.redirect(url)
