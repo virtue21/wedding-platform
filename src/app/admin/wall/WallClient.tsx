@@ -7,9 +7,10 @@ import { deleteNote, deletePhoto } from './actions'
 type Props = {
   notes: WeddingNote[]
   photos: WeddingPhoto[]
+  momentslocked?: boolean
 }
 
-export default function WallClient({ notes: initialNotes, photos: initialPhotos }: Props) {
+export default function WallClient({ notes: initialNotes, photos: initialPhotos, momentslocked = false }: Props) {
   const [activeTab, setActiveTab] = useState<'notes' | 'photos'>('notes')
   const [notes, setNotes] = useState(initialNotes)
   const [photos, setPhotos] = useState(initialPhotos)
@@ -45,10 +46,16 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos 
         </button>
         <button
           onClick={() => setActiveTab('photos')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${activeTab === 'photos' ? 'bg-rose-500 text-white' : 'bg-white border border-rose-100 text-stone-500 hover:text-stone-800'}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+            activeTab === 'photos'
+              ? 'bg-rose-500 text-white'
+              : momentslocked
+              ? 'bg-stone-100 border border-stone-200 text-stone-400 cursor-pointer'
+              : 'bg-white border border-rose-100 text-stone-500 hover:text-stone-800'
+          }`}
         >
-          📸 Moments
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'photos' ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-500'}`}>
+          {momentslocked ? '🔒' : '📸'} Moments
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'photos' ? 'bg-white/20 text-white' : momentslocked ? 'bg-stone-200 text-stone-400' : 'bg-rose-50 text-rose-500'}`}>
             {photos.length}
           </span>
         </button>
