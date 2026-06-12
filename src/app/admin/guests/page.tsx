@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import GuestTable from './GuestTable'
+import OnboardingChecklist from '@/components/OnboardingChecklist'
 import type { Guest, RelationshipCategory } from '@/lib/supabase/database.types'
 
 type GuestWithCategory = Guest & {
@@ -15,7 +16,7 @@ export default async function GuestsPage() {
 
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, slug')
+    .select('id, slug, wedding_date, venue_name, cover_image_url')
     .eq('user_id', user.id)
     .single()
 
@@ -30,16 +31,26 @@ export default async function GuestsPage() {
     )
   }
 
-  const { data: guests } = await supabase
-    .from('guests')
-    .select('*, relationship_categories(label)')
-    .eq('wedding_id', wedding.id)
-    .eq('is_removed', false)
-    .order('created_at', { ascending: false }) as { data: GuestWithCategory[] | null }
+  const [guestsResult, categoriesResult, registryResult] = await Promise.all([
+    supabase
+      .from('guests')
+      .select('*, relationship_categories(label)')
+      .eq('wedding_id', wedding.id)
+      .eq('is_removed', false)
+      .order('created_at', { ascending: false }) as unknown as Promise<{ data: GuestWithCategory[] | null }>,
+    supabase
+      .from('relationship_categories')
+      .select('id')
+      .eq('wedding_id', wedding.id)
+      .limit(1),
+    supabase
+      .from('registry_items')
+      .select('id')
+      .eq('wedding_id', wedding.id)
+      .limit(1),
+  ])
 
-  const list = guests ?? []
-
-  // Stats
+  const list = guestsResult.data ?? []
   const total = list.length
   const bySide = {
     bride: list.filter(g => g.side === 'bride').length,
@@ -47,13 +58,57 @@ export default async function GuestsPage() {
     both:  list.filter(g => g.side === 'both').length,
   }
 
+  // Checklist step completion
+  const hasWeddingDetails = !!(wedding.wedding_date && wedding.venue_name)
+  const hasCoverImage = !!wedding.cover_image_url
+  const hasCategories = (categoriesResult.data?.length ?? 0) > 0
+  const hasRegistry = (registryResult.data?.length ?? 0) > 0
+
+  const checklistSteps = [
+    {
+      id: 'details',
+      label: 'Complete your wedding details',
+      description: 'Add your wedding date, venue, and cover photo so your invite page looks great.',
+      href: '/setup',
+      done: hasWeddingDetails && hasCoverImage,
+    },
+    {
+      id: 'categories',
+      label: 'Set up guest categories',
+      description: 'Define how guests know you — Family, Church, Work, etc. Guests pick this when they RSVP.',
+      href: '/admin/categories',
+      done: hasCategories,
+    },
+    {
+      id: 'registry',
+      label: 'Build your gift registry',
+      description: 'Add items guests can buy or send the cash equivalent for.',
+      href: '/admin/registry',
+      done: hasRegistry,
+    },
+    {
+      id: 'share',
+      label: 'Share your invite link with guests',
+      description: 'Copy your link from Setup and send it to guests via WhatsApp, Instagram, or print the QR code.',
+      href: '/setup',
+      done: total > 0,
+    },
+  ]
+
   return (
     <div>
+      {/* Onboarding checklist — shown until dismissed */}
+      <OnboardingChecklist steps={checklistSteps} slug={wedding.slug} />
+
       {/* Header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="font-serif text-3xl text-stone-800 mb-1">Guest List</h1>
-          <p className="text-stone-400 text-sm">{total === 0 ? 'No guests yet — share your link to get RSVPs' : `${total} ${total === 1 ? 'guest' : 'guests'} · click any row to view details`}</p>
+          <p className="text-stone-400 text-sm">
+            {total === 0
+              ? 'No guests yet — share your link to get RSVPs'
+              : `${total} ${total === 1 ? 'guest' : 'guests'} · click any row to view details`}
+          </p>
         </div>
         <a
           href="/admin/guests/export"

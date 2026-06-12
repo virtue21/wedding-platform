@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getWeddingPlanInfo } from '@/lib/plans'
 import RsvpSettingsClient from './RsvpSettingsClient'
+import SectionGuide from '@/components/SectionGuide'
 
 function UsageRow({ label, used, cap }: { label: string; used: number; cap: number | null }) {
   if (cap === null) return (
@@ -48,6 +49,13 @@ export default async function SettingsPage() {
         <h1 className="font-serif text-3xl text-stone-800 mb-1">Settings</h1>
         <p className="text-stone-400 text-sm">Control your wedding page features</p>
       </div>
+
+      <SectionGuide
+        icon="🔧"
+        title="Control what guests can see"
+        body="Use RSVP toggle to open or close attendance confirmation — turn it off once you've reached your headcount or after the RSVP deadline. Your plan controls how many guests, registry items, and tables you can have."
+        tip="You can re-open RSVP at any time if you need to let a few more people in."
+      />
 
       {/* Plan Summary */}
       <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">

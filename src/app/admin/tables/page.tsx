@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import TablesClient from './TablesClient'
+import SectionGuide from '@/components/SectionGuide'
 import type { SeatTable, Guest, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 type TableWithGuests = SeatTable & { guests: Pick<Guest, 'id' | 'full_name' | 'side'>[] }
@@ -50,14 +51,21 @@ export default async function TablesPage() {
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="font-serif text-3xl text-stone-800 mb-1">Seating Plan</h1>
           <p className="text-stone-400 text-sm">
-            {totalSeated} of {(guests ?? []).length} guests seated
+            {totalSeated} of {(guests ?? []).length} guests assigned to a table
           </p>
         </div>
       </div>
+
+      <SectionGuide
+        icon="🪑"
+        title="Table assignments — not individual seats"
+        body="Here you create tables (e.g. Table 1, Head Table, Family Table) and assign confirmed guests to them. This organises who sits with who — it doesn't assign specific chairs within a table. Do this after your RSVP list is mostly finalised."
+        tip="Wait until most RSVPs are in before arranging seating. Use the Guests page to see who's confirmed first."
+      />
       {atTableCap && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center justify-between gap-4">
           <span>⚠️ You&apos;ve reached your plan limit of {tableCap} tables. Upgrade to add more.</span>

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AdminRegistryTabs from './AdminRegistryTabs'
+import SectionGuide from '@/components/SectionGuide'
 import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/database.types'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
@@ -55,6 +56,13 @@ export default async function RegistryPage() {
         <h1 className="font-serif text-3xl text-stone-800 mb-1">Gift Registry</h1>
         <p className="text-stone-400 text-sm">Manage gift items and track cash transfers from guests</p>
       </div>
+
+      <SectionGuide
+        icon="🎁"
+        title="How the registry works"
+        body="Add items you'd love as gifts. For each item, guests can either buy it directly (if you add a shop link) or send the cash equivalent to your bank account. Add your bank details in Setup so guests can see where to transfer to."
+        tip="Add a variety of price points — not everyone has the same budget. Items stay visible even after they're fully claimed."
+      />
 
       {atRegistryCap && (
         <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center justify-between gap-4">

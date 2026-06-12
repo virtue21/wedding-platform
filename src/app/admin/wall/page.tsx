@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import WallClient from './WallClient'
+import SectionGuide from '@/components/SectionGuide'
 import type { WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
 
 export default async function WallPage() {
@@ -21,6 +22,13 @@ export default async function WallPage() {
         <h1 className="font-serif text-3xl text-stone-800 mb-1">Guest Wall</h1>
         <p className="text-stone-400 text-sm">Wishes and moments shared by your guests</p>
       </div>
+
+      <SectionGuide
+        icon="💌"
+        title="Wishes & Moments"
+        body="This is everything your guests have shared on your wedding page — written wishes from the Wishes tab and photos they've uploaded in Moments. You can delete anything that shouldn't be there."
+        tip="Guests post directly from your invite page — no login needed. Share the link to encourage them to leave a message before the big day."
+      />
       <WallClient
         notes={(notesResult.data ?? []) as WeddingNote[]}
         photos={(photosResult.data ?? []) as WeddingPhoto[]}
