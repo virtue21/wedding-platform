@@ -13,8 +13,23 @@ type Props = {
   sessionGuest: { id: string; full_name: string; phone: string } | null
 }
 
-export default function RegistryTabs({ weddingId, paymentMethods, items, sessionGuest }: Props) {
+const SYMBOL: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£', EUR: '€' }
+
+function itemSymbol(item: RegistryItem, fallbackMethod: WeddingPaymentMethod | undefined) {
+  const currency = item.currency ?? fallbackMethod?.currency ?? 'NGN'
+  if (['USDT', 'USDC'].includes(currency)) return { sym: '', suffix: ` ${currency}` }
+  return { sym: SYMBOL[currency] ?? currency + ' ', suffix: '' }
+}
+
+export default function RegistryTabs({ weddingId, paymentMethods, items: initialItems, sessionGuest }: Props) {
   const [tab, setTab] = useState<'items' | 'cash'>('items')
+  const [items, setItems] = useState<RegistryItem[]>(initialItems)
+
+  function handleClaimed(itemId: string) {
+    setItems(prev => prev.map(i =>
+      i.id === itemId ? { ...i, quantity_claimed: i.quantity_claimed + 1 } : i
+    ))
+  }
 
   return (
     <div>
@@ -54,10 +69,9 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
           <div className="space-y-4">
             {items.map(item => {
               const isClaimed = item.quantity_claimed >= item.quantity_needed
-              // Use first fiat method for price display, fall back to crypto
-              const primaryMethod = paymentMethods.find(m => !['USDT','USDC'].includes(m.currency)) ?? paymentMethods[0]
-              const symbol = primaryMethod?.currency === 'NGN' ? '₦' : primaryMethod?.currency === 'USD' ? '$' : primaryMethod?.currency === 'GBP' ? '£' : ''
-              const isCrypto = primaryMethod && ['USDT','USDC'].includes(primaryMethod.currency)
+              const remaining = item.quantity_needed - item.quantity_claimed
+              const fallbackMethod = paymentMethods.find(m => !['USDT','USDC'].includes(m.currency)) ?? paymentMethods[0]
+              const { sym, suffix } = itemSymbol(item, fallbackMethod)
               return (
                 <div
                   key={item.id}
@@ -79,10 +93,10 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
                       <p className="text-xs text-stone-400 mt-0.5 line-clamp-2">{item.description}</p>
                     )}
                     <p className="text-sm font-semibold text-stone-800 mt-1">
-                      {symbol}{item.price.toLocaleString()}{isCrypto ? ` ${primaryMethod?.currency}` : ''}
+                      {sym}{item.price.toLocaleString()}{suffix}
                     </p>
                     <p className="text-xs text-stone-400">
-                      {item.quantity_needed - item.quantity_claimed} of {item.quantity_needed} remaining
+                      {remaining} of {item.quantity_needed} remaining
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-3 items-start">
@@ -115,6 +129,7 @@ export default function RegistryTabs({ weddingId, paymentMethods, items, session
                         sessionGuestName={sessionGuest?.full_name ?? null}
                         sessionGuestPhone={sessionGuest?.phone ?? null}
                         isClaimed={isClaimed}
+                        onClaimed={() => handleClaimed(item.id)}
                       />
                     </div>
                   </div>

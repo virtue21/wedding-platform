@@ -12,6 +12,7 @@ type Props = {
   sessionGuestName: string | null
   sessionGuestPhone: string | null
   isClaimed: boolean
+  onClaimed?: () => void
 }
 
 export default function ClaimButton({
@@ -21,6 +22,7 @@ export default function ClaimButton({
   sessionGuestName,
   sessionGuestPhone,
   isClaimed,
+  onClaimed,
 }: Props) {
   const [state, setState] = useState<'idle' | 'prompt' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -39,7 +41,7 @@ export default function ClaimButton({
       // Session guest — claim immediately
       startTransition(async () => {
         const result = await claimGift(itemId, sessionGuestName!, sessionGuestPhone, sessionGuestId)
-        if (result.ok) { setState('done'); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
+        if (result.ok) { setState('done'); onClaimed?.(); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
         else { setErrorMsg(result.error); setState('error') }
       })
     } else {
@@ -52,7 +54,7 @@ export default function ClaimButton({
     if (!name.trim()) return
     startTransition(async () => {
       const result = await claimGift(itemId, name.trim(), phone.trim() || null, null)
-      if (result.ok) { setState('done'); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
+      if (result.ok) { setState('done'); onClaimed?.(); track('gift_claimed', { item_name: itemName, fulfillment_type: 'physical' }) }
       else { setErrorMsg(result.error); setState('error') }
     })
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@/lib/supabase/database.types'
@@ -44,6 +44,8 @@ export default function WeddingPageClient({
   momentsCount,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => { setHydrated(true) }, [])
 
   const tabs: { id: Tab; icon: string; label: string }[] = [
     { id: 'home',    icon: '🏠', label: 'Home' },
@@ -185,20 +187,30 @@ export default function WeddingPageClient({
         )}
       </div>
 
-      {/* Bottom tab bar */}
+      {/* Bottom tab bar — rendered as buttons only after hydration to avoid first-click miss */}
       <nav className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-rose-50">
         <div className="max-w-lg mx-auto flex">
           {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-xs font-medium transition-colors ${
-                activeTab === tab.id ? 'text-rose-500' : 'text-stone-400'
-              }`}
-            >
-              <span className="text-lg leading-none">{tab.icon}</span>
-              {tab.label}
-            </button>
+            hydrated ? (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-xs font-medium transition-colors ${
+                  activeTab === tab.id ? 'text-rose-500' : 'text-stone-400'
+                }`}
+              >
+                <span className="text-lg leading-none">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ) : (
+              <span
+                key={tab.id}
+                className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 text-xs font-medium text-stone-400"
+              >
+                <span className="text-lg leading-none">{tab.icon}</span>
+                {tab.label}
+              </span>
+            )
           ))}
           <Link
             href={`/${slug}/registry`}
