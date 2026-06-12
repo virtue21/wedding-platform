@@ -97,10 +97,17 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
             {subs.map(s => (
               <tr key={s.id} className="border-b border-stone-800/50 hover:bg-stone-800/20 transition-colors">
                 <td className="px-5 py-3.5">
-                  <Link href={`/superadmin/customers/${s.wedding_id}`} className="hover:text-rose-400 transition-colors">
-                    <p className="text-white font-medium">{s.coupleName}</p>
-                    <p className="text-stone-500 text-xs">/{s.slug}</p>
-                  </Link>
+                  {s.wedding_id ? (
+                    <Link href={`/superadmin/customers/${s.wedding_id}`} className="hover:text-rose-400 transition-colors">
+                      <p className="text-white font-medium">{s.coupleName}</p>
+                      <p className="text-stone-500 text-xs">/{s.slug}</p>
+                    </Link>
+                  ) : (
+                    <div>
+                      <p className="text-white font-medium">{s.coupleName}</p>
+                      <p className="text-stone-500 text-xs">/{s.slug}</p>
+                    </div>
+                  )}
                 </td>
                 <td className="px-5 py-3.5 text-stone-300">{s.planName}</td>
                 <td className="px-5 py-3.5">

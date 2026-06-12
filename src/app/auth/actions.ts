@@ -82,7 +82,9 @@ export async function forgotPassword(formData: FormData) {
   const supabase = createClient()
 
   const email = formData.get('email') as string
-  const origin = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+  const origin = process.env.NEXT_PUBLIC_APP_URL
+    ?? process.env.PAYSTACK_CALLBACK_BASE_URL
+    ?? 'https://nemiplanner.xyz'
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
