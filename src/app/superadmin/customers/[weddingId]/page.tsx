@@ -111,7 +111,7 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
             <h1 className="text-white text-2xl font-semibold">{coupleName}</h1>
             <p className="text-stone-400 text-sm mt-1">
               <a
-                href={`${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`}
+                href={`https://nemiplanner.xyz/${wedding.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-rose-400 transition-colors"
