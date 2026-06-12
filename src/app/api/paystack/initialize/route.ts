@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
   if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
   const reference = `nemi_${wedding.id}_${Date.now()}`
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  // Always use the production URL for the callback — never localhost
+  const baseUrl = process.env.PAYSTACK_CALLBACK_BASE_URL
+    ?? process.env.NEXT_PUBLIC_APP_URL
+    ?? 'https://nemiplanner.xyz'
 
   const res = await fetch('https://api.paystack.co/transaction/initialize', {
     method: 'POST',
