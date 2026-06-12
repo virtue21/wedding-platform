@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const reference = searchParams.get('reference')
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const baseUrl = process.env.PAYSTACK_CALLBACK_BASE_URL
+    ?? process.env.NEXT_PUBLIC_APP_URL
+    ?? 'https://nemiplanner.xyz'
 
   if (!reference) return NextResponse.redirect(`${baseUrl}/admin/plans?error=missing_reference`)
 
