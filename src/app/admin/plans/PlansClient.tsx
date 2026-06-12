@@ -126,8 +126,14 @@ export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: 
         <div className="grid sm:grid-cols-2 gap-4">
           {plans.map(plan => {
             const isCurrent = plan.id === currentPlanId
+            const currentSortOrder = planInfo.plan?.sort_order ?? 0
+            const isUpgrade = plan.sort_order > currentSortOrder
+            const isDowngrade = planInfo.isActive && plan.sort_order < currentSortOrder
             const features = getPlanFeatures(plan)
             const isLoading = subscribing === plan.id
+
+            // Hide downgrade options — one-off payment, can't go backwards
+            if (isDowngrade) return null
 
             return (
               <div
@@ -161,17 +167,20 @@ export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: 
                   ))}
                 </ul>
 
-                <button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={isLoading || subscribing !== null}
-                  className={`w-full py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 ${
-                    isCurrent
-                      ? 'border border-rose-200 text-rose-500 hover:border-rose-300 hover:bg-rose-50'
-                      : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm shadow-rose-200'
-                  }`}
-                >
-                  {isLoading ? 'Redirecting…' : isCurrent ? 'Renew / Switch' : 'Subscribe'}
-                </button>
+                {/* Current plan — no action needed */}
+                {isCurrent ? (
+                  <div className="w-full py-3 rounded-xl text-sm font-medium text-center text-emerald-600 bg-emerald-50 border border-emerald-100">
+                    ✓ Active
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={isLoading || subscribing !== null}
+                    className="w-full py-3 rounded-xl text-sm font-medium bg-rose-500 hover:bg-rose-600 text-white shadow-sm shadow-rose-200 transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? 'Redirecting…' : isUpgrade ? 'Upgrade →' : 'Subscribe'}
+                  </button>
+                )}
               </div>
             )
           })}
