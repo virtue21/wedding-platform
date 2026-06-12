@@ -8,13 +8,15 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: wedding } = await supabase.from('weddings').select('id').eq('user_id', user.id).single()
+  const { data: wedding } = await supabase.from('weddings').select('id, slug').eq('user_id', user.id).single()
   if (!wedding) return NextResponse.json({ error: 'No wedding found' }, { status: 404 })
 
   const { data: plan } = await supabase.from('plans').select('*').eq('id', planId).eq('is_active', true).single()
   if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
-  const reference = `nemi_${wedding.id}_${Date.now()}`
+  // Short readable reference: nemi-<slug>-<last6 of timestamp>
+  const shortTs = String(Date.now()).slice(-6)
+  const reference = `nemi-${wedding.slug}-${shortTs}`
   // Always use the production URL for the callback — never localhost
   const baseUrl = process.env.PAYSTACK_CALLBACK_BASE_URL
     ?? process.env.NEXT_PUBLIC_APP_URL
