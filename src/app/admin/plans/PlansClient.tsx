@@ -123,64 +123,95 @@ export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: 
           No plans available yet. Check back soon.
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
-          {plans.map(plan => {
+        <div className="grid sm:grid-cols-2 gap-5">
+          {plans.map((plan, idx) => {
             const isCurrent = plan.id === currentPlanId
             const currentSortOrder = planInfo.plan?.sort_order ?? 0
             const isUpgrade = plan.sort_order > currentSortOrder
             const isDowngrade = planInfo.isActive && plan.sort_order < currentSortOrder
             const features = getPlanFeatures(plan)
             const isLoading = subscribing === plan.id
+            // Highlight the most popular / highest visible plan when user has no plan
+            const isHighlighted = !planInfo.isActive && idx === plans.filter((_, i) => i === plans.length - 2).length
 
             // Hide downgrade options — one-off payment, can't go backwards
             if (isDowngrade) return null
 
+            let ctaLabel = 'Get started'
+            if (isLoading) ctaLabel = 'Redirecting…'
+            else if (planInfo.isActive && isUpgrade) ctaLabel = 'Upgrade'
+
             return (
               <div
                 key={plan.id}
-                className={`bg-white rounded-2xl border shadow-sm p-6 flex flex-col gap-4 transition-all ${
+                className={`relative rounded-3xl flex flex-col gap-5 overflow-hidden transition-all ${
                   isCurrent
-                    ? 'border-rose-300 ring-1 ring-rose-200'
-                    : 'border-rose-50 hover:border-rose-200'
+                    ? 'bg-rose-500 text-white shadow-lg shadow-rose-200'
+                    : isHighlighted
+                    ? 'bg-stone-900 text-white shadow-lg shadow-stone-300'
+                    : 'bg-white border border-stone-100 shadow-sm hover:shadow-md hover:border-rose-100'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-serif text-xl text-stone-800">{plan.name}</h3>
-                    <p className="text-2xl font-semibold text-rose-500 mt-1">{formatPrice(plan.price)}</p>
+                {/* Top section */}
+                <div className="px-6 pt-6 pb-5 border-b border-white/10">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <h3 className={`font-serif text-lg font-semibold ${isCurrent || isHighlighted ? 'text-white' : 'text-stone-800'}`}>
+                      {plan.name}
+                    </h3>
+                    {isCurrent && (
+                      <span className="text-[11px] px-2 py-0.5 bg-white/20 text-white rounded-full font-medium shrink-0 border border-white/30">
+                        Your plan
+                      </span>
+                    )}
                   </div>
-                  {isCurrent && (
-                    <span className="text-xs px-2.5 py-1 bg-rose-50 text-rose-500 border border-rose-200 rounded-full font-medium shrink-0">
-                      Current Plan
-                    </span>
-                  )}
+                  <p className={`text-3xl font-bold tracking-tight ${isCurrent || isHighlighted ? 'text-white' : 'text-stone-900'}`}>
+                    {formatPrice(plan.price)}
+                    <span className={`text-sm font-normal ml-1 ${isCurrent || isHighlighted ? 'text-white/60' : 'text-stone-400'}`}>one-time</span>
+                  </p>
                 </div>
 
-                <ul className="space-y-2 flex-1">
+                {/* Features */}
+                <ul className="px-6 space-y-2.5 flex-1">
                   {features.map(f => (
-                    <li key={f.label} className="flex items-center gap-2 text-sm">
-                      <span className={f.included ? 'text-emerald-500' : 'text-stone-300'}>
+                    <li key={f.label} className="flex items-center gap-2.5 text-sm">
+                      <span className={
+                        f.included
+                          ? (isCurrent || isHighlighted ? 'text-white/70' : 'text-emerald-500')
+                          : (isCurrent || isHighlighted ? 'text-white/20' : 'text-stone-200')
+                      }>
                         {f.included ? '✓' : '✗'}
                       </span>
-                      <span className={f.included ? 'text-stone-600' : 'text-stone-300'}>{f.label}</span>
+                      <span className={
+                        f.included
+                          ? (isCurrent || isHighlighted ? 'text-white/90' : 'text-stone-700')
+                          : (isCurrent || isHighlighted ? 'text-white/30' : 'text-stone-300')
+                      }>
+                        {f.label}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
-                {/* Current plan — no action needed */}
-                {isCurrent ? (
-                  <div className="w-full py-3 rounded-xl text-sm font-medium text-center text-emerald-600 bg-emerald-50 border border-emerald-100">
-                    ✓ Active
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={isLoading || subscribing !== null}
-                    className="w-full py-3 rounded-xl text-sm font-medium bg-rose-500 hover:bg-rose-600 text-white shadow-sm shadow-rose-200 transition-colors disabled:opacity-50"
-                  >
-                    {isLoading ? 'Redirecting…' : isUpgrade ? 'Upgrade →' : 'Subscribe'}
-                  </button>
-                )}
+                {/* CTA */}
+                <div className="px-6 pb-6">
+                  {isCurrent ? (
+                    <div className="w-full py-3 rounded-2xl text-sm font-semibold text-center text-white bg-white/20 border border-white/30">
+                      ✓ Active plan
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={isLoading || subscribing !== null}
+                      className={`w-full py-3 rounded-2xl text-sm font-semibold transition-all disabled:opacity-50 ${
+                        isHighlighted
+                          ? 'bg-white text-stone-900 hover:bg-stone-50'
+                          : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm shadow-rose-100'
+                      }`}
+                    >
+                      {ctaLabel}
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}
