@@ -57,7 +57,7 @@ export default async function RegistryPage() {
   const rawRegistryCap = (subResult.data as { plans?: { registry_item_cap?: number | null } } | null)?.plans?.registry_item_cap ?? null
   // If no plans are active in the system, remove all limits
   const registryCap = noActivePlans ? null : rawRegistryCap
-  const availableCurrencies = [...new Set((methodsResult.data ?? []).map(m => m.currency).filter(Boolean))] as string[]
+  const availableCurrencies = Array.from(new Set((methodsResult.data ?? []).map(m => m.currency).filter(Boolean))) as string[]
   const itemCount = (itemsResult.data ?? []).length
   const atRegistryCap = registryCap !== null && itemCount >= registryCap
 
