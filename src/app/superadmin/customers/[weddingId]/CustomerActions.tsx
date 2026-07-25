@@ -52,23 +52,44 @@ export function SubscriptionActions({ sub }: { sub: Sub }) {
   )
 }
 
-export function RsvpToggle({ weddingId, enabled }: { weddingId: string; enabled: boolean }) {
+export function RsvpToggle({
+  weddingId,
+  enabled,
+  subActive,
+}: {
+  weddingId: string
+  enabled: boolean
+  subActive: boolean
+}) {
   const [pending, start] = useTransition()
+
+  // Guests can only RSVP when the couple's switch is on AND they've paid.
+  // Show the effective state, not just the couple's switch.
+  const effectivelyOpen = enabled && subActive
+
+  let caption: string
+  if (effectivelyOpen) caption = 'Guests can currently RSVP'
+  else if (!subActive && enabled) caption = 'Blocked — no active subscription'
+  else if (!subActive) caption = 'Closed, and blocked by no active subscription'
+  else caption = 'RSVP is closed for guests'
 
   return (
     <div className="flex items-center justify-between">
       <div>
         <p className="text-white text-sm font-medium">RSVP</p>
-        <p className="text-stone-500 text-xs mt-0.5">
-          {enabled ? 'Guests can currently RSVP' : 'RSVP is closed for guests'}
+        <p className={`text-xs mt-0.5 ${!subActive ? 'text-amber-400' : 'text-stone-500'}`}>
+          {caption}
         </p>
       </div>
       <button
-        disabled={pending}
+        disabled={pending || !subActive}
+        title={!subActive ? 'Requires an active subscription' : undefined}
         onClick={() => start(() => toggleRsvp(weddingId, !enabled))}
-        className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${enabled ? 'bg-green-500' : 'bg-stone-700'}`}
+        className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          effectivelyOpen ? 'bg-green-500' : 'bg-stone-700'
+        }`}
       >
-        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${effectivelyOpen ? 'translate-x-6' : 'translate-x-1'}`} />
       </button>
     </div>
   )

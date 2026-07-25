@@ -174,7 +174,11 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
 
       {/* RSVP toggle */}
       <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-        <RsvpToggle weddingId={weddingId} enabled={wedding.rsvp_enabled ?? false} />
+        <RsvpToggle
+          weddingId={weddingId}
+          enabled={wedding.rsvp_enabled ?? false}
+          subActive={activeSub?.status === 'active'}
+        />
       </div>
 
       {/* Active subscription */}
