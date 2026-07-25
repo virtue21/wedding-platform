@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 
@@ -128,13 +129,20 @@ export default async function SuperadminDashboard() {
                   ? `${profile.bride_name} & ${profile.groom_name}`
                   : w.slug
                 return (
-                  <div key={w.id} className="flex items-center justify-between py-2.5 border-b border-stone-800 last:border-0">
+                  <Link
+                    key={w.id}
+                    href={`/superadmin/customers/${w.id}`}
+                    className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-lg border-b border-stone-800 last:border-0 hover:bg-stone-800/60 transition-colors group"
+                  >
                     <div>
-                      <p className="text-white text-sm font-medium">{name}</p>
+                      <p className="text-white text-sm font-medium group-hover:text-rose-400 transition-colors">{name}</p>
                       <p className="text-stone-500 text-xs">/{w.slug}</p>
                     </div>
-                    <span className="text-stone-400 text-xs">{timeAgo(w.created_at)}</span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-stone-400 text-xs">{timeAgo(w.created_at)}</span>
+                      <span className="text-stone-600 group-hover:text-rose-400 transition-colors">›</span>
+                    </div>
+                  </Link>
                 )
               })}
             </div>
