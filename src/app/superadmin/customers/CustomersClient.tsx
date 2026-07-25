@@ -92,10 +92,8 @@ export default function CustomersClient({ rows }: { rows: CustomerRow[] }) {
     trial: rows.filter(r => r.isTrial).length,
   }), [rows])
 
-  const pill = (active: boolean) =>
-    `px-3 py-1.5 text-xs rounded-lg transition-colors ${
-      active ? 'bg-rose-500 text-white' : 'bg-stone-800 text-stone-400 hover:text-stone-200'
-    }`
+  const selectClass =
+    'px-3 py-2 bg-stone-950 border border-stone-800 rounded-lg text-xs text-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500/40'
 
   return (
     <div className="p-8 space-y-5">
@@ -123,37 +121,48 @@ export default function CustomersClient({ rows }: { rows: CustomerRow[] }) {
           className="w-full px-3.5 py-2.5 bg-stone-950 border border-stone-800 rounded-xl text-sm text-stone-200 placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
         />
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="text-stone-500 text-xs mr-1">Setup</span>
-            {(['all', 'complete', 'incomplete'] as const).map(v => (
-              <button key={v} onClick={() => setSetupFilter(v)} className={pill(setupFilter === v)}>
-                {v === 'all' ? 'All' : v === 'complete' ? 'Completed' : 'Not completed'}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2">
+            <span className="text-stone-500 text-xs">Setup</span>
+            <select
+              value={setupFilter}
+              onChange={e => setSetupFilter(e.target.value as SetupFilter)}
+              className={selectClass}
+            >
+              <option value="all">All</option>
+              <option value="complete">Completed</option>
+              <option value="incomplete">Not completed</option>
+            </select>
+          </label>
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-stone-500 text-xs mr-1">Subscription</span>
-            {(['all', 'active', 'trial', 'none'] as const).map(v => (
-              <button key={v} onClick={() => setSubFilter(v)} className={pill(subFilter === v)}>
-                {v === 'all' ? 'All' : v === 'active' ? 'Paying' : v === 'trial' ? 'Trial' : 'None'}
-              </button>
-            ))}
-          </div>
+          <label className="flex items-center gap-2">
+            <span className="text-stone-500 text-xs">Subscription</span>
+            <select
+              value={subFilter}
+              onChange={e => setSubFilter(e.target.value as SubFilter)}
+              className={selectClass}
+            >
+              <option value="all">All</option>
+              <option value="active">Paying</option>
+              <option value="trial">Trial</option>
+              <option value="none">None</option>
+            </select>
+          </label>
 
-          <div className="flex items-center gap-2">
-            <span className="text-stone-500 text-xs">Signed up</span>
+          <label className="flex items-center gap-2">
+            <span className="text-stone-500 text-xs">From</span>
             <input
               type="date" value={from} onChange={e => setFrom(e.target.value)}
-              className="px-2.5 py-1.5 bg-stone-950 border border-stone-800 rounded-lg text-xs text-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+              className={selectClass}
             />
-            <span className="text-stone-600 text-xs">to</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-stone-500 text-xs">To</span>
             <input
               type="date" value={to} onChange={e => setTo(e.target.value)}
-              className="px-2.5 py-1.5 bg-stone-950 border border-stone-800 rounded-lg text-xs text-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500/40"
+              className={selectClass}
             />
-          </div>
+          </label>
 
           {(search || setupFilter !== 'all' || subFilter !== 'all' || from || to) && (
             <button
