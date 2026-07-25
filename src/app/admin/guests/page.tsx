@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import GuestTable from './GuestTable'
+import AddGuestForm from './AddGuestForm'
 import OnboardingChecklist from '@/components/OnboardingChecklist'
 import type { Guest, RelationshipCategory } from '@/lib/supabase/database.types'
 
@@ -40,9 +41,9 @@ export default async function GuestsPage() {
       .order('created_at', { ascending: false }) as unknown as Promise<{ data: GuestWithCategory[] | null }>,
     supabase
       .from('relationship_categories')
-      .select('id')
+      .select('id, label, side')
       .eq('wedding_id', wedding.id)
-      .limit(1),
+      .order('sort_order'),
     supabase
       .from('registry_items')
       .select('id')
@@ -126,12 +127,15 @@ export default async function GuestsPage() {
               : `${total} ${total === 1 ? 'guest' : 'guests'} · click any row to view details`}
           </p>
         </div>
-        <a
-          href="/admin/guests/export"
-          className="flex items-center gap-2 px-4 py-2 text-sm border border-rose-100 text-stone-600 hover:border-rose-200 rounded-xl bg-white transition-colors"
-        >
-          <span>↓</span> Export CSV
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="/admin/guests/export"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm border border-rose-100 text-stone-600 hover:border-rose-200 rounded-xl bg-white transition-colors"
+          >
+            <span>↓</span> Export CSV
+          </a>
+          <AddGuestForm categories={(categoriesResult.data ?? []) as { id: string; label: string; side: 'bride' | 'groom' }[]} />
+        </div>
       </div>
 
       {/* Stats */}

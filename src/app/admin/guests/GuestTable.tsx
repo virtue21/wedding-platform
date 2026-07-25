@@ -56,7 +56,7 @@ function GuestRow({ guest }: { guest: GuestWithCategory }) {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
-                  Private notes
+                  Private notes <span className="normal-case font-normal text-stone-300">— only you can see this, never the guest</span>
                 </label>
                 <textarea
                   value={notes}
