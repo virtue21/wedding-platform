@@ -44,8 +44,8 @@ export default async function WallPage() {
         tip="Guests post directly from your invite page — no login needed. Share the link to encourage them to leave a message before the big day."
       />
 
-      {/* Google Drive photo archive */}
-      {driveFolderUrl && (
+      {/* Google Drive photo archive — Classic/Grand/Prestige only */}
+      {hasMoments && driveFolderUrl && (
         <div className="flex items-center justify-between gap-4 p-4 bg-white border border-rose-50 rounded-2xl shadow-sm">
           <div className="flex items-center gap-3">
             <span className="text-xl">📁</span>

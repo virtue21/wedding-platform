@@ -40,6 +40,23 @@ export async function POST(req: NextRequest) {
       .single()
     if (!wedding) return NextResponse.json({ ok: false, error: 'wedding_not_found' }, { status: 404 })
 
+    // Drive backup is a Classic/Grand/Prestige feature (plans with moments).
+    // Unlocked for everyone only when no plans are active in the system.
+    const [{ count: activePlanCount }, { data: sub }] = await Promise.all([
+      sb.from('plans').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      sb.from('wedding_subscriptions')
+        .select('plans(has_moments)')
+        .eq('wedding_id', wedding.id)
+        .eq('status', 'active')
+        .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+        .limit(1)
+        .single(),
+    ])
+    const hasMoments = (sub as { plans?: { has_moments?: boolean } } | null)?.plans?.has_moments === true
+    if ((activePlanCount ?? 0) > 0 && !hasMoments) {
+      return NextResponse.json({ ok: false, error: 'not_on_plan' }, { status: 403 })
+    }
+
     // Ensure the wedding has a Drive folder, shared with the couple
     let folderId: string | null = wedding.drive_folder_id
     if (!folderId) {
