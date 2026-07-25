@@ -45,9 +45,37 @@ Project → Settings → Git:
 - **Production Branch**: `main`
 - Leave preview deployments enabled — `uat` gets its own stable URL.
 
-Environment variables (Settings → Environment Variables) apply per
-environment. Anything the app needs must be ticked for **Preview** as
-well as **Production**, or UAT will fail with missing-key errors.
+## Environment variables
+
+Vercel scopes variables per environment: add the **same name twice**, once
+ticked for Production (live value) and once for Preview (test value).
+Every variable the app reads must exist in **both**, or UAT builds fine
+and then fails at runtime with missing-key errors.
+
+Must differ between Production and Preview:
+
+| Variable | Production | Preview (UAT) |
+|---|---|---|
+| `PAYSTACK_SECRET_KEY` | `sk_live_…` | `sk_test_…` |
+| `PAYSTACK_CALLBACK_BASE_URL` | `https://nemiplanner.xyz` | UAT URL |
+| `NEXT_PUBLIC_APP_URL` | `https://nemiplanner.xyz` | UAT URL |
+| `NEXT_PUBLIC_BASE_URL` | `https://nemiplanner.xyz` | UAT URL |
+| `NEXT_PUBLIC_MIXPANEL_TOKEN` | live token | separate project, or blank |
+| `SUPERADMIN_PASSWORD` | live value | a different value |
+
+Safe to share: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `RESEND_API_KEY`,
+`GOOGLE_SERVICE_ACCOUNT_KEY`, `SUPERADMIN_EMAIL`,
+`SUPERADMIN_SESSION_SECRET`.
+
+**Why the URL variables matter:** if UAT inherits the production values, a
+test payment redirects into the live app and activates a real
+subscription, and password-reset/payment emails sent from UAT link
+recipients to production. Getting these wrong is worse than having no
+UAT at all.
+
+Use the branch's stable alias for the UAT URLs — the
+`…-git-uat-…vercel.app` one, not a per-deployment URL, which changes on
+every push.
 
 ## Database caveat — read this
 
