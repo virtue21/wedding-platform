@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { WeddingPhoto } from '@/lib/supabase/database.types'
 
@@ -17,10 +17,43 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  // Can this device hand an actual image file to WhatsApp/Instagram/TikTok?
+  const [canShareFiles, setCanShareFiles] = useState(false)
+  const [sharing, setSharing] = useState(false)
   // Preview before confirm
   const [previewFile, setPreviewFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Probe once on mount — checked client-side to avoid a hydration mismatch.
+  useEffect(() => {
+    try {
+      const probe = new File([new Blob([''], { type: 'image/jpeg' })], 'probe.jpg', { type: 'image/jpeg' })
+      setCanShareFiles(Boolean(navigator.canShare?.({ files: [probe] })))
+    } catch {
+      setCanShareFiles(false)
+    }
+  }, [])
+
+  async function handleShareImage() {
+    if (!lightboxSrc) return
+    setSharing(true)
+    try {
+      const res = await fetch(lightboxSrc)
+      const blob = await res.blob()
+      const ext = blob.type.includes('png') ? 'png' : 'jpg'
+      const file = new File([blob], `wedding-moment.${ext}`, { type: blob.type || 'image/jpeg' })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] })
+      } else {
+        await navigator.share({ url: lightboxSrc })
+      }
+    } catch {
+      /* user cancelled, or the share sheet closed */
+    } finally {
+      setSharing(false)
+    }
+  }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -225,36 +258,28 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
               >
                 ⬇ Download
               </a>
-              {/* Share the actual image file — opens the native share sheet
-                  (Instagram, TikTok, WhatsApp, etc. on mobile) */}
-              {'share' in navigator && (
+              {/* Sharing the actual image file goes through the native share
+                  sheet — WhatsApp, Instagram and TikTok all accept a file
+                  there. wa.me links can only carry text, so that's a
+                  desktop-only fallback. */}
+              {canShareFiles ? (
                 <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch(lightboxSrc)
-                      const blob = await res.blob()
-                      const file = new File([blob], 'wedding-moment.jpg', { type: blob.type || 'image/jpeg' })
-                      if (navigator.canShare?.({ files: [file] })) {
-                        await navigator.share({ files: [file], title: 'Wedding Moment' })
-                      } else {
-                        await navigator.share({ url: lightboxSrc, title: 'Wedding Moment' })
-                      }
-                    } catch { /* user cancelled */ }
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
+                  onClick={handleShareImage}
+                  disabled={sharing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60"
                 >
-                  ↗ Share
+                  {sharing ? 'Preparing…' : '↗ Share photo'}
                 </button>
+              ) : (
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent('Check out this wedding moment 📸 ' + lightboxSrc)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/80 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  Share link
+                </a>
               )}
-              {/* WhatsApp deep link — works everywhere including desktop */}
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent('Check out this wedding moment 📸 ' + lightboxSrc)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/80 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors"
-              >
-                WhatsApp
-              </a>
             </div>
           </div>
 
