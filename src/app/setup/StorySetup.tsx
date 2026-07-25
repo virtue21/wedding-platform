@@ -7,6 +7,8 @@ import type { WeddingStorySlide } from '@/lib/supabase/database.types'
 type Props = {
   weddingId: string
   initialSlides: WeddingStorySlide[]
+  /** Plan includes AI illustrations. When false, the ✨ buttons don't render. */
+  canIllustrate?: boolean
 }
 
 type DraftSlide = {
@@ -18,7 +20,7 @@ type DraftSlide = {
   imageLoading?: boolean
 }
 
-export default function StorySetup({ weddingId, initialSlides }: Props) {
+export default function StorySetup({ weddingId, initialSlides, canIllustrate = false }: Props) {
   const [slides, setSlides] = useState<WeddingStorySlide[]>(
     [...initialSlides].sort((a, b) => a.slide_number - b.slide_number)
   )
@@ -317,16 +319,18 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
                 <div className="relative aspect-video">
                   <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
                   <div className="absolute top-2 right-2 flex gap-1.5">
-                    <button
-                      onClick={() => {
-                        const updated = [...draftSlides]
-                        updated[idx] = { ...updated[idx], imageLoading: true }
-                        setDraftSlides(updated)
-                        generateSlideImage(idx, effectivePrompt(slide))
-                      }}
-                      title="Replace with an AI illustration"
-                      className="h-7 px-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
-                    >🔄</button>
+                    {canIllustrate && (
+                      <button
+                        onClick={() => {
+                          const updated = [...draftSlides]
+                          updated[idx] = { ...updated[idx], imageLoading: true }
+                          setDraftSlides(updated)
+                          generateSlideImage(idx, effectivePrompt(slide))
+                        }}
+                        title="Replace with an AI illustration"
+                        className="h-7 px-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
+                      >🔄</button>
+                    )}
                     <button
                       onClick={() => {
                         const updated = [...draftSlides]
@@ -343,19 +347,21 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
                     onClick={() => fileRefs.current[idx]?.click()}
                     className="flex-1 h-24 bg-rose-50 hover:bg-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm transition-colors"
                   >
-                    <span>🖼️</span> Add photo
+                    <span>🖼️</span> Add photo for this slide
                   </button>
-                  <button
-                    onClick={() => {
-                      const updated = [...draftSlides]
-                      updated[idx] = { ...updated[idx], imageLoading: true }
-                      setDraftSlides(updated)
-                      generateSlideImage(idx, effectivePrompt(slide))
-                    }}
-                    className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
-                  >
-                    <span>✨</span> Illustrate with AI
-                  </button>
+                  {canIllustrate && (
+                    <button
+                      onClick={() => {
+                        const updated = [...draftSlides]
+                        updated[idx] = { ...updated[idx], imageLoading: true }
+                        setDraftSlides(updated)
+                        generateSlideImage(idx, effectivePrompt(slide))
+                      }}
+                      className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
+                    >
+                      <span>✨</span> Illustrate with AI
+                    </button>
+                  )}
                 </div>
               )}
               <input

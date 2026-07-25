@@ -13,6 +13,7 @@ import SetupTracker from './SetupTracker'
 import type { Database } from '@/lib/supabase/database.types'
 import type { WeddingStorySlide } from '@/lib/supabase/database.types'
 import { isSubscriptionActive } from '@/lib/subscription'
+import { storyImagesEntitlement } from '@/lib/storyImages'
 
 type WeddingRow = Database['public']['Tables']['weddings']['Row']
 type ProfileRow = Database['public']['Tables']['user_profiles']['Row']
@@ -44,6 +45,9 @@ export default async function SetupPage({
   const storySlides    = (storySlidesResult.data ?? []) as WeddingStorySlide[]
 
   const subActive = wedding ? await isSubscriptionActive(wedding.id) : false
+  // Hidden entirely unless the couple's plan includes it — no teasing a
+  // button that only errors.
+  const canIllustrate = wedding ? (await storyImagesEntitlement(wedding.id)).entitled : false
 
   const defaultSlug = wedding?.slug ?? slugify(profile?.bride_name ?? '', profile?.groom_name ?? '')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
@@ -183,7 +187,7 @@ export default async function SetupPage({
         {/* Love Story */}
         {wedding && (
           <section className="card">
-            <StorySetup weddingId={wedding.id} initialSlides={storySlides} />
+            <StorySetup weddingId={wedding.id} initialSlides={storySlides} canIllustrate={canIllustrate} />
           </section>
         )}
 
