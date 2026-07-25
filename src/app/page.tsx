@@ -545,7 +545,7 @@ export default async function RootPage({
       </section>
 
       {/* ── FOOTER ── */}
-      <SiteFooter />
+      <SiteFooter variant="landing" />
 
     </div>
   )
