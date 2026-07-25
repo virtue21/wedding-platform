@@ -29,6 +29,10 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [imageNotice, setImageNotice] = useState<string | null>(null)
   const [imageError, setImageError] = useState<string | null>(null)
+  // Illustrations still running. If the couple saves before they finish, we
+  // keep generating and write each result straight onto the saved slide.
+  const [pendingImages, setPendingImages] = useState(0)
+  const savedSlideIds = useRef<Record<number, string>>({})
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Slides written before AI prompts existed (or edited by hand) still get
@@ -37,7 +41,32 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
     return slide.imagePrompt?.trim() || [slide.title, slide.body].filter(Boolean).join('. ')
   }
 
+  /** Put a finished illustration wherever the slide currently lives. */
+  async function applyImage(idx: number, imageUrl: string | null) {
+    const savedId = savedSlideIds.current[idx]
+    if (savedId) {
+      // Slides were already published — write straight to the saved slide.
+      if (imageUrl) {
+        const sb = createClient()
+        await sb.from('wedding_story_slides').update({ image_url: imageUrl }).eq('id', savedId)
+        setSlides(prev => prev.map(s => (s.id === savedId ? { ...s, image_url: imageUrl } : s)))
+      }
+      return
+    }
+    setDraftSlides(prev => {
+      if (!prev) return prev
+      const updated = [...prev]
+      updated[idx] = {
+        ...updated[idx],
+        image_url: imageUrl ?? updated[idx].image_url,
+        imageLoading: false,
+      }
+      return updated
+    })
+  }
+
   async function generateSlideImage(idx: number, imagePrompt: string, attempt = 0) {
+    if (attempt === 0) setPendingImages(n => n + 1)
     try {
       const res = await fetch('/api/generate-slide-image', {
         method: 'POST',
@@ -50,6 +79,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       if (res.status === 429 && attempt < 3) {
         const waitSeconds = Number(data?.retryAfter) || 20 * (attempt + 1)
         await new Promise(r => setTimeout(r, waitSeconds * 1000))
+        setPendingImages(n => n - 1)
         return generateSlideImage(idx, imagePrompt, attempt + 1)
       }
 
@@ -59,24 +89,12 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         setImageNotice('error')
         setImageError(data?.detail ?? null)
       }
-      setDraftSlides(prev => {
-        if (!prev) return prev
-        const updated = [...prev]
-        updated[idx] = {
-          ...updated[idx],
-          image_url: data.imageUrl ?? updated[idx].image_url,
-          imageLoading: false,
-        }
-        return updated
-      })
+      await applyImage(idx, data.imageUrl ?? null)
     } catch {
       setImageNotice('error')
-      setDraftSlides(prev => {
-        if (!prev) return prev
-        const updated = [...prev]
-        updated[idx] = { ...updated[idx], imageLoading: false }
-        return updated
-      })
+      await applyImage(idx, null)
+    } finally {
+      setPendingImages(n => Math.max(0, n - 1))
     }
   }
 
@@ -84,6 +102,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   // reword them, swap photos, or add AI illustrations after saving.
   function handleEditPublished() {
     setImageNotice(null)
+    savedSlideIds.current = {}
     setDraftSlides(
       slides.map(s => ({
         title: s.title ?? '',
@@ -104,6 +123,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       })
       const data = await res.json()
       if (data.slides) {
+        savedSlideIds.current = {}
         const withImages: boolean = data.canGenerateImages === true
         const drafts: DraftSlide[] = data.slides.map(
           (s: { title: string; body: string; imagePrompt?: string }) => ({
@@ -167,7 +187,11 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
     }))
     const { data, error } = await sb.from('wedding_story_slides').insert(rows).select()
     if (!error && data) {
-      setSlides(data as WeddingStorySlide[])
+      const saved = (data as WeddingStorySlide[]).sort((a, b) => a.slide_number - b.slide_number)
+      // Point any still-running illustrations at their now-saved slide, so
+      // they write themselves in when they finish.
+      savedSlideIds.current = Object.fromEntries(saved.map(s => [s.slide_number, s.id]))
+      setSlides(saved)
       setDraftSlides(null)
       setStoryText('')
     }
@@ -244,9 +268,16 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-stone-600">
-              {draftSlides.length} {draftSlides.length === 1 ? 'slide' : 'slides'} — edit, illustrate, then save
-            </p>
+            <div>
+              <p className="text-sm font-medium text-stone-600">
+                {draftSlides.length} {draftSlides.length === 1 ? 'slide' : 'slides'} — edit, illustrate, then save
+              </p>
+              {pendingImages > 0 && (
+                <p className="text-xs text-stone-400 mt-0.5">
+                  Illustrating {pendingImages} {pendingImages === 1 ? 'slide' : 'slides'} — you can save now and they&apos;ll finish on their own.
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
               <button onClick={() => setDraftSlides(null)} className="text-xs text-stone-400 hover:text-stone-600">Discard</button>
               <button
@@ -369,6 +400,17 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       {/* Existing published slides */}
       {!draftSlides && slides.length > 0 && (
         <div className="space-y-3">
+          {pendingImages > 0 && (
+            <div className="flex items-center gap-3 p-3.5 bg-rose-50 border border-rose-100 rounded-2xl">
+              <svg className="animate-spin w-4 h-4 text-rose-400 shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-xs text-rose-700">
+                Still illustrating {pendingImages} {pendingImages === 1 ? 'slide' : 'slides'} in the background — they&apos;ll appear here automatically. Feel free to keep working.
+              </p>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-stone-400 uppercase tracking-wide">Published Slides ({slides.length})</p>
             <button
