@@ -55,6 +55,14 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const detail = data?.error?.message ?? JSON.stringify(data).slice(0, 300)
       console.error('[story-image] Gemini error:', detail)
+      // Rate limited — pass the retry window through so the client can wait it out
+      if (res.status === 429) {
+        const match = /retry in ([\d.]+)s/i.exec(detail)
+        return NextResponse.json(
+          { error: 'rate_limited', detail, retryAfter: match ? Math.ceil(Number(match[1])) : 20 },
+          { status: 429 }
+        )
+      }
       return NextResponse.json({ error: 'generation_failed', detail }, { status: 502 })
     }
 

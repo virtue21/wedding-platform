@@ -37,7 +37,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
     return slide.imagePrompt?.trim() || [slide.title, slide.body].filter(Boolean).join('. ')
   }
 
-  async function generateSlideImage(idx: number, imagePrompt: string) {
+  async function generateSlideImage(idx: number, imagePrompt: string, attempt = 0) {
     try {
       const res = await fetch('/api/generate-slide-image', {
         method: 'POST',
@@ -45,6 +45,14 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         body: JSON.stringify({ imagePrompt, slideIndex: idx }),
       })
       const data = await res.json()
+
+      // Rate-limited: wait for the window Google asks for, then retry.
+      if (res.status === 429 && attempt < 3) {
+        const waitSeconds = Number(data?.retryAfter) || 20 * (attempt + 1)
+        await new Promise(r => setTimeout(r, waitSeconds * 1000))
+        return generateSlideImage(idx, imagePrompt, attempt + 1)
+      }
+
       if (res.status === 403) {
         setImageNotice('upgrade')
       } else if (!res.ok) {
@@ -107,11 +115,22 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
           })
         )
         setDraftSlides(drafts)
-        // Kick off all illustrations in parallel; they fill in as they finish
+        // Illustrate a few at a time so a long story doesn't trip Gemini's
+        // per-minute rate limit; each finishes independently into its slide.
         if (withImages) {
-          drafts.forEach((d, idx) => {
-            if (d.imagePrompt) generateSlideImage(idx, d.imagePrompt)
+          const queue = drafts
+            .map((d, idx) => ({ idx, prompt: d.imagePrompt }))
+            .filter((q): q is { idx: number; prompt: string } => !!q.prompt)
+
+          const CONCURRENCY = 3
+          const workers = Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+            for (;;) {
+              const next = queue.shift()
+              if (!next) return
+              await generateSlideImage(next.idx, next.prompt)
+            }
           })
+          void Promise.all(workers)
         }
       }
     } finally {
