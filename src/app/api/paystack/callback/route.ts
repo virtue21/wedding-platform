@@ -55,8 +55,22 @@ export async function GET(req: NextRequest) {
     )
     const [{ data: wedding }, { data: plan }] = await Promise.all([
       sb.from('weddings').select('user_id').eq('id', wedding_id).single(),
-      sb.from('plans').select('name').eq('id', plan_id).single(),
+      sb.from('plans')
+        .select('name, guest_cap, registry_item_cap, table_cap, has_moments, moments_upload_cap, has_cover_image, has_digital_iv')
+        .eq('id', plan_id)
+        .single(),
     ])
+
+    const features: string[] = plan ? [
+      plan.guest_cap ? `${plan.guest_cap} guests` : 'Unlimited guests',
+      plan.registry_item_cap ? `${plan.registry_item_cap} registry items` : 'Unlimited registry items',
+      plan.table_cap ? `${plan.table_cap} tables` : 'Unlimited tables',
+      ...(plan.has_moments
+        ? [plan.moments_upload_cap ? `${plan.moments_upload_cap} guest photo uploads` : 'Unlimited guest photo uploads']
+        : []),
+      ...(plan.has_cover_image ? ['Cover image'] : []),
+      ...(plan.has_digital_iv ? ['Digital invite + QR code'] : []),
+    ] : []
 
     if (wedding) {
       const [{ data: profile }, authResult] = await Promise.all([
@@ -72,6 +86,7 @@ export async function GET(req: NextRequest) {
           amountKobo,
           reference,
           appUrl: baseUrl,
+          features,
         })
       }
     }

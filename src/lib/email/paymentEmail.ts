@@ -5,6 +5,7 @@ export interface PaymentEmailData {
   amountKobo: number
   reference: string
   appUrl: string
+  features?: string[]
 }
 
 function formatAmount(kobo: number): string {
@@ -12,7 +13,20 @@ function formatAmount(kobo: number): string {
 }
 
 export function buildPaymentEmail(data: PaymentEmailData): string {
-  const { brideName, groomName, planName, amountKobo, reference, appUrl } = data
+  const { brideName, groomName, planName, amountKobo, reference, appUrl, features } = data
+
+  const featuresHtml = features?.length
+    ? `
+              <p style="margin:0 0 10px;font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">Your ${planName} plan includes</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                ${features.map(f => `
+                <tr>
+                  <td style="padding:3px 0;font-size:14px;color:#57534e;">
+                    <span style="color:#10b981;font-weight:700;">&#10003;</span>&nbsp;&nbsp;${f}
+                  </td>
+                </tr>`).join('')}
+              </table>`
+    : ''
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -58,6 +72,8 @@ export function buildPaymentEmail(data: PaymentEmailData): string {
                   </td>
                 </tr>
               </table>
+
+              ${featuresHtml}
 
               <!-- CTA -->
               <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
