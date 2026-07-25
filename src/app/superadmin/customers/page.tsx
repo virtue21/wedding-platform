@@ -39,16 +39,29 @@ export default async function CustomersPage() {
       .eq('is_removed', false),
   ])
 
-  // Fetch emails from auth.users via admin API
+  // All auth users, so we can spot people who signed up but never
+  // completed Setup — they have no weddings row, so they'd otherwise be
+  // invisible here.
+  const { data: authList } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  const allUsers = authList?.users ?? []
+
   const emailMap: Record<string, string> = {}
-  if (userIds.length) {
-    await Promise.all(
-      userIds.map(async (uid) => {
-        const { data } = await sb.auth.admin.getUserById(uid)
-        if (data?.user?.email) emailMap[uid] = data.user.email
-      })
-    )
+  for (const u of allUsers) {
+    if (u.email) emailMap[u.id] = u.email
   }
+
+  const weddingUserIds = new Set(userIds)
+  const incompleteUsers = allUsers.filter(u => !weddingUserIds.has(u.id))
+
+  // Names for incomplete signups (profile is created at signup, wedding isn't)
+  const { data: incompleteProfiles } = incompleteUsers.length
+    ? await sb.from('user_profiles')
+        .select('id, bride_name, groom_name')
+        .in('id', incompleteUsers.map(u => u.id))
+    : { data: [] }
+  const incompleteProfileMap = Object.fromEntries(
+    (incompleteProfiles ?? []).map(p => [p.id, p])
+  )
 
   const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
   const subMap = Object.fromEntries(
@@ -128,6 +141,55 @@ export default async function CustomersPage() {
           <div className="text-center py-12 text-stone-500 text-sm">No customers yet</div>
         )}
       </div>
+
+      {/* Signed up but never completed Setup — no weddings row exists yet */}
+      {incompleteUsers.length > 0 && (
+        <div className="bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-stone-800">
+            <h2 className="text-white text-sm font-semibold">
+              Signed up — setup not completed
+              <span className="ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-full font-medium">
+                {incompleteUsers.length}
+              </span>
+            </h2>
+            <p className="text-stone-500 text-xs mt-1">
+              Accounts created but no wedding details saved yet — they can&apos;t share a link or take RSVPs.
+            </p>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-stone-800">
+                <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Name</th>
+                <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Email</th>
+                <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Email verified</th>
+                <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Signed up</th>
+              </tr>
+            </thead>
+            <tbody>
+              {incompleteUsers.map(u => {
+                const p = incompleteProfileMap[u.id]
+                const name = p ? `${p.bride_name} & ${p.groom_name}` : '—'
+                return (
+                  <tr key={u.id} className="border-b border-stone-800/50">
+                    <td className="px-5 py-3.5 text-stone-200">{name}</td>
+                    <td className="px-5 py-3.5 text-stone-400 text-xs">{u.email ?? '—'}</td>
+                    <td className="px-5 py-3.5">
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${
+                        u.email_confirmed_at
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-stone-800 text-stone-500'
+                      }`}>
+                        {u.email_confirmed_at ? 'Verified' : 'Unverified'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-stone-400 text-xs">{formatDate(u.created_at)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

@@ -67,12 +67,20 @@ export default async function SuperadminDashboard() {
     : { data: [] }
   const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
 
+  // Signups that never reached Setup have no weddings row, so they're
+  // missing from every count that starts from weddings.
+  const { data: authList } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  const totalSignups = authList?.users.length ?? 0
+  const incompleteSetup = Math.max(0, totalSignups - (totalCustomers ?? 0))
+
   const kpis = [
     {
       label: 'Total Customers',
       value: totalCustomers ?? 0,
       icon: '👥',
-      sub: 'couples signed up',
+      sub: incompleteSetup > 0
+        ? `${incompleteSetup} more signed up, not set up`
+        : 'couples set up',
     },
     {
       label: 'Paying Customers',
