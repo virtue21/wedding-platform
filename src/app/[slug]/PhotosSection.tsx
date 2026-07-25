@@ -25,8 +25,8 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Max 10MB per photo')
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Max 5MB per photo')
       return
     }
     setPreviewFile(file)
@@ -153,7 +153,7 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
             <span className="text-sm font-medium text-stone-500">
               {uploaderName.trim() ? 'Tap to choose a photo' : 'Enter your name first'}
             </span>
-            <span className="text-xs text-stone-300 mt-1">Max 10MB · JPG, PNG, WebP</span>
+            <span className="text-xs text-stone-300 mt-1">Max 5MB · JPG, PNG, WebP</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -217,12 +217,20 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
               >
                 ⬇ Download
               </a>
-              {/* Share (Web Share API — works on mobile) */}
+              {/* Share the actual image file — opens the native share sheet
+                  (Instagram, TikTok, WhatsApp, etc. on mobile) */}
               {'share' in navigator && (
                 <button
                   onClick={async () => {
                     try {
-                      await navigator.share({ url: lightboxSrc, title: 'Wedding Moment' })
+                      const res = await fetch(lightboxSrc)
+                      const blob = await res.blob()
+                      const file = new File([blob], 'wedding-moment.jpg', { type: blob.type || 'image/jpeg' })
+                      if (navigator.canShare?.({ files: [file] })) {
+                        await navigator.share({ files: [file], title: 'Wedding Moment' })
+                      } else {
+                        await navigator.share({ url: lightboxSrc, title: 'Wedding Moment' })
+                      }
                     } catch { /* user cancelled */ }
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-lg transition-colors"
@@ -230,6 +238,15 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
                   ↗ Share
                 </button>
               )}
+              {/* WhatsApp deep link — works everywhere including desktop */}
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent('Check out this wedding moment 📸 ' + lightboxSrc)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/80 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors"
+              >
+                WhatsApp
+              </a>
             </div>
           </div>
 

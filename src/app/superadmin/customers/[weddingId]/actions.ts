@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { isValidSession, SUPERADMIN_COOKIE } from '@/lib/superadmin-session'
+import { logAudit } from '@/lib/audit'
 
 function serviceClient() {
   return createServiceClient(
@@ -43,6 +44,12 @@ export async function grantFreeTrial(weddingId: string, planId: string, days: nu
     expires_at: expiresAt,
     paystack_reference: `free_trial_${Date.now()}`,
   }, { onConflict: 'wedding_id' })
+  await logAudit({
+    actorType: 'superadmin',
+    action: 'trial.granted',
+    weddingId,
+    detail: { plan_id: planId, days },
+  })
   revalidatePath(`/superadmin/customers/${weddingId}`)
   revalidatePath('/superadmin/subscriptions')
   revalidatePath('/superadmin')

@@ -7,6 +7,7 @@ import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@
 import NotesSection from './NotesSection'
 import PhotosSection from './PhotosSection'
 import StorySection from './StorySection'
+import SiteFooter from '@/components/SiteFooter'
 
 const VenueMap = dynamic(() => import('@/components/VenueMap'), { ssr: false })
 
@@ -166,6 +167,8 @@ export default function WeddingPageClient({
                 🎁 View Gift Registry
               </Link>
             </div>
+
+            <SiteFooter />
           </div>
         )}
 

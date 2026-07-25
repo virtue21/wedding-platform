@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { sendPaymentConfirmationEmail } from '@/lib/email/sendPaymentConfirmation'
+import { logAudit } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -38,6 +39,13 @@ export async function GET(req: NextRequest) {
 
   // Enable RSVP automatically on subscription activation
   await supabase.from('weddings').update({ rsvp_enabled: true }).eq('id', wedding_id)
+
+  await logAudit({
+    actorType: 'couple',
+    action: 'payment.activated',
+    weddingId: wedding_id,
+    detail: { plan_id, reference, amount_kobo: amountKobo },
+  })
 
   // Send payment confirmation email (fire-and-forget, don't block redirect)
   try {

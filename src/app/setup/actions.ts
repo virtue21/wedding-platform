@@ -120,6 +120,7 @@ export async function uploadCoverImage(formData: FormData) {
 
   const file = formData.get('cover_image') as File
   if (!file || file.size === 0) return redirect('/setup?error=No+file+selected')
+  if (file.size > 5 * 1024 * 1024) return redirect('/setup?error=Image+must+be+under+5+MB')
 
   const ext = file.name.split('.').pop()
   const path = `${user.id}/cover.${ext}`

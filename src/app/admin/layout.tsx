@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/auth/actions'
 import type { Database } from '@/lib/supabase/database.types'
 import AdminIdentify from './AdminIdentify'
+import SiteFooter from '@/components/SiteFooter'
 
 type Profile = Database['public']['Tables']['user_profiles']['Row']
 
@@ -87,7 +88,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
+      <main className="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">{children}</main>
+      <SiteFooter />
     </div>
   )
 }
