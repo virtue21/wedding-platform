@@ -9,7 +9,14 @@ type Props = {
   initialSlides: WeddingStorySlide[]
 }
 
-type DraftSlide = { title: string; body: string; image_url: string | null; imageFile?: File }
+type DraftSlide = {
+  title: string
+  body: string
+  image_url: string | null
+  imageFile?: File
+  imagePrompt?: string
+  imageLoading?: boolean
+}
 
 export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [slides, setSlides] = useState<WeddingStorySlide[]>(
@@ -22,6 +29,34 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
+  async function generateSlideImage(idx: number, imagePrompt: string) {
+    try {
+      const res = await fetch('/api/generate-slide-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagePrompt, slideIndex: idx }),
+      })
+      const data = await res.json()
+      setDraftSlides(prev => {
+        if (!prev) return prev
+        const updated = [...prev]
+        updated[idx] = {
+          ...updated[idx],
+          image_url: data.imageUrl ?? updated[idx].image_url,
+          imageLoading: false,
+        }
+        return updated
+      })
+    } catch {
+      setDraftSlides(prev => {
+        if (!prev) return prev
+        const updated = [...prev]
+        updated[idx] = { ...updated[idx], imageLoading: false }
+        return updated
+      })
+    }
+  }
+
   async function handleGenerate() {
     if (!storyText.trim()) return
     setGenerating(true)
@@ -33,11 +68,23 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       })
       const data = await res.json()
       if (data.slides) {
-        setDraftSlides(data.slides.map((s: { title: string; body: string }) => ({
-          title: s.title,
-          body: s.body,
-          image_url: null,
-        })))
+        const withImages: boolean = data.canGenerateImages === true
+        const drafts: DraftSlide[] = data.slides.map(
+          (s: { title: string; body: string; imagePrompt?: string }) => ({
+            title: s.title,
+            body: s.body,
+            image_url: null,
+            imagePrompt: s.imagePrompt,
+            imageLoading: withImages && !!s.imagePrompt,
+          })
+        )
+        setDraftSlides(drafts)
+        // Kick off all illustrations in parallel; they fill in as they finish
+        if (withImages) {
+          drafts.forEach((d, idx) => {
+            if (d.imagePrompt) generateSlideImage(idx, d.imagePrompt)
+          })
+        }
       }
     } finally {
       setGenerating(false)
@@ -141,25 +188,62 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
           {draftSlides.map((slide, idx) => (
             <div key={idx} className="bg-white rounded-2xl border border-rose-50 shadow-sm overflow-hidden">
               {/* Image area */}
-              {slide.image_url ? (
+              {slide.imageLoading ? (
+                <div className="w-full aspect-video bg-rose-50 animate-pulse flex flex-col items-center justify-center gap-2 text-rose-300">
+                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  <span className="text-xs">Illustrating this moment…</span>
+                </div>
+              ) : slide.image_url ? (
                 <div className="relative aspect-video">
                   <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => {
-                      const updated = [...draftSlides]
-                      updated[idx] = { ...updated[idx], image_url: null }
-                      setDraftSlides(updated)
-                    }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-black/50 text-white rounded-full flex items-center justify-center text-xs"
-                  >×</button>
+                  <div className="absolute top-2 right-2 flex gap-1.5">
+                    {slide.imagePrompt && (
+                      <button
+                        onClick={() => {
+                          const updated = [...draftSlides]
+                          updated[idx] = { ...updated[idx], imageLoading: true }
+                          setDraftSlides(updated)
+                          generateSlideImage(idx, slide.imagePrompt!)
+                        }}
+                        title="Regenerate illustration"
+                        className="h-7 px-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
+                      >🔄</button>
+                    )}
+                    <button
+                      onClick={() => {
+                        const updated = [...draftSlides]
+                        updated[idx] = { ...updated[idx], image_url: null }
+                        setDraftSlides(updated)
+                      }}
+                      className="w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
+                    >×</button>
+                  </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => fileRefs.current[idx]?.click()}
-                  className="w-full h-24 bg-rose-50 hover:bg-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm transition-colors"
-                >
-                  <span>🖼️</span> Add photo for this slide
-                </button>
+                <div className="flex">
+                  <button
+                    onClick={() => fileRefs.current[idx]?.click()}
+                    className="flex-1 h-24 bg-rose-50 hover:bg-rose-100 flex items-center justify-center gap-2 text-rose-400 text-sm transition-colors"
+                  >
+                    <span>🖼️</span> Add photo
+                  </button>
+                  {slide.imagePrompt && (
+                    <button
+                      onClick={() => {
+                        const updated = [...draftSlides]
+                        updated[idx] = { ...updated[idx], imageLoading: true }
+                        setDraftSlides(updated)
+                        generateSlideImage(idx, slide.imagePrompt!)
+                      }}
+                      className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
+                    >
+                      <span>✨</span> Illustrate with AI
+                    </button>
+                  )}
+                </div>
               )}
               <input
                 ref={el => { fileRefs.current[idx] = el }}
