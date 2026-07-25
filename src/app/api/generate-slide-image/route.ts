@@ -39,31 +39,39 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: STYLE_WRAPPER + imagePrompt.trim() }] }],
-        }),
-      }
-    )
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': process.env.GEMINI_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gemini-3.1-flash-image',
+        input: [{ type: 'text', text: STYLE_WRAPPER + imagePrompt.trim() }],
+        response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '16:9' },
+      }),
+    })
     const data = await res.json()
     if (!res.ok) {
-      console.error('[story-image] Gemini error:', JSON.stringify(data).slice(0, 500))
-      return NextResponse.json({ error: 'generation_failed' }, { status: 502 })
+      const detail = data?.error?.message ?? JSON.stringify(data).slice(0, 300)
+      console.error('[story-image] Gemini error:', detail)
+      return NextResponse.json({ error: 'generation_failed', detail }, { status: 502 })
     }
 
-    type Part = { inlineData?: { mimeType?: string; data?: string } }
-    const parts: Part[] = data?.candidates?.[0]?.content?.parts ?? []
-    const img = parts.find(p => p.inlineData?.data)?.inlineData
+    // Image bytes live in steps[].content[] where type === 'image'
+    type Content = { type?: string; data?: string; mime_type?: string }
+    type Step = { type?: string; content?: Content[] }
+    const img = (data?.steps as Step[] | undefined)
+      ?.flatMap(s => s.content ?? [])
+      .find(c => c.type === 'image' && c.data)
+
     if (!img?.data) {
-      console.error('[story-image] no image in response:', JSON.stringify(data).slice(0, 500))
-      return NextResponse.json({ error: 'no_image_returned' }, { status: 502 })
+      const detail = JSON.stringify(data).slice(0, 300)
+      console.error('[story-image] no image in response:', detail)
+      return NextResponse.json({ error: 'no_image_returned', detail }, { status: 502 })
     }
 
-    const ext = img.mimeType?.includes('png') ? 'png' : 'jpg'
+    const ext = img.mime_type?.includes('png') ? 'png' : 'jpg'
     const path = `${wedding.id}/ai-slide-${slideIndex ?? 0}-${Date.now()}.${ext}`
     const bytes = Buffer.from(img.data, 'base64')
 
@@ -73,7 +81,7 @@ export async function POST(req: NextRequest) {
     )
     const { error: uploadError } = await sb.storage
       .from('story-images')
-      .upload(path, bytes, { contentType: img.mimeType ?? 'image/jpeg' })
+      .upload(path, bytes, { contentType: img.mime_type ?? 'image/jpeg' })
     if (uploadError) {
       console.error('[story-image] storage upload failed:', uploadError.message)
       return NextResponse.json({ error: 'storage_failed' }, { status: 500 })

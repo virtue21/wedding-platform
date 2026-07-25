@@ -28,6 +28,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [draftSlides, setDraftSlides] = useState<DraftSlide[] | null>(null)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [imageNotice, setImageNotice] = useState<string | null>(null)
+  const [imageError, setImageError] = useState<string | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Slides written before AI prompts existed (or edited by hand) still get
@@ -48,6 +49,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         setImageNotice('upgrade')
       } else if (!res.ok) {
         setImageNotice('error')
+        setImageError(data?.detail ?? null)
       }
       setDraftSlides(prev => {
         if (!prev) return prev
@@ -216,7 +218,10 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
           )}
           {imageNotice === 'error' && (
             <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl text-xs text-amber-700">
-              Some illustrations couldn&apos;t be generated right now — use the ✨ button on a slide to retry, or add your own photos.
+              <p>Some illustrations couldn&apos;t be generated right now — use the ✨ button on a slide to retry, or add your own photos.</p>
+              {imageError && (
+                <p className="mt-1.5 font-mono text-[11px] text-amber-600/80 break-words">{imageError}</p>
+              )}
             </div>
           )}
           <div className="flex items-center justify-between">
