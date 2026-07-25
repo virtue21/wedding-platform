@@ -85,6 +85,10 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
 
       if (res.status === 403) {
         setImageNotice('upgrade')
+      } else if (res.status === 402) {
+        // Our own Google billing isn't configured — not the couple's problem.
+        setImageNotice('unavailable')
+        setImageError(data?.detail ?? null)
       } else if (!res.ok) {
         setImageNotice('error')
         setImageError(data?.detail ?? null)
@@ -257,6 +261,14 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
               >
                 Upgrade
               </a>
+            </div>
+          )}
+          {imageNotice === 'unavailable' && (
+            <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-2xl text-xs text-stone-600">
+              <p>AI illustrations are temporarily unavailable. Your slides are saved — add your own photos for now and you can illustrate them later.</p>
+              {imageError && (
+                <p className="mt-1.5 font-mono text-[11px] text-stone-400 break-words">{imageError}</p>
+              )}
             </div>
           )}
           {imageNotice === 'error' && (
