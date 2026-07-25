@@ -367,7 +367,7 @@ export default async function RootPage({
       {/* ── NAV ── */}
       <nav className="border-b border-stone-100 bg-white sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <span className="font-serif text-[1.1rem] text-stone-900 tracking-tight">NemiPlanner</span>
+          <a href="#" className="font-serif text-[1.1rem] text-stone-900 tracking-tight hover:opacity-80 transition-opacity">NemiPlanner</a>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"

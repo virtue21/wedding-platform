@@ -69,7 +69,7 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
           <button
             onClick={() => enabled ? handleDisable() : (hasActivePlan ? setShowPlansModal(true) : router.push('/admin/plans'))}
             disabled={saving}
-            className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${enabled ? 'bg-rose-500' : 'bg-stone-200'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${enabled ? 'bg-emerald-500' : 'bg-stone-200'}`}
           >
             <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
           </button>
