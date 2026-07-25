@@ -135,11 +135,6 @@ export default function VenueSearch({ defaultAddress = '', defaultLat, defaultLn
       <div className="relative">
         <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
           Venue address
-          {state && (
-            <span className="ml-1.5 normal-case font-normal text-stone-300">
-              — searching in {state === 'FCT — Abuja' ? 'Abuja (FCT)' : `${state} State`}
-            </span>
-          )}
         </label>
 
         {/* Hidden inputs carry coords + address to server action */}

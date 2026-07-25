@@ -27,6 +27,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [saving, setSaving] = useState(false)
   const [draftSlides, setDraftSlides] = useState<DraftSlide[] | null>(null)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const [imageNotice, setImageNotice] = useState<string | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
   async function generateSlideImage(idx: number, imagePrompt: string) {
@@ -37,6 +38,11 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         body: JSON.stringify({ imagePrompt, slideIndex: idx }),
       })
       const data = await res.json()
+      if (res.status === 403) {
+        setImageNotice('upgrade')
+      } else if (!res.ok) {
+        setImageNotice('error')
+      }
       setDraftSlides(prev => {
         if (!prev) return prev
         const updated = [...prev]
@@ -48,6 +54,7 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         return updated
       })
     } catch {
+      setImageNotice('error')
       setDraftSlides(prev => {
         if (!prev) return prev
         const updated = [...prev]
@@ -171,6 +178,28 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       {/* Draft slides preview */}
       {draftSlides && (
         <div className="space-y-3">
+          {imageNotice === 'upgrade' && (
+            <div className="flex items-center justify-between gap-4 p-4 bg-stone-50 border border-stone-200 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🔒</span>
+                <div>
+                  <p className="text-sm font-medium text-stone-700">AI illustrations are a Grand &amp; Prestige feature</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Upgrade your plan to turn each slide into a beautiful storybook illustration.</p>
+                </div>
+              </div>
+              <a
+                href="/admin/plans"
+                className="flex-shrink-0 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium rounded-xl transition-colors"
+              >
+                Upgrade
+              </a>
+            </div>
+          )}
+          {imageNotice === 'error' && (
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl text-xs text-amber-700">
+              Some illustrations couldn&apos;t be generated right now — use the ✨ button on a slide to retry, or add your own photos.
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-stone-600">{draftSlides.length} slides generated — review and save</p>
             <div className="flex gap-2">
