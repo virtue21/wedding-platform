@@ -44,6 +44,8 @@ export async function grantFreeTrial(weddingId: string, planId: string, days: nu
     expires_at: expiresAt,
     paystack_reference: `free_trial_${Date.now()}`,
   }, { onConflict: 'wedding_id' })
+  // Match the paid flow: activating a plan opens RSVPs
+  await sb.from('weddings').update({ rsvp_enabled: true }).eq('id', weddingId)
   await logAudit({
     actorType: 'superadmin',
     action: 'trial.granted',

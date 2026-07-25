@@ -18,7 +18,7 @@ export async function submitRsvp(slug: string, formData: FormData) {
   if (!wedding) redirect(`/${slug}`)
 
   // RSVPs require the couple to have an active subscription
-  if (!(await isSubscriptionActive(supabase, wedding.id))) {
+  if (!(await isSubscriptionActive(wedding.id))) {
     redirect(`/${slug}`)
   }
 

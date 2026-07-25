@@ -43,7 +43,7 @@ export default async function SetupPage({
   const paymentMethods = (paymentMethodsResult.data ?? []) as import('@/lib/supabase/database.types').WeddingPaymentMethod[]
   const storySlides    = (storySlidesResult.data ?? []) as WeddingStorySlide[]
 
-  const subActive = wedding ? await isSubscriptionActive(supabase, wedding.id) : false
+  const subActive = wedding ? await isSubscriptionActive(wedding.id) : false
 
   const defaultSlug = wedding?.slug ?? slugify(profile?.bride_name ?? '', profile?.groom_name ?? '')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'

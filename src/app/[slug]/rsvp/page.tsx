@@ -6,7 +6,7 @@ import PhoneInput from './PhoneInput'
 import SideAndCategory from './SideAndCategory'
 import RsvpPageTracker from './RsvpPageTracker'
 import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
-import { isSubscriptionActive } from '@/lib/subscription'
+import { getWeddingEntitlements } from '@/lib/subscription'
 
 export default async function RsvpPage({
   params,
@@ -26,7 +26,8 @@ export default async function RsvpPage({
   if (wedding.rsvp_enabled === false) {
     redirect(`/${params.slug}`)
   }
-  if (!(await isSubscriptionActive(supabase, wedding.id))) {
+  const { subActive, guestCap } = await getWeddingEntitlements(wedding.id)
+  if (!subActive) {
     redirect(`/${params.slug}`)
   }
 
@@ -44,20 +45,11 @@ export default async function RsvpPage({
   }
 
   // Check plan guest cap
-  if (!rsvpFull) {
-    const { data: activeSub } = await supabase
-      .from('wedding_subscriptions')
-      .select('plan_id, plans(guest_cap)')
-      .eq('wedding_id', wedding.id)
-      .eq('status', 'active')
-      .single()
-    const planGuestCap = (activeSub as { plans?: { guest_cap?: number | null } } | null)?.plans?.guest_cap ?? null
-    if (planGuestCap !== null) {
-      const { count: guestCount } = await supabase
-        .from('guests').select('id', { count: 'exact' })
-        .eq('wedding_id', wedding.id).eq('is_removed', false)
-      if ((guestCount ?? 0) >= planGuestCap) rsvpFull = true
-    }
+  if (!rsvpFull && guestCap !== null) {
+    const { count: guestCount } = await supabase
+      .from('guests').select('id', { count: 'exact' })
+      .eq('wedding_id', wedding.id).eq('is_removed', false)
+    if ((guestCount ?? 0) >= guestCap) rsvpFull = true
   }
 
   const { data: profile } = await supabase
