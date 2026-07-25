@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { Users, MessageSquare, Send, Gift, ArrowRight, LayoutGrid } from 'lucide-react'
 import LandingTracking from './landing/LandingTracking'
 import LandingCTA from './landing/LandingCTA'
+import SiteFooter from '@/components/SiteFooter'
 
 // ── Phone mockup — RSVP form ───────────────────────────────────────────────
 
@@ -544,9 +545,7 @@ export default async function RootPage({
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-white border-t border-stone-100 py-5 text-center">
-        <p className="text-xs text-stone-400">NemiPlanner &copy; 2026</p>
-      </footer>
+      <SiteFooter />
 
     </div>
   )
