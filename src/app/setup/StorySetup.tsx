@@ -30,6 +30,12 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
   const [imageNotice, setImageNotice] = useState<string | null>(null)
   const fileRefs = useRef<(HTMLInputElement | null)[]>([])
 
+  // Slides written before AI prompts existed (or edited by hand) still get
+  // illustrated — fall back to the slide's own words as the scene.
+  function effectivePrompt(slide: DraftSlide): string {
+    return slide.imagePrompt?.trim() || [slide.title, slide.body].filter(Boolean).join('. ')
+  }
+
   async function generateSlideImage(idx: number, imagePrompt: string) {
     try {
       const res = await fetch('/api/generate-slide-image', {
@@ -62,6 +68,19 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
         return updated
       })
     }
+  }
+
+  // Load already-published slides back into the editor so the couple can
+  // reword them, swap photos, or add AI illustrations after saving.
+  function handleEditPublished() {
+    setImageNotice(null)
+    setDraftSlides(
+      slides.map(s => ({
+        title: s.title ?? '',
+        body: s.body,
+        image_url: s.image_url,
+      }))
+    )
   }
 
   async function handleGenerate() {
@@ -201,7 +220,9 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
             </div>
           )}
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-stone-600">{draftSlides.length} slides generated — review and save</p>
+            <p className="text-sm font-medium text-stone-600">
+              {draftSlides.length} {draftSlides.length === 1 ? 'slide' : 'slides'} — edit, illustrate, then save
+            </p>
             <div className="flex gap-2">
               <button onClick={() => setDraftSlides(null)} className="text-xs text-stone-400 hover:text-stone-600">Discard</button>
               <button
@@ -229,18 +250,16 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
                 <div className="relative aspect-video">
                   <img src={slide.image_url} alt="" className="w-full h-full object-cover" />
                   <div className="absolute top-2 right-2 flex gap-1.5">
-                    {slide.imagePrompt && (
-                      <button
-                        onClick={() => {
-                          const updated = [...draftSlides]
-                          updated[idx] = { ...updated[idx], imageLoading: true }
-                          setDraftSlides(updated)
-                          generateSlideImage(idx, slide.imagePrompt!)
-                        }}
-                        title="Regenerate illustration"
-                        className="h-7 px-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
-                      >🔄</button>
-                    )}
+                    <button
+                      onClick={() => {
+                        const updated = [...draftSlides]
+                        updated[idx] = { ...updated[idx], imageLoading: true }
+                        setDraftSlides(updated)
+                        generateSlideImage(idx, effectivePrompt(slide))
+                      }}
+                      title="Replace with an AI illustration"
+                      className="h-7 px-2.5 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center text-xs"
+                    >🔄</button>
                     <button
                       onClick={() => {
                         const updated = [...draftSlides]
@@ -259,19 +278,17 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
                   >
                     <span>🖼️</span> Add photo
                   </button>
-                  {slide.imagePrompt && (
-                    <button
-                      onClick={() => {
-                        const updated = [...draftSlides]
-                        updated[idx] = { ...updated[idx], imageLoading: true }
-                        setDraftSlides(updated)
-                        generateSlideImage(idx, slide.imagePrompt!)
-                      }}
-                      className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
-                    >
-                      <span>✨</span> Illustrate with AI
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      const updated = [...draftSlides]
+                      updated[idx] = { ...updated[idx], imageLoading: true }
+                      setDraftSlides(updated)
+                      generateSlideImage(idx, effectivePrompt(slide))
+                    }}
+                    className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
+                  >
+                    <span>✨</span> Illustrate with AI
+                  </button>
                 </div>
               )}
               <input
@@ -328,7 +345,15 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
       {/* Existing published slides */}
       {!draftSlides && slides.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs font-medium text-stone-400 uppercase tracking-wide">Published Slides ({slides.length})</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-stone-400 uppercase tracking-wide">Published Slides ({slides.length})</p>
+            <button
+              onClick={handleEditPublished}
+              className="px-3.5 py-1.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-xs font-medium rounded-xl transition-colors bg-white"
+            >
+              ✏️ Edit slides
+            </button>
+          </div>
           {slides.map((slide, idx) => (
             <div key={slide.id} className="bg-white rounded-2xl border border-rose-50 shadow-sm overflow-hidden flex">
               {slide.image_url && (
@@ -349,7 +374,9 @@ export default function StorySetup({ weddingId, initialSlides }: Props) {
               </div>
             </div>
           ))}
-          <p className="text-xs text-stone-400 text-center pt-1">Generate a new story above to replace these slides.</p>
+          <p className="text-xs text-stone-400 text-center pt-1">
+            Use <strong className="font-medium text-stone-500">Edit slides</strong> to reword them or add AI illustrations — or generate a new story above to start over.
+          </p>
         </div>
       )}
 
