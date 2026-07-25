@@ -53,15 +53,23 @@ export default function PhotosSection({ weddingId, initialPhotos, momentsCap, mo
       return
     }
     const { data: { publicUrl } } = sb.storage.from('wedding-moments').getPublicUrl(path)
-    const { error: dbError } = await sb.from('wedding_photos').insert({
+    const { data: inserted, error: dbError } = await sb.from('wedding_photos').insert({
       wedding_id: weddingId,
       uploader_name: uploaderName.trim() || null,
       photo_url: publicUrl,
-    })
+    }).select('id').single()
     if (dbError) {
       setUploading(false)
       setUploadError(`Database error: ${dbError.message}`)
       return
+    }
+    // Mirror to the couple's Google Drive folder — fire-and-forget
+    if (inserted?.id) {
+      fetch('/api/drive/mirror', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoId: inserted.id }),
+      }).catch(() => {})
     }
     // Refetch
     const { data } = await sb
