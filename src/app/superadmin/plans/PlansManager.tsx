@@ -12,6 +12,7 @@ type EditState = {
   table_cap: string
   has_moments: boolean
   moments_upload_cap: string
+  has_story_images: boolean
 }
 
 function planToEdit(plan: Plan): EditState {
@@ -23,6 +24,7 @@ function planToEdit(plan: Plan): EditState {
     table_cap: plan.table_cap != null ? String(plan.table_cap) : '',
     has_moments: plan.has_moments,
     moments_upload_cap: plan.moments_upload_cap != null ? String(plan.moments_upload_cap) : '',
+    has_story_images: plan.has_story_images,
   }
 }
 
@@ -46,6 +48,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       table_cap: form.table_cap ? parseInt(form.table_cap) : null,
       has_moments: form.has_moments,
       moments_upload_cap: form.moments_upload_cap ? parseInt(form.moments_upload_cap) : null,
+      has_story_images: form.has_story_images,
     })
     setSaving(false)
     setEditing(false)
@@ -144,15 +147,36 @@ function PlanCard({ plan }: { plan: Plan }) {
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.has_moments}
-              onChange={e => handleField('has_moments', e.target.checked)}
-              className="rounded"
-            />
-            Has Moments wall
-          </label>
+          <div className="space-y-2">
+            <label className="flex items-start gap-2 text-sm text-stone-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.has_moments}
+                onChange={e => handleField('has_moments', e.target.checked)}
+                className="rounded mt-0.5"
+              />
+              <span>
+                Moments wall
+                <span className="block text-xs text-stone-400">
+                  Also unlocks guest photo sharing to WhatsApp/Instagram/TikTok and Google Drive backup.
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-stone-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.has_story_images}
+                onChange={e => handleField('has_story_images', e.target.checked)}
+                className="rounded mt-0.5"
+              />
+              <span>
+                AI story illustrations
+                <span className="block text-xs text-stone-400">
+                  Couples can illustrate love-story slides with AI. Costs ~$0.04 per image.
+                </span>
+              </span>
+            </label>
+          </div>
           <div className="flex gap-2 pt-1">
             <button
               onClick={handleSave}
@@ -175,6 +199,8 @@ function PlanCard({ plan }: { plan: Plan }) {
           <p>Registry items: {plan.registry_item_cap ?? 'Unlimited'}</p>
           <p>Tables: {plan.table_cap ?? 'Unlimited'}</p>
           <p>Moments: {plan.has_moments ? (plan.moments_upload_cap ? `${plan.moments_upload_cap} uploads` : 'Unlimited uploads') : 'No'}</p>
+          <p>Photo sharing + Drive backup: {plan.has_moments ? 'Yes' : 'No'}</p>
+          <p>AI story illustrations: {plan.has_story_images ? 'Yes' : 'No'}</p>
           <button
             onClick={() => setEditing(true)}
             className="mt-3 px-4 py-1.5 border border-stone-200 text-stone-500 text-xs font-medium rounded-lg hover:bg-stone-50 transition-colors"

@@ -34,6 +34,7 @@ export async function updatePlan(id: string, data: {
   table_cap: number | null
   has_moments: boolean
   moments_upload_cap: number | null
+  has_story_images: boolean
 }) {
   assertSuperadmin()
   const sb = serviceClient()

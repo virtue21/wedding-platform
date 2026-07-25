@@ -483,6 +483,7 @@ export type Database = {
           registry_item_cap: number | null
           table_cap: number | null
           has_moments: boolean
+          has_story_images: boolean
           moments_upload_cap: number | null
           has_cover_image: boolean
           has_digital_iv: boolean
@@ -500,6 +501,7 @@ export type Database = {
           registry_item_cap?: number | null
           table_cap?: number | null
           has_moments?: boolean
+          has_story_images?: boolean
           moments_upload_cap?: number | null
           has_cover_image?: boolean
           has_digital_iv?: boolean
@@ -516,6 +518,7 @@ export type Database = {
           registry_item_cap?: number | null
           table_cap?: number | null
           has_moments?: boolean
+          has_story_images?: boolean
           moments_upload_cap?: number | null
           has_cover_image?: boolean
           has_digital_iv?: boolean
