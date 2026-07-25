@@ -6,6 +6,7 @@ import PhoneInput from './PhoneInput'
 import SideAndCategory from './SideAndCategory'
 import RsvpPageTracker from './RsvpPageTracker'
 import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
+import { isSubscriptionActive } from '@/lib/subscription'
 
 export default async function RsvpPage({
   params,
@@ -21,8 +22,11 @@ export default async function RsvpPage({
 
   if (!wedding) notFound()
 
-  // Redirect if RSVP is disabled
+  // Redirect if RSVP is disabled or the couple has no active subscription
   if (wedding.rsvp_enabled === false) {
+    redirect(`/${params.slug}`)
+  }
+  if (!(await isSubscriptionActive(supabase, wedding.id))) {
     redirect(`/${params.slug}`)
   }
 

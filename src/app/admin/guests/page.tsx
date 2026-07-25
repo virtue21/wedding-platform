@@ -31,7 +31,7 @@ export default async function GuestsPage() {
     )
   }
 
-  const [guestsResult, categoriesResult, registryResult] = await Promise.all([
+  const [guestsResult, categoriesResult, registryResult, activePlansResult, subResult] = await Promise.all([
     supabase
       .from('guests')
       .select('*, relationship_categories(label)')
@@ -48,6 +48,15 @@ export default async function GuestsPage() {
       .select('id')
       .eq('wedding_id', wedding.id)
       .limit(1),
+    supabase.from('plans').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    supabase
+      .from('wedding_subscriptions')
+      .select('id')
+      .eq('wedding_id', wedding.id)
+      .eq('status', 'active')
+      .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const list = guestsResult.data ?? []
@@ -62,6 +71,7 @@ export default async function GuestsPage() {
   const hasWeddingDetails = !!(wedding.wedding_date && wedding.venue_name)
   const hasCategories = (categoriesResult.data?.length ?? 0) > 0
   const hasRegistry = (registryResult.data?.length ?? 0) > 0
+  const hasSubscription = (activePlansResult.count ?? 0) === 0 || subResult.data !== null
 
   const checklistSteps = [
     {
@@ -84,6 +94,13 @@ export default async function GuestsPage() {
       description: 'Add items guests can buy or send the cash equivalent for.',
       href: '/admin/registry',
       done: hasRegistry,
+    },
+    {
+      id: 'plan',
+      label: 'Choose a plan',
+      description: 'Subscribe to open RSVPs — guests can\'t confirm attendance until your plan is active.',
+      href: '/admin/plans',
+      done: hasSubscription,
     },
     {
       id: 'share',

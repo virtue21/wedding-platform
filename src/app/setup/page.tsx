@@ -12,6 +12,7 @@ import StorySetup from './StorySetup'
 import SetupTracker from './SetupTracker'
 import type { Database } from '@/lib/supabase/database.types'
 import type { WeddingStorySlide } from '@/lib/supabase/database.types'
+import { isSubscriptionActive } from '@/lib/subscription'
 
 type WeddingRow = Database['public']['Tables']['weddings']['Row']
 type ProfileRow = Database['public']['Tables']['user_profiles']['Row']
@@ -42,6 +43,8 @@ export default async function SetupPage({
   const paymentMethods = (paymentMethodsResult.data ?? []) as import('@/lib/supabase/database.types').WeddingPaymentMethod[]
   const storySlides    = (storySlidesResult.data ?? []) as WeddingStorySlide[]
 
+  const subActive = wedding ? await isSubscriptionActive(supabase, wedding.id) : false
+
   const defaultSlug = wedding?.slug ?? slugify(profile?.bride_name ?? '', profile?.groom_name ?? '')
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
   const guestUrl = `${baseUrl}/${defaultSlug}`
@@ -67,6 +70,27 @@ export default async function SetupPage({
         {searchParams.saved && (
           <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-sm text-emerald-700">
             Changes saved successfully.
+          </div>
+        )}
+
+        {/* Subscribe prompt — RSVPs stay closed until a plan is active */}
+        {wedding && !subActive && (
+          <div className="flex items-center justify-between gap-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💳</span>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Your guests can&apos;t RSVP yet</p>
+                <p className="text-xs text-amber-700/80 mt-0.5">
+                  Your invite page is live as a preview, but RSVPs open once you subscribe to a plan.
+                </p>
+              </div>
+            </div>
+            <a
+              href="/admin/plans"
+              className="flex-shrink-0 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium rounded-xl transition-colors"
+            >
+              Choose a plan
+            </a>
           </div>
         )}
 

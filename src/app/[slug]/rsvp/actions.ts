@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { WeddingRow, GuestRow } from '@/lib/supabase/database.types'
 import { sendInvitationEmail } from '@/lib/email/sendInvitation'
+import { isSubscriptionActive } from '@/lib/subscription'
 
 export async function submitRsvp(slug: string, formData: FormData) {
   const supabase = createClient()
@@ -15,6 +16,11 @@ export async function submitRsvp(slug: string, formData: FormData) {
     .single() as { data: Pick<WeddingRow, 'id' | 'user_id' | 'venue_name' | 'venue_address' | 'venue_lat' | 'venue_lng' | 'wedding_date' | 'cover_image_url'> | null }
 
   if (!wedding) redirect(`/${slug}`)
+
+  // RSVPs require the couple to have an active subscription
+  if (!(await isSubscriptionActive(supabase, wedding.id))) {
+    redirect(`/${slug}`)
+  }
 
   const { data: profile } = await supabase
     .from('user_profiles')

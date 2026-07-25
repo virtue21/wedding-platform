@@ -26,6 +26,12 @@ export default async function WeddingPage({ params }: { params: { slug: string }
 
   // If no plans are active in the system, unlock all features (dev/no-plan mode)
   const noActivePlans = (activePlansResult.count ?? 0) === 0
+  // RSVP requires an active subscription (page stays viewable as a preview)
+  const subActive = noActivePlans || activeSubResult.data !== null
+  const effectiveWedding: WeddingRow = {
+    ...wedding,
+    rsvp_enabled: (wedding.rsvp_enabled ?? false) && subActive,
+  }
   const planData = (activeSubResult.data as { plans?: { has_moments?: boolean; moments_upload_cap?: number | null } } | null)?.plans
   const hasMoments = noActivePlans || planData?.has_moments === true
   const momentsCap: number | null = !hasMoments
@@ -44,7 +50,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
 
   return (
     <WeddingPageClient
-      wedding={wedding}
+      wedding={effectiveWedding}
       brideName={brideName}
       groomName={groomName}
       hasMap={hasMap}
