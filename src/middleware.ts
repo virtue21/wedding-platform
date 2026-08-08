@@ -14,7 +14,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // All other routes go through Supabase session refresh
+  // Only routes that actually gate on a session need Supabase. Guest pages,
+  // the landing page and API routes don't — and making them wait on an auth
+  // round-trip means a slow database takes the public site down with it.
+  const needsSession =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/setup') ||
+    pathname.startsWith('/auth')
+
+  if (!needsSession) return NextResponse.next()
+
   return updateSession(request)
 }
 

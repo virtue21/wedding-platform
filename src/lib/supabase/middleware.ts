@@ -24,9 +24,13 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // A cold or struggling database must not hang every request until the
+  // platform kills the middleware with a 504. Cap the wait and treat a
+  // timeout as "not signed in" — worst case someone is asked to log in again.
+  const user = await Promise.race([
+    supabase.auth.getUser().then(res => res.data.user),
+    new Promise<null>(resolve => setTimeout(() => resolve(null), 5000)),
+  ])
 
   const { pathname } = request.nextUrl
 
