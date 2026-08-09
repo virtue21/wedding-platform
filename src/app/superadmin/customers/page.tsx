@@ -2,6 +2,10 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import CustomersClient, { type CustomerRow } from './CustomersClient'
 
+// Ops tooling must always reflect live data — never serve a cached page
+// or a cached Supabase fetch.
+export const dynamic = 'force-dynamic'
+
 function serviceClient() {
   return createServiceClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
