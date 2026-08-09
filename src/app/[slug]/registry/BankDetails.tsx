@@ -182,7 +182,7 @@ export default function BankDetails({ weddingId, paymentMethods, itemId, price, 
             <div>
               <label className="block text-xs text-stone-500 mb-1">Amount ({selectedMethod.currency})</label>
               <input
-                type="number" min={0}
+                type="number" min={0} step="any"
                 value={customAmount}
                 onChange={e => setCustomAmount(e.target.value)}
                 placeholder="Enter amount…"

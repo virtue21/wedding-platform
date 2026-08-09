@@ -137,7 +137,9 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose, availab
           </div>
           <div>
             <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Price *</label>
-            <input name="price" type="number" required min={0} step={500} defaultValue={item?.price} placeholder="350000" className="input" />
+            {/* step="any" — real prices aren't round numbers, and currencies
+                with decimals (USD, GBP, EUR) need them */}
+            <input name="price" type="number" required min={0} step="any" defaultValue={item?.price} placeholder="350000" className="input" />
           </div>
           <div>
             <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">Checkout link</label>
