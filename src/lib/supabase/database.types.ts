@@ -34,7 +34,7 @@ export type Database = {
           user_id: string
           slug: string
           wedding_date: string
-          venue_name: string
+          venue_name: string | null
           venue_address: string | null
           venue_state: string | null
           venue_lat: number | null
@@ -57,7 +57,7 @@ export type Database = {
           user_id: string
           slug: string
           wedding_date: string
-          venue_name: string
+          venue_name?: string | null
           venue_address?: string | null
           venue_state?: string | null
           venue_lat?: number | null
@@ -78,7 +78,7 @@ export type Database = {
         Update: {
           slug?: string
           wedding_date?: string
-          venue_name?: string
+          venue_name?: string | null
           venue_address?: string | null
           venue_state?: string | null
           venue_lat?: number | null

@@ -75,17 +75,17 @@ export default async function ConfirmedPage({
           <h1 className="font-serif text-3xl text-stone-800 mb-2">You&apos;re on the list! 🎉</h1>
           <p className="text-stone-500 text-sm font-medium">Hey {firstName} — we&apos;re so glad you&apos;re coming.</p>
           <p className="text-stone-400 text-sm leading-relaxed">
-            See you on {formatDate(wedding.wedding_date)}<br />at {wedding.venue_name}
+            See you on {formatDate(wedding.wedding_date)}
+            {wedding.venue_name && <><br />at {wedding.venue_name}</>}
           </p>
 
-          {/* View on Map — always show, fall back through coords → address → venue name */}
+          {/* View on Map — coords → address → venue name; hidden if we have none */}
+          {(wedding.venue_lat && wedding.venue_lng) || wedding.venue_address || wedding.venue_name ? (
           <a
             href={
               (wedding.venue_lat && wedding.venue_lng)
                 ? `https://www.google.com/maps?q=${wedding.venue_lat},${wedding.venue_lng}`
-                : wedding.venue_address
-                ? `https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_address)}`
-                : `https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_name)}`
+                : `https://www.google.com/maps/search/${encodeURIComponent(wedding.venue_address ?? wedding.venue_name ?? '')}`
             }
             target="_blank"
             rel="noopener noreferrer"
@@ -93,6 +93,7 @@ export default async function ConfirmedPage({
           >
             📍 View on Map
           </a>
+          ) : null}
 
           <p className="text-xs text-stone-400 mt-3 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2">
             ✉️ A copy of your invitation has been sent to your email.

@@ -69,7 +69,7 @@ export default async function GuestsPage() {
   }
 
   // Checklist step completion
-  const hasWeddingDetails = !!(wedding.wedding_date && wedding.venue_name)
+  const hasWeddingDetails = !!wedding.wedding_date
   const hasCategories = (categoriesResult.data?.length ?? 0) > 0
   const hasRegistry = (registryResult.data?.length ?? 0) > 0
   const hasSubscription = (activePlansResult.count ?? 0) === 0 || subResult.data !== null
@@ -78,7 +78,7 @@ export default async function GuestsPage() {
     {
       id: 'details',
       label: 'Complete your wedding details',
-      description: 'Add your wedding date and venue. A cover photo makes your invite page look great too.',
+      description: 'Add your wedding date. Venue and a cover photo can follow whenever you have them.',
       href: '/setup',
       done: hasWeddingDetails,
     },

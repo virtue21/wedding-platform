@@ -18,7 +18,7 @@ type Props = {
   brideName: string
   groomName: string
   hasMap: boolean
-  directionsUrl: string
+  directionsUrl: string | null
   formattedDate: string
   initialNotes: WeddingNote[]
   initialPhotos: WeddingPhoto[]
@@ -118,34 +118,43 @@ export default function WeddingPageClient({
                       <p className="font-medium text-stone-800 mt-0.5">{formattedDate}</p>
                     </div>
                   </div>
-                  <div className="h-px bg-rose-50" />
-                  <div className="flex items-start gap-3">
-                    <span className="text-xl mt-0.5">📍</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-stone-400 uppercase tracking-wide">Venue</p>
-                      <p className="font-medium text-stone-800 mt-0.5">{wedding.venue_name}</p>
-                      {wedding.venue_address && (
-                        <p className="text-sm text-stone-400 mt-0.5">{wedding.venue_address}</p>
-                      )}
-                    </div>
-                  </div>
+                  {/* Venue is optional — couples often book it later */}
+                  {(wedding.venue_name || wedding.venue_address) && (
+                    <>
+                      <div className="h-px bg-rose-50" />
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl mt-0.5">📍</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-stone-400 uppercase tracking-wide">Venue</p>
+                          {wedding.venue_name && (
+                            <p className="font-medium text-stone-800 mt-0.5">{wedding.venue_name}</p>
+                          )}
+                          {wedding.venue_address && (
+                            <p className="text-sm text-stone-400 mt-0.5">{wedding.venue_address}</p>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {hasMap && (
                     <VenueMap
                       lat={wedding.venue_lat!}
                       lng={wedding.venue_lng!}
-                      venueName={wedding.venue_name}
+                      venueName={wedding.venue_name ?? 'Venue'}
                     />
                   )}
 
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white"
-                  >
-                    📍 View on Map
-                  </a>
+                  {directionsUrl && (
+                    <a
+                      href={directionsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white"
+                    >
+                      📍 View on Map
+                    </a>
+                  )}
                 </div>
               )}
 

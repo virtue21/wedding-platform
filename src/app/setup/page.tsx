@@ -103,6 +103,19 @@ export default async function SetupPage({
           <h2 className="heading-serif text-lg mb-1">Wedding Details</h2>
           <p className="text-sm text-stone-400 mb-6">This information will be shown to your guests.</p>
           <form action={saveWeddingSetup} className="space-y-5">
+            <div>
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                Account email
+              </label>
+              <div className="flex items-center gap-2 px-3.5 py-2.5 border border-stone-200 rounded-xl bg-stone-50 text-sm text-stone-500">
+                <span>✉️</span>
+                <span className="truncate">{user.email}</span>
+              </div>
+              <p className="mt-1 text-xs text-stone-400">
+                You sign in with this address. Contact us to change it.
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
@@ -133,9 +146,9 @@ export default async function SetupPage({
               </div>
               <div>
                 <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
-                  Venue name <span className="text-rose-400">*</span>
+                  Venue name
                 </label>
-                <input name="venue_name" type="text" required defaultValue={wedding?.venue_name ?? ''} placeholder="Eko Hotel, Lagos" className="input" />
+                <input name="venue_name" type="text" defaultValue={wedding?.venue_name ?? ''} placeholder="Eko Hotel, Lagos" className="input" />
               </div>
             </div>
 

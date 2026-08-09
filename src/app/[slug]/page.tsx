@@ -36,11 +36,12 @@ export default async function WeddingPage({ params }: { params: { slug: string }
   const brideName = profileResult.data?.bride_name ?? 'Bride'
   const groomName = profileResult.data?.groom_name ?? 'Groom'
   const hasMap = wedding.venue_lat != null && wedding.venue_lng != null
+  const mapQuery = wedding.venue_address ?? wedding.venue_name
   const directionsUrl = hasMap
     ? `https://maps.google.com/?q=${wedding.venue_lat},${wedding.venue_lng}`
-    : wedding.venue_address
-    ? `https://maps.google.com/?q=${encodeURIComponent(wedding.venue_address)}`
-    : `https://maps.google.com/?q=${encodeURIComponent(wedding.venue_name)}`
+    : mapQuery
+    ? `https://maps.google.com/?q=${encodeURIComponent(mapQuery)}`
+    : null
 
   return (
     <WeddingPageClient

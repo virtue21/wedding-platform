@@ -15,7 +15,7 @@ export async function saveWeddingSetup(formData: FormData) {
 
   const slug = (formData.get('slug') as string).toLowerCase().trim().replace(/[^a-z0-9-]/g, '')
   const wedding_date = formData.get('wedding_date') as string
-  const venue_name = formData.get('venue_name') as string
+  const venue_name = ((formData.get('venue_name') as string) || '').trim() || null
   const venue_address = (formData.get('venue_address') as string) || null
   const venue_state = (formData.get('venue_state') as string) || null
   const venue_lat = parseFloat(formData.get('venue_lat') as string) || null

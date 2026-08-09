@@ -3,7 +3,7 @@ export interface InvitationEmailData {
   brideName:     string
   groomName:     string
   weddingDate:   string   // ISO date string, e.g. "2025-07-12"
-  venueName:     string
+  venueName:     string | null
   venueAddress:  string | null
   venueLat:      number | null
   venueLng:      number | null
@@ -220,11 +220,12 @@ export function buildInvitationEmail(data: InvitationEmailData): string {
                                      color:#B8A99A;letter-spacing:0.18em;text-transform:uppercase;">
                             Venue
                           </p>
+                          ${venueName ? `
                           <p style="margin:0 0 ${venueAddress ? '4px' : '0'};
                                      font-family:Georgia,'Times New Roman',serif;
                                      font-size:17px;color:#1C1917;font-weight:400;line-height:1.3;">
                             ${venueName}
-                          </p>
+                          </p>` : ''}
                           ${venueAddress ? `
                           <p style="margin:0 0 ${googleMapsUrl ? '8px' : '0'};
                                      font-family:Arial,Helvetica,sans-serif;
