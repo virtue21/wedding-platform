@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { setSubscriptionStatus, toggleRsvp } from './actions'
+import { setSubscriptionStatus, toggleRsvp, toggleWishesVisibility } from './actions'
 
 type Sub = {
   id: string
@@ -90,6 +90,36 @@ export function RsvpToggle({
         }`}
       >
         <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${effectivelyOpen ? 'translate-x-6' : 'translate-x-1'}`} />
+      </button>
+    </div>
+  )
+}
+
+export function WishesToggle({
+  weddingId,
+  isPublic,
+}: {
+  weddingId: string
+  isPublic: boolean
+}) {
+  const [pending, start] = useTransition()
+
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-white text-sm font-medium">Wishes wall</p>
+        <p className="text-stone-500 text-xs mt-0.5">
+          {isPublic
+            ? 'Guests can read each other\u2019s wishes'
+            : 'Private — only the couple can read wishes'}
+        </p>
+      </div>
+      <button
+        disabled={pending}
+        onClick={() => start(() => toggleWishesVisibility(weddingId, !isPublic))}
+        className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${isPublic ? 'bg-green-500' : 'bg-stone-700'}`}
+      >
+        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPublic ? 'translate-x-6' : 'translate-x-1'}`} />
       </button>
     </div>
   )
