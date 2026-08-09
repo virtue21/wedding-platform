@@ -591,6 +591,7 @@ export type Database = {
           price_low: number | null
           price_high: number | null
           retailer_url: string | null
+          image_url: string | null
           notes: string | null
           needs_sourcing: boolean
           last_verified_date: string | null
@@ -607,6 +608,7 @@ export type Database = {
           price_low?: number | null
           price_high?: number | null
           retailer_url?: string | null
+          image_url?: string | null
           notes?: string | null
           needs_sourcing?: boolean
           last_verified_date?: string | null
@@ -620,6 +622,7 @@ export type Database = {
           price_low?: number | null
           price_high?: number | null
           retailer_url?: string | null
+          image_url?: string | null
           notes?: string | null
           needs_sourcing?: boolean
           last_verified_date?: string | null

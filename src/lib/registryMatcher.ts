@@ -27,6 +27,7 @@ export type CatalogItem = {
   price_low: number | null
   price_high: number | null
   retailer_url: string | null
+  image_url: string | null
   notes: string | null
   needs_sourcing: boolean
   sort_order: number
@@ -42,7 +43,31 @@ export type Suggestion = {
   /** Vetted retailer link, or a search fallback when none is recorded yet. */
   url: string
   isSearchLink: boolean
+  /** Real product photo, once one has been sourced for this row. */
+  imageUrl: string | null
+  /** Stand-in shown when imageUrl is null, so no card looks broken. */
+  icon: string
   reason: string
+}
+
+/**
+ * Category stand-ins. Deliberately not stock photos: a wrong-looking product
+ * shot is worse than an honest icon, and these cost nothing to serve.
+ */
+const CATEGORY_ICON: Record<string, string> = {
+  'Cookware': '🍳',
+  'Dinnerware & Cutlery': '🍽️',
+  'Blender / Food Processor': '🥤',
+  'Air Fryer': '🍟',
+  'Water Dispenser': '🚰',
+  'Vacuum Cleaner': '🧹',
+  'TV': '📺',
+  'Washing Machine': '🫧',
+  'Gas Cooker': '🔥',
+}
+
+export function iconForCategory(category: string): string {
+  return CATEGORY_ICON[category] ?? '🎁'
 }
 
 /** Categories where heavy cooking justifies stepping up a tier. */
@@ -128,6 +153,8 @@ export function buildSuggestions(catalog: CatalogItem[], prefs: RegistryPreferen
       priceHigh: picked.price_high,
       url: picked.retailer_url ?? searchUrlFor(picked.item_name),
       isSearchLink: !picked.retailer_url,
+      imageUrl: picked.image_url,
+      icon: iconForCategory(category),
       reason: fellBack ? `Only the ${picked.tier} option is available for now` : reason,
     })
   }

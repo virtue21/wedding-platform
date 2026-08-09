@@ -37,12 +37,14 @@ export default async function CatalogPage() {
     return age === null || age > STALE_AFTER_DAYS
   })
   const missingUrl = catalog.filter(r => !r.needs_sourcing && !r.retailer_url)
+  const missingImage = catalog.filter(r => !r.needs_sourcing && !r.image_url)
 
   const cards = [
     { label: 'Catalog rows', value: catalog.length, tone: 'text-white' },
     { label: 'Needs sourcing', value: needsSourcing.length, tone: 'text-amber-400' },
     { label: `Stale (>${STALE_AFTER_DAYS}d)`, value: stale.length, tone: 'text-red-400' },
     { label: 'No retailer link', value: missingUrl.length, tone: 'text-blue-400' },
+    { label: 'No image', value: missingImage.length, tone: 'text-stone-400' },
   ]
 
   return (
@@ -54,7 +56,7 @@ export default async function CatalogPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {cards.map(c => (
           <div key={c.label} className="bg-stone-900 border border-stone-800 rounded-2xl p-4">
             <p className={`text-2xl font-bold ${c.tone}`}>{c.value}</p>
@@ -78,8 +80,8 @@ export default async function CatalogPage() {
         <table className="w-full text-sm min-w-[820px]">
           <thead>
             <tr className="border-b border-stone-800">
-              {['Category', 'Tier', 'Item', 'Price', 'Link', 'Last verified', 'Status'].map(h => (
-                <th key={h} className="text-left text-stone-400 text-xs font-medium px-5 py-3">{h}</th>
+              {['', 'Category', 'Tier', 'Item', 'Price', 'Link', 'Last verified', 'Status'].map((h, i) => (
+                <th key={i} className="text-left text-stone-400 text-xs font-medium px-5 py-3">{h}</th>
               ))}
             </tr>
           </thead>
@@ -89,6 +91,14 @@ export default async function CatalogPage() {
               const isStale = !r.needs_sourcing && (age === null || age > STALE_AFTER_DAYS)
               return (
                 <tr key={r.id} className="border-b border-stone-800/50 hover:bg-stone-800/30 transition-colors">
+                  <td className="pl-5 py-3.5">
+                    {r.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={r.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-stone-800" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-stone-800 flex items-center justify-center text-stone-600 text-xs">—</div>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-stone-300">{r.category}</td>
                   <td className="px-5 py-3.5">
                     <span className={`px-2 py-0.5 text-xs rounded-full ${
@@ -130,7 +140,9 @@ export default async function CatalogPage() {
 
       <p className="text-stone-600 text-xs">
         Rows are edited directly in Supabase for now. Set <code className="text-stone-500">last_verified_date</code> to today
-        once you&apos;ve confirmed a price and link.
+        once you&apos;ve confirmed a price and link. Paste a hosted image URL into{' '}
+        <code className="text-stone-500">image_url</code> to replace a category tile with a real product photo —
+        upload to Supabase Storage rather than hotlinking a retailer, since their listings get relisted.
       </p>
     </div>
   )
