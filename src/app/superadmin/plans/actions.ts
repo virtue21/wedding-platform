@@ -24,6 +24,10 @@ export async function togglePlan(id: string, isActive: boolean) {
   await sb.from('plans').update({ is_active: isActive, updated_at: new Date().toISOString() }).eq('id', id)
   revalidatePath('/superadmin/plans')
   revalidatePath('/admin/plans')
+  // Customer pages list active plans for granting trials, and entitlement
+  // checks key off whether any plan is active at all.
+  revalidatePath('/superadmin/customers', 'layout')
+  revalidatePath('/superadmin')
 }
 
 export async function updatePlan(id: string, data: {

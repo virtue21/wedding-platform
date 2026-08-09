@@ -46,7 +46,16 @@ export default function FreeTrialForm({ weddingId, plans }: { weddingId: string;
         )}
       </div>
 
-      {open && (
+      {open && plans.length === 0 && (
+        <div className="mt-5 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <p className="text-amber-300 text-sm font-medium">No active plans to grant</p>
+          <p className="text-amber-300/70 text-xs mt-1">
+            Enable at least one plan under <a href="/superadmin/plans" className="underline">Plans</a>, then reload this page.
+          </p>
+        </div>
+      )}
+
+      {open && plans.length > 0 && (
         <div className="mt-5 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
