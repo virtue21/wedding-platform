@@ -11,6 +11,24 @@ import SiteFooter from '@/components/SiteFooter'
 
 const VenueMap = dynamic(() => import('@/components/VenueMap'), { ssr: false })
 
+function InstagramGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <radialGradient id="ig-guest" cx="30%" cy="107%" r="150%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="45%" stopColor="#fd5949" />
+          <stop offset="60%" stopColor="#d6249f" />
+          <stop offset="90%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="5.5" fill="url(#ig-guest)" />
+      <circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" strokeWidth="1.8" />
+      <circle cx="17.2" cy="6.8" r="1.3" fill="#fff" />
+    </svg>
+  )
+}
+
 type Tab = 'home' | 'story' | 'wishes' | 'moments'
 
 type Props = {
@@ -21,6 +39,7 @@ type Props = {
   directionsUrl: string | null
   formattedDate: string
   initialNotes: WeddingNote[]
+  wishesPublic?: boolean
   initialPhotos: WeddingPhoto[]
   storySlides: WeddingStorySlide[]
   slug: string
@@ -37,6 +56,7 @@ export default function WeddingPageClient({
   directionsUrl,
   formattedDate,
   initialNotes,
+  wishesPublic = true,
   initialPhotos,
   storySlides,
   slug,
@@ -175,6 +195,38 @@ export default function WeddingPageClient({
               >
                 🎁 View Gift Registry
               </Link>
+
+              {/* Follow the couple — optional, sits below the CTAs so it
+                  never competes with RSVP */}
+              {(wedding.bride_instagram || wedding.groom_instagram) && (
+                <div className="pt-1 text-center">
+                  <p className="text-xs text-stone-400 mb-2.5">Follow the couple</p>
+                  <div className="flex items-center justify-center gap-2.5 flex-wrap">
+                    {wedding.bride_instagram && (
+                      <a
+                        href={`https://instagram.com/${wedding.bride_instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-rose-100 bg-white text-xs text-stone-600 hover:text-rose-500 hover:border-rose-300 transition-colors"
+                      >
+                        <InstagramGlyph />
+                        {brideName} · @{wedding.bride_instagram}
+                      </a>
+                    )}
+                    {wedding.groom_instagram && (
+                      <a
+                        href={`https://instagram.com/${wedding.groom_instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-rose-100 bg-white text-xs text-stone-600 hover:text-rose-500 hover:border-rose-300 transition-colors"
+                      >
+                        <InstagramGlyph />
+                        {groomName} · @{wedding.groom_instagram}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <SiteFooter />
@@ -188,7 +240,7 @@ export default function WeddingPageClient({
 
         {/* ── WISHES TAB ── */}
         {activeTab === 'wishes' && (
-          <NotesSection weddingId={wedding.id} initialNotes={initialNotes} />
+          <NotesSection weddingId={wedding.id} initialNotes={initialNotes} wishesPublic={wishesPublic} />
         )}
 
         {/* ── MOMENTS TAB ── */}

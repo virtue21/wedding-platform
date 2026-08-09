@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getWeddingPlanInfo } from '@/lib/plans'
 import RsvpSettingsClient from './RsvpSettingsClient'
+import WishesVisibility from './WishesVisibility'
 import SectionGuide from '@/components/SectionGuide'
 
 function UsageRow({ label, used, cap }: { label: string; used: number; cap: number | null }) {
@@ -29,7 +30,7 @@ export default async function SettingsPage() {
   if (!user) redirect('/auth/login')
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, rsvp_enabled, rsvp_limit')
+    .select('id, rsvp_enabled, rsvp_limit, wishes_public')
     .eq('user_id', user.id)
     .single()
   if (!wedding) redirect('/setup')
@@ -93,6 +94,13 @@ export default async function SettingsPage() {
         currentCount={count ?? 0}
         hasActivePlan={planInfo.isActive}
       />
+
+      <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">
+        <WishesVisibility
+          weddingId={wedding.id}
+          initialPublic={wedding.wishes_public ?? true}
+        />
+      </div>
     </div>
   )
 }

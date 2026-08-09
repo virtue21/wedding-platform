@@ -7,10 +7,13 @@ import type { WeddingNote } from '@/lib/supabase/database.types'
 type Props = {
   weddingId: string
   initialNotes: WeddingNote[]
+  /** When false, guests post but never see each other's wishes. */
+  wishesPublic?: boolean
 }
 
-export default function NotesSection({ weddingId, initialNotes }: Props) {
+export default function NotesSection({ weddingId, initialNotes, wishesPublic = true }: Props) {
   const [notes, setNotes] = useState<WeddingNote[]>(initialNotes)
+  const [posted, setPosted] = useState(false)
   const [authorName, setAuthorName] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -32,13 +35,16 @@ export default function NotesSection({ weddingId, initialNotes }: Props) {
       setSubmitting(false)
       return
     }
-    const { data } = await sb
-      .from('wedding_notes')
-      .select('*')
-      .eq('wedding_id', weddingId)
-      .order('created_at', { ascending: false })
-      .limit(50)
-    setNotes(data ?? [])
+    if (wishesPublic) {
+      const { data } = await sb
+        .from('wedding_notes')
+        .select('*')
+        .eq('wedding_id', weddingId)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      setNotes(data ?? [])
+    }
+    setPosted(true)
     setAuthorName('')
     setMessage('')
     setSubmitting(false)
@@ -48,7 +54,11 @@ export default function NotesSection({ weddingId, initialNotes }: Props) {
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
       <div>
         <h2 className="font-serif text-2xl text-stone-800 mb-1">Wishes & Messages</h2>
-        <p className="text-stone-400 text-sm">Leave a heartfelt message for the couple. Everyone can read them.</p>
+        <p className="text-stone-400 text-sm">
+          {wishesPublic
+            ? 'Leave a heartfelt message for the couple. Everyone can read them.'
+            : 'Leave a heartfelt message. Only the couple will read it.'}
+        </p>
       </div>
 
       {/* Write form */}
@@ -77,8 +87,20 @@ export default function NotesSection({ weddingId, initialNotes }: Props) {
         </button>
       </div>
 
-      {/* Notes list */}
-      {notes.length === 0 ? (
+      {/* Private wall: guests see only their own confirmation, never others' wishes */}
+      {!wishesPublic ? (
+        posted ? (
+          <div className="text-center py-10">
+            <p className="text-3xl mb-2">💌</p>
+            <p className="font-serif text-lg text-stone-700">Your wish has been sent</p>
+            <p className="text-stone-400 text-sm mt-1">The couple will read it — thank you.</p>
+          </div>
+        ) : (
+          <p className="text-center text-xs text-stone-400 py-6">
+            Wishes on this page are private to the couple.
+          </p>
+        )
+      ) : notes.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-3xl mb-2">💌</p>
           <p className="font-serif text-lg text-stone-600">Be the first to write a wish</p>

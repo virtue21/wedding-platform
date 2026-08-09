@@ -49,6 +49,9 @@ export type Database = {
           crypto_address: string | null
           rsvp_enabled: boolean
           rsvp_limit: number | null
+          wishes_public: boolean
+          bride_instagram: string | null
+          groom_instagram: string | null
           created_at: string
           updated_at: string
         }
@@ -72,6 +75,9 @@ export type Database = {
           crypto_address?: string | null
           rsvp_enabled?: boolean
           rsvp_limit?: number | null
+          wishes_public?: boolean
+          bride_instagram?: string | null
+          groom_instagram?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -93,6 +99,9 @@ export type Database = {
           crypto_address?: string | null
           rsvp_enabled?: boolean
           rsvp_limit?: number | null
+          wishes_public?: boolean
+          bride_instagram?: string | null
+          groom_instagram?: string | null
           updated_at?: string
         }
         Relationships: []

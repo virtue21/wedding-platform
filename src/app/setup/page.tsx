@@ -162,6 +162,43 @@ export default async function SetupPage({
 
             <SlugField defaultValue={defaultSlug} />
 
+            {/* Instagram — optional, shown to guests on the invite page */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                  Bride&apos;s Instagram
+                </label>
+                <div className="flex items-center border border-rose-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-rose-200 bg-white">
+                  <span className="pl-3.5 text-stone-400 text-sm select-none">@</span>
+                  <input
+                    name="bride_instagram"
+                    type="text"
+                    defaultValue={wedding?.bride_instagram ?? ''}
+                    placeholder="username"
+                    className="flex-1 px-2 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none bg-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                  Groom&apos;s Instagram
+                </label>
+                <div className="flex items-center border border-rose-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-rose-200 bg-white">
+                  <span className="pl-3.5 text-stone-400 text-sm select-none">@</span>
+                  <input
+                    name="groom_instagram"
+                    type="text"
+                    defaultValue={wedding?.groom_instagram ?? ''}
+                    placeholder="username"
+                    className="flex-1 px-2 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+            <p className="-mt-2 text-xs text-stone-400">
+              Optional. Shown to guests on your invite page so they can follow along.
+            </p>
+
 
             <div className="pt-1">
               <button type="submit" className="btn-primary">

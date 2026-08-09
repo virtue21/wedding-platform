@@ -1,6 +1,15 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase/database.types'
+
+function serviceClient() {
+  return createServiceClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 import WallClient from './WallClient'
 import SectionGuide from '@/components/SectionGuide'
 import type { WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
@@ -14,7 +23,9 @@ export default async function WallPage() {
   const driveFolderUrl = (wedding as { drive_folder_url?: string | null }).drive_folder_url ?? null
 
   const [notesResult, photosResult, subResult, activePlansResult] = await Promise.all([
-    supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }),
+    // Service role: when wishes are private, RLS hides them from the anon
+    // client — but the couple must still see their own guests' messages.
+    serviceClient().from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }),
     supabase.from('wedding_subscriptions')
       .select('status, plans(has_moments)')

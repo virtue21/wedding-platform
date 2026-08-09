@@ -32,6 +32,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     rsvp_enabled: (wedding.rsvp_enabled ?? false) && subActive,
   }
   const momentsCount: number = photosResult.count ?? (photosResult.data ?? []).length
+  const wishesPublic = wedding.wishes_public ?? true
 
   const brideName = profileResult.data?.bride_name ?? 'Bride'
   const groomName = profileResult.data?.groom_name ?? 'Groom'
@@ -51,7 +52,8 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       hasMap={hasMap}
       directionsUrl={directionsUrl}
       formattedDate={formatDate(wedding.wedding_date)}
-      initialNotes={(notesResult.data ?? []) as WeddingNote[]}
+      initialNotes={wishesPublic ? ((notesResult.data ?? []) as WeddingNote[]) : []}
+      wishesPublic={wishesPublic}
       initialPhotos={(photosResult.data ?? []) as WeddingPhoto[]}
       storySlides={(slidesResult.data ?? []) as WeddingStorySlide[]}
       slug={params.slug}
