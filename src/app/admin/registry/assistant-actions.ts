@@ -75,7 +75,7 @@ export async function getSuggestions(): Promise<{ suggestions: Suggestion[]; err
 
 /** Adds only the items the couple confirmed on the review screen. */
 export async function acceptSuggestions(
-  accepted: { itemName: string; category: string; priceLow: number | null; priceHigh: number | null; url: string; notes?: string }[]
+  accepted: { itemName: string; category: string; priceLow: number | null; priceHigh: number | null; url: string; imageUrl?: string | null; notes?: string }[]
 ): Promise<{ ok: boolean; added: number; error?: string }> {
   const { supabase, wedding } = await currentWedding()
   if (!wedding) return { ok: false, added: 0, error: 'Set up your wedding first.' }
@@ -98,6 +98,7 @@ export async function acceptSuggestions(
     price: representativePrice(s.priceLow, s.priceHigh),
     currency: 'NGN',
     checkout_link: s.url,
+    image_url: s.imageUrl ?? null,
     quantity_needed: 1,
     sort_order: sortOrder++,
   }))

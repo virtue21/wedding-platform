@@ -70,6 +70,7 @@ export default function RegistryAssistant({ categories, initialPrefs, atRegistry
         priceLow: s.priceLow,
         priceHigh: s.priceHigh,
         url: s.url,
+        imageUrl: s.imageUrl,
       }))
     )
     setPending(false)
@@ -212,7 +213,17 @@ export default function RegistryAssistant({ categories, initialPrefs, atRegistry
                         className={`border rounded-2xl p-4 transition-opacity ${isRemoved ? 'opacity-40 border-stone-100' : 'border-rose-50 bg-white shadow-sm'}`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
+                          {/* Real photo when we have one, otherwise a category
+                              tile — an honest icon beats a wrong product shot */}
+                          {s.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={s.imageUrl} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0 bg-stone-100" />
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl shrink-0 bg-rose-50 flex items-center justify-center text-2xl">
+                              {s.icon}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
                             <p className="text-[11px] text-stone-400 uppercase tracking-wide">{s.category}</p>
                             <p className="text-sm font-medium text-stone-800 mt-0.5">{s.itemName}</p>
                             <p className="text-sm font-semibold text-rose-500 mt-1">
