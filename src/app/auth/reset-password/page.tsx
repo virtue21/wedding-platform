@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -59,14 +60,14 @@ export default function ResetPasswordPage() {
               <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
                 New password
               </label>
-              <input
-                type="password"
+              <PasswordInput
+                name="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={8}
                 placeholder="At least 8 characters"
-                className="input"
+                autoComplete="new-password"
               />
             </div>
 
@@ -74,13 +75,13 @@ export default function ResetPasswordPage() {
               <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
                 Confirm password
               </label>
-              <input
-                type="password"
+              <PasswordInput
+                name="confirm"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
                 required
                 placeholder="Repeat your password"
-                className="input"
+                autoComplete="new-password"
               />
             </div>
 

@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import { signUp } from '../actions'
 import { track } from '@/lib/mixpanel'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function SignupForm() {
   const startedRef = useRef(false)
@@ -49,7 +50,7 @@ export default function SignupForm() {
         <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
           Password
         </label>
-        <input name="password" type="password" required minLength={6} placeholder="At least 6 characters" className="input" />
+        <PasswordInput name="password" required minLength={6} placeholder="At least 6 characters" autoComplete="new-password" />
       </div>
 
       <button type="submit" className="w-full py-3.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold rounded-xl transition-colors mt-2 shadow-lg shadow-rose-200">

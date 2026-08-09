@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { login } from '../actions'
 import { track } from '@/lib/mixpanel'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginForm() {
   function handleSubmit() {
@@ -22,7 +23,7 @@ export default function LoginForm() {
         <label className="block text-xs font-medium text-stone-500 mb-1.5 uppercase tracking-wide">
           Password
         </label>
-        <input name="password" type="password" required placeholder="Your password" className="input" />
+        <PasswordInput name="password" required autoComplete="current-password" />
         <div className="mt-2 text-right">
           <Link href="/auth/forgot-password" className="text-xs text-stone-400 hover:text-rose-500 transition-colors">
             Forgot password?
