@@ -195,9 +195,6 @@ export default async function SetupPage({
                 </div>
               </div>
             </div>
-            <p className="-mt-2 text-xs text-stone-400">
-              Optional. Shown to guests on your invite page so they can follow along.
-            </p>
 
 
             <div className="pt-1">
