@@ -8,6 +8,7 @@ const NAV = [
   { href: '/superadmin/customers',     icon: '👥', label: 'Customers'     },
   { href: '/superadmin/subscriptions', icon: '💳', label: 'Subscriptions' },
   { href: '/superadmin/plans',         icon: '📋', label: 'Plans'         },
+  { href: '/superadmin/catalog',       icon: '🛒', label: 'Catalog'       },
 ]
 
 export default function SuperadminNav() {

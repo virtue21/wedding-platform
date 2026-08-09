@@ -4,12 +4,21 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { deleteRegistryItem, toggleReceived } from './actions'
 import RegistryItemForm from './RegistryItemForm'
+import RegistryAssistant from './RegistryAssistant'
 import type { RegistryItem, GiftClaim } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
-export default function RegistryClient({ items, atRegistryCap, availableCurrencies }: { items: ItemWithClaims[]; atRegistryCap?: boolean; availableCurrencies?: string[] }) {
+type RegistryPrefsRow = {
+  cooking_frequency: string | null
+  household_size: string | null
+  budget_band: string | null
+  owned_categories: string[]
+  delivery_state: string | null
+}
+
+export default function RegistryClient({ items, atRegistryCap, availableCurrencies, catalogCategories, registryPrefs }: { items: ItemWithClaims[]; atRegistryCap?: boolean; availableCurrencies?: string[]; catalogCategories?: string[]; registryPrefs?: RegistryPrefsRow | null }) {
   const [editing, setEditing] = useState<RegistryItem | null>(null)
   const [adding, setAdding] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -18,7 +27,14 @@ export default function RegistryClient({ items, atRegistryCap, availableCurrenci
 
   return (
     <div>
-      <div className="flex justify-end mb-5">
+      <div className="flex justify-end gap-3 mb-5">
+        {(catalogCategories?.length ?? 0) > 0 && (
+          <RegistryAssistant
+            categories={catalogCategories ?? []}
+            initialPrefs={registryPrefs ?? null}
+            atRegistryCap={atRegistryCap}
+          />
+        )}
         <button
           onClick={() => !atRegistryCap && setAdding(true)}
           disabled={atRegistryCap}

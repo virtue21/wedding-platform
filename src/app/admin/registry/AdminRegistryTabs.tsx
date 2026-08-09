@@ -7,6 +7,14 @@ import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/da
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
+type RegistryPrefsRow = {
+  cooking_frequency: string | null
+  household_size: string | null
+  budget_band: string | null
+  owned_categories: string[]
+  delivery_state: string | null
+}
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 const SYMBOL: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£' }
 
@@ -180,12 +188,16 @@ export default function AdminRegistryTabs({
   receipts,
   atRegistryCap,
   availableCurrencies,
+  catalogCategories,
+  registryPrefs,
 }: {
   items: ItemWithClaims[]
   receipts: CashGiftReceipt[]
   atRegistryCap?: boolean
   registryCap?: number | null
   availableCurrencies?: string[]
+  catalogCategories?: string[]
+  registryPrefs?: RegistryPrefsRow | null
 }) {
   const [tab, setTab] = useState<'gifts' | 'cash'>('gifts')
 
@@ -224,7 +236,13 @@ export default function AdminRegistryTabs({
       {tab === 'gifts' && (
         <>
           <GiftKPIs items={items} />
-          <RegistryClient items={items} atRegistryCap={atRegistryCap} availableCurrencies={availableCurrencies} />
+          <RegistryClient
+            items={items}
+            atRegistryCap={atRegistryCap}
+            availableCurrencies={availableCurrencies}
+            catalogCategories={catalogCategories}
+            registryPrefs={registryPrefs}
+          />
         </>
       )}
 
