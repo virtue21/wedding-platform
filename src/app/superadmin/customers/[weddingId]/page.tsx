@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
-import { RsvpToggle } from './CustomerActions'
+import { RsvpToggle, WishesToggle } from './CustomerActions'
 import FreeTrialForm from './FreeTrialForm'
 
 function serviceClient() {
@@ -153,6 +153,36 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
             <p className="text-stone-200">{wedding.venue_name ?? '—'}</p>
           </div>
           <div>
+            <p className="text-stone-500 text-xs mb-0.5">Bride&apos;s Instagram</p>
+            {wedding.bride_instagram ? (
+              <a
+                href={`https://instagram.com/${wedding.bride_instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-stone-200 hover:text-rose-400 transition-colors"
+              >
+                @{wedding.bride_instagram} ↗
+              </a>
+            ) : (
+              <p className="text-stone-500">—</p>
+            )}
+          </div>
+          <div>
+            <p className="text-stone-500 text-xs mb-0.5">Groom&apos;s Instagram</p>
+            {wedding.groom_instagram ? (
+              <a
+                href={`https://instagram.com/${wedding.groom_instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-stone-200 hover:text-rose-400 transition-colors"
+              >
+                @{wedding.groom_instagram} ↗
+              </a>
+            ) : (
+              <p className="text-stone-500">—</p>
+            )}
+          </div>
+          <div>
             <p className="text-stone-500 text-xs mb-0.5">Total revenue</p>
             <p className="text-rose-400 font-semibold">{formatCurrency(totalRevenue)}</p>
           </div>
@@ -178,6 +208,11 @@ export default async function CustomerDetailPage({ params }: { params: { wedding
           weddingId={weddingId}
           enabled={wedding.rsvp_enabled ?? false}
           subActive={activeSub?.status === 'active'}
+        />
+        <div className="h-px bg-stone-800 my-5" />
+        <WishesToggle
+          weddingId={weddingId}
+          isPublic={wedding.wishes_public ?? true}
         />
       </div>
 

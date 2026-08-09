@@ -57,6 +57,18 @@ export async function grantFreeTrial(weddingId: string, planId: string, days: nu
   revalidatePath('/superadmin')
 }
 
+export async function toggleWishesVisibility(weddingId: string, isPublic: boolean) {
+  assertSuperadmin()
+  const sb = serviceClient()
+  await sb.from('weddings').update({ wishes_public: isPublic }).eq('id', weddingId)
+  await logAudit({
+    actorType: 'superadmin',
+    action: isPublic ? 'wishes.made_public' : 'wishes.made_private',
+    weddingId,
+  })
+  revalidatePath(`/superadmin/customers/${weddingId}`)
+}
+
 export async function toggleRsvp(weddingId: string, enabled: boolean) {
   assertSuperadmin()
   const sb = serviceClient()
