@@ -1,6 +1,10 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 
+// Ops tooling must always reflect live data — never serve a cached page
+// or a cached Supabase fetch.
+export const dynamic = 'force-dynamic'
+
 const STALE_AFTER_DAYS = 90
 
 function serviceClient() {
