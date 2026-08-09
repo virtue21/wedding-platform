@@ -573,6 +573,83 @@ export type Database = {
           }
         ]
       }
+      registry_catalog: {
+        Row: {
+          id: string
+          category: string
+          tier: 'budget' | 'premium'
+          item_name: string | null
+          price_low: number | null
+          price_high: number | null
+          retailer_url: string | null
+          notes: string | null
+          needs_sourcing: boolean
+          last_verified_date: string | null
+          sort_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          category: string
+          tier: 'budget' | 'premium'
+          item_name?: string | null
+          price_low?: number | null
+          price_high?: number | null
+          retailer_url?: string | null
+          notes?: string | null
+          needs_sourcing?: boolean
+          last_verified_date?: string | null
+          sort_order?: number
+          is_active?: boolean
+        }
+        Update: {
+          category?: string
+          tier?: 'budget' | 'premium'
+          item_name?: string | null
+          price_low?: number | null
+          price_high?: number | null
+          retailer_url?: string | null
+          notes?: string | null
+          needs_sourcing?: boolean
+          last_verified_date?: string | null
+          sort_order?: number
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wedding_registry_preferences: {
+        Row: {
+          wedding_id: string
+          cooking_frequency: 'rarely' | 'sometimes' | 'often' | null
+          household_size: '1-2' | '3-4' | '5+' | null
+          budget_band: 'lean' | 'standard' | 'generous' | null
+          owned_categories: string[]
+          delivery_state: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          wedding_id: string
+          cooking_frequency?: string | null
+          household_size?: string | null
+          budget_band?: string | null
+          owned_categories?: string[]
+          delivery_state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cooking_frequency?: string | null
+          household_size?: string | null
+          budget_band?: string | null
+          owned_categories?: string[]
+          delivery_state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
