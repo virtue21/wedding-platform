@@ -40,7 +40,7 @@ export default async function AdminOverviewPage() {
 
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, slug, wedding_date, rsvp_deadline')
+    .select('id, slug, wedding_date, rsvp_deadline, rsvp_limit')
     .eq('user_id', user.id)
     .single()
   if (!wedding) redirect('/setup')
@@ -53,7 +53,7 @@ export default async function AdminOverviewPage() {
     { data: recentClaims },
     { data: recentNotes },
   ] = await Promise.all([
-    supabase.from('guests').select('id').eq('wedding_id', wedding.id).eq('is_removed', false),
+    supabase.from('guests').select('id, table_id').eq('wedding_id', wedding.id).eq('is_removed', false),
     supabase.from('registry_items').select('quantity_needed, quantity_claimed').eq('wedding_id', wedding.id),
     supabase.from('seat_tables').select('id, capacity').eq('wedding_id', wedding.id),
     supabase.from('guests').select('full_name, rsvp_date').eq('wedding_id', wedding.id).eq('is_removed', false).order('rsvp_date', { ascending: false }).limit(4),
@@ -61,13 +61,24 @@ export default async function AdminOverviewPage() {
     supabase.from('wedding_notes').select('author_name, created_at').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(4),
   ])
 
-  const invited = guests?.length ?? 0
+  const confirmed = guests?.length ?? 0
+  const unseated = (guests ?? []).filter(g => !g.table_id).length
   const registryTotal = (registryItems ?? []).reduce((s, i) => s + i.quantity_needed, 0)
   const registryClaimed = (registryItems ?? []).reduce((s, i) => s + i.quantity_claimed, 0)
   const seatCapacity = (tables ?? []).reduce((s, t) => s + t.capacity, 0)
 
+  // The couple's own RSVP cap is the only real "expected headcount" this app
+  // has — there's no pre-loaded invite list, so without a cap set there is no
+  // meaningful "awaiting" number and that card stays hidden.
+  const target = wedding.rsvp_limit ?? null
+  const awaiting = target !== null ? Math.max(0, target - confirmed) : null
+
   const daysToGo = wedding.wedding_date
     ? Math.max(0, Math.ceil((new Date(wedding.wedding_date).getTime() - Date.now()) / 86400000))
+    : null
+
+  const daysToDeadline = wedding.rsvp_deadline
+    ? Math.max(0, Math.ceil((new Date(wedding.rsvp_deadline).getTime() - Date.now()) / 86400000))
     : null
 
   const inviteUrl = wedding.slug ? `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nemiplanner.xyz'}/${wedding.slug}` : null
@@ -76,7 +87,7 @@ export default async function AdminOverviewPage() {
     ...(recentGuests ?? []).map(g => ({ key: `g-${g.full_name}-${g.rsvp_date}`, text: `${g.full_name} confirmed`, at: g.rsvp_date })),
     ...(recentClaims ?? []).map(c => ({
       key: `c-${c.guest_name}-${c.claimed_at}`,
-      text: `${c.guest_name} claimed ${(c.registry_items as unknown as { name: string } | null)?.name ?? 'a gift'}`,
+      text: `${c.guest_name?.trim() || 'Someone'} claimed ${(c.registry_items as unknown as { name: string } | null)?.name ?? 'a gift'}`,
       at: c.claimed_at,
     })),
     ...(recentNotes ?? []).map(n => ({ key: `n-${n.author_name}-${n.created_at}`, text: `${n.author_name} left a wish on the wall`, at: n.created_at })),
@@ -90,36 +101,74 @@ export default async function AdminOverviewPage() {
         <div>
           <h1 className="font-serif text-3xl text-stone-800 mb-1">Overview</h1>
           <p className="text-stone-400 text-sm">
-            {daysToGo !== null ? `${daysToGo} days to go` : 'Set your wedding date in Setup'}
-            {wedding.rsvp_deadline && ` · replies close ${new Date(wedding.rsvp_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+            {daysToGo !== null ? `${daysToGo} ${daysToGo === 1 ? 'day' : 'days'} to go` : 'Set your wedding date in Setup'}
+            {wedding.rsvp_deadline && ` · replies close ${new Date(wedding.rsvp_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`}
           </p>
         </div>
         {inviteUrl && <ShareInviteButton url={inviteUrl} />}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Confirmed" value={invited} sub="Guests on the list" tone="green" />
-        <StatCard label="Gifts claimed" value={`${registryClaimed} / ${registryTotal}`} sub="On the registry" tone={registryClaimed > 0 ? 'rose' : 'default'} />
-        <StatCard label="Seat capacity" value={seatCapacity} sub="Across all tables" tone="amber" />
+      <div className={`grid gap-4 ${awaiting !== null ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-3'}`}>
+        {target !== null && (
+          <StatCard label="Expected" value={target} sub="Your RSVP cap" />
+        )}
+        <StatCard label="Coming" value={confirmed} sub="Confirmed their attendance" tone="green" />
+        {awaiting !== null && (
+          <StatCard
+            label="Awaiting"
+            value={awaiting}
+            sub={daysToDeadline !== null ? `Deadline in ${daysToDeadline} days` : 'Places still open'}
+            tone="amber"
+          />
+        )}
+        {target === null && (
+          <StatCard label="Unseated" value={unseated} sub={`Of ${confirmed} confirmed`} tone="amber" />
+        )}
+        <StatCard
+          label="Gifts claimed"
+          value={registryClaimed}
+          sub={registryTotal > 0 ? `of ${registryTotal} on the registry` : 'No registry items yet'}
+          tone={registryClaimed > 0 ? 'rose' : 'default'}
+        />
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 items-stretch">
-        <Link href="/admin/guests" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-serif text-xl text-stone-800">Guests</h2>
-            <span className="text-xs text-rose-500 font-medium">See all →</span>
+        <div className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-serif text-xl text-stone-800">RSVP progress</h2>
+            <Link href="/admin/guests" className="text-xs text-rose-500 font-medium">See all guests →</Link>
           </div>
-          <p className="text-sm text-stone-400 mb-6">Manage RSVPs, filter by side and category.</p>
-          <div className="flex-1 flex flex-col justify-center">
-            <p className="font-serif text-4xl text-stone-800 mb-2">{invited}</p>
-            <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: invited > 0 ? '100%' : '0%' }} />
+
+          <div className="flex-1 flex items-center">
+            <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full"
+                style={{ width: target && target > 0 ? `${Math.min(100, (confirmed / target) * 100)}%` : confirmed > 0 ? '100%' : '0%' }}
+              />
             </div>
           </div>
-          <p className="text-xs text-stone-400 mt-3">
-            {invited > 0 ? 'All guests on the list have confirmed.' : 'No RSVPs yet — share your invite link to get started.'}
-          </p>
-        </Link>
+
+          <div className="flex items-center gap-5 mt-6 text-sm">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-stone-500">Coming</span>
+              <span className="font-medium text-stone-800">{confirmed}</span>
+            </span>
+            {awaiting !== null && (
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-stone-300" />
+                <span className="text-stone-500">Awaiting</span>
+                <span className="font-medium text-stone-800">{awaiting}</span>
+              </span>
+            )}
+          </div>
+
+          {target === null && (
+            <p className="text-xs text-stone-400 mt-3">
+              Set an RSVP limit in Settings to track progress against a target headcount.
+            </p>
+          )}
+        </div>
 
         <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6 h-full">
           <h2 className="font-serif text-xl text-stone-800 mb-4">Recent activity</h2>
@@ -140,28 +189,42 @@ export default async function AdminOverviewPage() {
 
       <div className="grid md:grid-cols-2 gap-4 items-stretch">
         <Link href="/admin/registry" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="font-serif text-xl text-stone-800">Registry</h2>
-            <span className="text-xs text-stone-400">{registryTotal > 0 ? `${registryClaimed} of ${registryTotal} claimed` : 'No items yet'}</span>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-stone-100 text-stone-500 shrink-0">
+              {registryTotal > 0 ? `${registryClaimed} of ${registryTotal} claimed` : 'No items yet'}
+            </span>
           </div>
           {registryTotal > 0 && (
-            <div className="h-2 bg-stone-100 rounded-full overflow-hidden my-3">
-              <div className="h-full bg-rose-400 rounded-full" style={{ width: `${Math.min(100, (registryClaimed / registryTotal) * 100)}%` }} />
+            <div className="h-2 bg-stone-100 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (registryClaimed / registryTotal) * 100)}%` }} />
             </div>
           )}
-          <p className="text-sm text-stone-400 mt-auto pt-3">See who&apos;s gifting what and mark items received.</p>
+          <p className="text-sm text-stone-400 mt-auto">
+            {registryTotal === 0
+              ? 'Add gifts your guests can buy or send cash for.'
+              : registryClaimed === 0
+              ? 'Nobody has claimed anything yet.'
+              : `${registryClaimed} claimed so far — see who's gifting what.`}
+          </p>
         </Link>
         <Link href="/admin/tables" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="font-serif text-xl text-stone-800">Seating</h2>
-            <span className="text-xs text-stone-400">{seatCapacity} seats total</span>
+            <span className={`text-xs px-2.5 py-1 rounded-full shrink-0 ${unseated > 0 ? 'bg-amber-50 text-amber-600' : 'bg-stone-100 text-stone-500'}`}>
+              {unseated > 0 ? `${unseated} unseated` : 'All seated'}
+            </span>
           </div>
           {seatCapacity > 0 && (
-            <div className="h-2 bg-stone-100 rounded-full overflow-hidden my-3">
-              <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(100, (invited / seatCapacity) * 100)}%` }} />
+            <div className="h-2 bg-stone-100 rounded-full overflow-hidden mb-3">
+              <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(100, ((confirmed - unseated) / seatCapacity) * 100)}%` }} />
             </div>
           )}
-          <p className="text-sm text-stone-400 mt-auto pt-3">Assign guests to tables as replies come in.</p>
+          <p className="text-sm text-stone-400 mt-auto">
+            {seatCapacity === 0
+              ? 'Create tables to start assigning guests.'
+              : `${confirmed - unseated} of ${confirmed} seated across ${seatCapacity} seats.`}
+          </p>
         </Link>
       </div>
     </div>
