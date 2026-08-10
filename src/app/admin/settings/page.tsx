@@ -96,6 +96,7 @@ export default async function SettingsPage() {
         initialDeadline={wedding.rsvp_deadline ?? null}
         currentCount={count ?? 0}
         hasActivePlan={planInfo.isActive}
+        guestCap={planInfo.caps.guests}
       />
 
       <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">

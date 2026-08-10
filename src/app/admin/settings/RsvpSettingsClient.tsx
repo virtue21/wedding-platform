@@ -12,11 +12,14 @@ type Props = {
   initialDeadline: string | null
   currentCount: number
   hasActivePlan?: boolean
+  guestCap: number | null
 }
 
-export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, initialDeadline, currentCount, hasActivePlan }: Props) {
+export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, initialDeadline, currentCount, hasActivePlan, guestCap }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
-  const [limit, setLimit] = useState<number | null>(initialLimit)
+  const [limit, setLimit] = useState<number | null>(
+    guestCap !== null && initialLimit !== null ? Math.min(initialLimit, guestCap) : initialLimit
+  )
   const [deadline, setDeadline] = useState<string | null>(initialDeadline)
   const [saving, setSaving] = useState(false)
   const [showPlansModal, setShowPlansModal] = useState(false)
@@ -82,16 +85,25 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
         {enabled && (
           <div className="mt-5 pt-5 border-t border-rose-50 space-y-4">
             <div>
-              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">RSVP Limit (optional)</label>
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">
+                RSVP Limit (optional){guestCap !== null && <span className="normal-case font-normal text-stone-400"> — up to {guestCap} on your plan</span>}
+              </label>
               <div className="flex gap-3 items-center">
-                <input
-                  type="number"
-                  min={1}
-                  value={limit ?? ''}
-                  onChange={e => setLimit(e.target.value ? parseInt(e.target.value) : null)}
-                  placeholder="No limit"
-                  className="w-32 px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
-                />
+                <div className="relative w-32">
+                  <input
+                    type="number"
+                    min={1}
+                    max={guestCap ?? undefined}
+                    value={limit ?? ''}
+                    onChange={e => {
+                      if (!e.target.value) { setLimit(null); return }
+                      const parsed = parseInt(e.target.value)
+                      setLimit(guestCap !== null ? Math.min(parsed, guestCap) : parsed)
+                    }}
+                    placeholder="No limit"
+                    className="w-32 px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                  />
+                </div>
                 <button
                   onClick={handleSaveLimit}
                   disabled={saving}
@@ -103,6 +115,8 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
               <p className="text-xs text-stone-400 mt-1.5">
                 {limit
                   ? `RSVP will close after ${limit} confirmations. Currently ${currentCount}/${limit} used.`
+                  : guestCap !== null
+                  ? `Guests can RSVP up to your plan's limit of ${guestCap}.`
                   : 'Guests can RSVP without limit.'}
               </p>
             </div>
