@@ -113,7 +113,7 @@ function ReceiptRow({ receipt }: { receipt: CashGiftReceipt }) {
         {/* Top row: name + amount */}
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-medium text-stone-800">{receipt.guest_name}</p>
+            <p className="text-sm font-medium text-stone-800">{receipt.guest_name?.trim() || 'Someone'}</p>
             {receipt.phone && <p className="text-xs text-stone-400">{receipt.phone}</p>}
           </div>
           {receipt.amount && (

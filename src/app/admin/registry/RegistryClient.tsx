@@ -109,7 +109,7 @@ export default function RegistryClient({ items, atRegistryCap, availableCurrenci
                     <div className="space-y-1.5">
                       {item.gift_claims.map(claim => (
                         <div key={claim.id} className="flex items-center justify-between gap-2">
-                          <span className="text-sm text-stone-700">{claim.guest_name}</span>
+                          <span className="text-sm text-stone-700">{claim.guest_name?.trim() || 'Someone'}</span>
                           <button
                             onClick={() => startTransition(() => toggleReceived(claim.id, claim.is_received))}
                             disabled={isPending}
