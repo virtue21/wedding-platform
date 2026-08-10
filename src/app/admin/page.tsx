@@ -104,22 +104,31 @@ export default async function AdminOverviewPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 items-stretch">
-        <Link href="/admin/guests" className="block bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors">
+        <Link href="/admin/guests" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
           <div className="flex items-center justify-between mb-1">
             <h2 className="font-serif text-xl text-stone-800">Guests</h2>
             <span className="text-xs text-rose-500 font-medium">See all →</span>
           </div>
-          <p className="text-sm text-stone-400">{invited} confirmed so far — manage RSVPs, filter by side and category.</p>
+          <p className="text-sm text-stone-400 mb-6">Manage RSVPs, filter by side and category.</p>
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="font-serif text-4xl text-stone-800 mb-2">{invited}</p>
+            <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full" style={{ width: invited > 0 ? '100%' : '0%' }} />
+            </div>
+          </div>
+          <p className="text-xs text-stone-400 mt-3">
+            {invited > 0 ? 'All guests on the list have confirmed.' : 'No RSVPs yet — share your invite link to get started.'}
+          </p>
         </Link>
 
-        <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">
-          <h2 className="font-serif text-xl text-stone-800 mb-3">Recent activity</h2>
+        <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6 h-full">
+          <h2 className="font-serif text-xl text-stone-800 mb-4">Recent activity</h2>
           {activity.length === 0 ? (
             <p className="text-sm text-stone-400">Nothing yet — activity shows up here as guests RSVP, claim gifts, or leave wishes.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {activity.map(e => (
-                <div key={e.key} className="flex items-baseline justify-between gap-3 text-sm">
+                <div key={e.key} className="flex items-baseline justify-between gap-3 text-sm border-b border-stone-50 last:border-0 pb-3.5 last:pb-0">
                   <p className="text-stone-700 truncate">{e.text}</p>
                   <p className="text-xs text-stone-400 shrink-0">{timeAgo(e.at)}</p>
                 </div>
@@ -130,13 +139,29 @@ export default async function AdminOverviewPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 items-stretch">
-        <Link href="/admin/registry" className="block bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors">
-          <h2 className="font-serif text-xl text-stone-800 mb-1">Registry</h2>
-          <p className="text-sm text-stone-400">{registryClaimed} of {registryTotal} claimed — see who&apos;s gifting what.</p>
+        <Link href="/admin/registry" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-serif text-xl text-stone-800">Registry</h2>
+            <span className="text-xs text-stone-400">{registryTotal > 0 ? `${registryClaimed} of ${registryTotal} claimed` : 'No items yet'}</span>
+          </div>
+          {registryTotal > 0 && (
+            <div className="h-2 bg-stone-100 rounded-full overflow-hidden my-3">
+              <div className="h-full bg-rose-400 rounded-full" style={{ width: `${Math.min(100, (registryClaimed / registryTotal) * 100)}%` }} />
+            </div>
+          )}
+          <p className="text-sm text-stone-400 mt-auto pt-3">See who&apos;s gifting what and mark items received.</p>
         </Link>
-        <Link href="/admin/tables" className="block bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors">
-          <h2 className="font-serif text-xl text-stone-800 mb-1">Seating</h2>
-          <p className="text-sm text-stone-400">{seatCapacity} seats across your tables — assign guests as replies come in.</p>
+        <Link href="/admin/tables" className="flex flex-col bg-white rounded-2xl border border-rose-50 shadow-sm p-6 hover:border-rose-200 transition-colors h-full">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-serif text-xl text-stone-800">Seating</h2>
+            <span className="text-xs text-stone-400">{seatCapacity} seats total</span>
+          </div>
+          {seatCapacity > 0 && (
+            <div className="h-2 bg-stone-100 rounded-full overflow-hidden my-3">
+              <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(100, (invited / seatCapacity) * 100)}%` }} />
+            </div>
+          )}
+          <p className="text-sm text-stone-400 mt-auto pt-3">Assign guests to tables as replies come in.</p>
         </Link>
       </div>
     </div>
