@@ -63,7 +63,7 @@ export default async function TablesPage() {
 
       <SectionGuide
         id="seating"
-        icon={Share2}
+        icon={<Share2 size={18} />}
         title="Table assignments — not individual seats"
         body="Here you create tables (e.g. Table 1, Head Table, Family Table) and assign confirmed guests to them. This organises who sits with who — it doesn't assign specific chairs within a table. Do this after your RSVP list is mostly finalised."
         tip="Wait until most RSVPs are in before arranging seating. Use the Guests page to see who's confirmed first."
