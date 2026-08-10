@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getWeddingEntitlements } from '@/lib/subscription'
 import WeddingPageClient from './WeddingPageClient'
@@ -16,11 +17,14 @@ export default async function WeddingPage({ params }: { params: { slug: string }
     .from('weddings').select('*').eq('slug', params.slug).single() as { data: WeddingRow | null }
   if (!wedding) notFound()
 
-  const [profileResult, notesResult, photosResult, slidesResult, entitlements] = await Promise.all([
+  const [profileResult, notesResult, photosResult, slidesResult, registryResult, entitlements] = await Promise.all([
     supabase.from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single(),
     supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_story_slides').select('*').eq('wedding_id', wedding.id).order('slide_number'),
+    supabase.from('registry_items')
+      .select('quantity_needed, quantity_claimed')
+      .eq('wedding_id', wedding.id),
     // Read through the service role — subscriptions are owner-only under RLS
     getWeddingEntitlements(wedding.id),
   ])
@@ -33,6 +37,13 @@ export default async function WeddingPage({ params }: { params: { slug: string }
   }
   const momentsCount: number = photosResult.count ?? (photosResult.data ?? []).length
   const wishesPublic = wedding.wishes_public ?? true
+
+  // Gifts still available, shown as "N left" on the home screen
+  const registryRemaining = (registryResult.data ?? []).reduce(
+    (n, i) => n + Math.max(0, (i.quantity_needed ?? 0) - (i.quantity_claimed ?? 0)), 0
+  )
+  // Set when this guest RSVP'd, so we greet them instead of re-asking
+  const confirmed = !!cookies().get(`nemi_guest_${wedding.id}`)?.value
 
   const brideName = profileResult.data?.bride_name ?? 'Bride'
   const groomName = profileResult.data?.groom_name ?? 'Groom'
@@ -49,7 +60,6 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       wedding={effectiveWedding}
       brideName={brideName}
       groomName={groomName}
-      hasMap={hasMap}
       directionsUrl={directionsUrl}
       formattedDate={formatDate(wedding.wedding_date)}
       initialNotes={wishesPublic ? ((notesResult.data ?? []) as WeddingNote[]) : []}
@@ -60,6 +70,8 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       hasMoments={hasMoments}
       momentsCap={momentsCap}
       momentsCount={momentsCount}
+      registryRemaining={registryRemaining}
+      confirmed={confirmed}
     />
   )
 }

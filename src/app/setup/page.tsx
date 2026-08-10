@@ -150,6 +150,36 @@ export default async function SetupPage({
               </div>
             </div>
 
+            {/* Ceremony timing, dress code and reply-by — all optional,
+                each renders a row on the guest page when filled */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                  Ceremony time
+                </label>
+                <input name="ceremony_time" type="text" defaultValue={wedding?.ceremony_time ?? ''} placeholder="2:00 pm" className="input" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                  Doors open
+                </label>
+                <input name="doors_time" type="text" defaultValue={wedding?.doors_time ?? ''} placeholder="1:30 pm" className="input" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                  Reply by
+                </label>
+                <input name="rsvp_deadline" type="date" defaultValue={wedding?.rsvp_deadline ?? ''} className="input" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-1.5">
+                Dress code
+              </label>
+              <input name="dress_code" type="text" defaultValue={wedding?.dress_code ?? ''} placeholder="Garden formal · blush and cream" className="input" />
+            </div>
+
             {/* Venue address with map autocomplete */}
             <VenueSearch
               defaultAddress={wedding?.venue_address ?? ''}
