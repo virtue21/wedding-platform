@@ -30,7 +30,7 @@ export default function QRDownload({ url }: { url: string }) {
         onClick={download}
         className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white text-sm font-medium rounded-lg transition-colors"
       >
-        Download QR Code
+        Download QR code
       </button>
       <p className="text-xs text-stone-400 text-center">
         Share this on WhatsApp or print it for your guests
