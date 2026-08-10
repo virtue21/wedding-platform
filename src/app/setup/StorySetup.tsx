@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { Sparkles, Lock, Heart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { WeddingStorySlide } from '@/lib/supabase/database.types'
 
@@ -213,7 +214,7 @@ export default function StorySetup({ weddingId, initialSlides, canIllustrate = f
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-rose-50 shadow-sm p-6">
-        <h2 className="font-serif text-xl text-stone-800 mb-1">Your Love Story</h2>
+        <h2 className="font-serif text-2xl font-semibold text-stone-800 mb-1">Your love story</h2>
         <p className="text-sm text-stone-400 mb-5">
           Tell your story in your own words — our AI will turn it into beautiful slides for your guests.
         </p>
@@ -240,7 +241,7 @@ export default function StorySetup({ weddingId, initialSlides, canIllustrate = f
               Generating…
             </>
           ) : (
-            <>✨ Generate Story Slides with AI</>
+            <><Sparkles size={15} /> Generate story slides with AI</>
           )}
         </button>
       </div>
@@ -251,7 +252,7 @@ export default function StorySetup({ weddingId, initialSlides, canIllustrate = f
           {imageNotice === 'upgrade' && (
             <div className="flex items-center justify-between gap-4 p-4 bg-stone-50 border border-stone-200 rounded-2xl">
               <div className="flex items-center gap-3">
-                <span className="text-xl">🔒</span>
+                <Lock size={20} className="text-stone-400" />
                 <div>
                   <p className="text-sm font-medium text-stone-700">AI illustrations are a Grand &amp; Prestige feature</p>
                   <p className="text-xs text-stone-400 mt-0.5">Upgrade your plan to turn each slide into a beautiful storybook illustration.</p>
@@ -359,7 +360,7 @@ export default function StorySetup({ weddingId, initialSlides, canIllustrate = f
                       }}
                       className="flex-1 h-24 bg-stone-50 hover:bg-stone-100 border-l border-white flex items-center justify-center gap-2 text-stone-400 text-sm transition-colors"
                     >
-                      <span>✨</span> Illustrate with AI
+                      <Sparkles size={14} /> Illustrate with AI
                     </button>
                   )}
                 </div>
@@ -466,7 +467,7 @@ export default function StorySetup({ weddingId, initialSlides, canIllustrate = f
 
       {!draftSlides && slides.length === 0 && (
         <div className="text-center py-8 text-stone-300">
-          <p className="text-4xl mb-2">💑</p>
+          <Heart size={32} className="mx-auto mb-2 text-stone-200" />
           <p className="text-sm">No story slides yet. Write your story above to get started.</p>
         </div>
       )}
