@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { WeddingRow, GuestRow } from '@/lib/supabase/database.types'
 import { sendInvitationEmail } from '@/lib/email/sendInvitation'
@@ -119,6 +120,14 @@ export async function submitRsvp(slug: string, formData: FormData) {
       calendarUrl:   `${appUrl}/api/calendar/${wedding.id}`,
     })
   }
+
+  // Remember this guest so the invite page can greet them on a later visit
+  // rather than asking them to RSVP again.
+  cookies().set(`nemi_guest_${wedding.id}`, guest.id, {
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: 'lax',
+    path: '/',
+  })
 
   redirect(`/${slug}/confirmed?guest_id=${guest.id}`)
 }

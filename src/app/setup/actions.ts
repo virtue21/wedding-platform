@@ -25,6 +25,10 @@ export async function saveWeddingSetup(formData: FormData) {
   }
   const bride_instagram = igHandle(formData.get('bride_instagram') as string)
   const groom_instagram = igHandle(formData.get('groom_instagram') as string)
+  const ceremony_time = ((formData.get('ceremony_time') as string) || '').trim() || null
+  const doors_time = ((formData.get('doors_time') as string) || '').trim() || null
+  const dress_code = ((formData.get('dress_code') as string) || '').trim() || null
+  const rsvp_deadline = ((formData.get('rsvp_deadline') as string) || '').trim() || null
   const venue_address = (formData.get('venue_address') as string) || null
   const venue_state = (formData.get('venue_state') as string) || null
   const venue_lat = parseFloat(formData.get('venue_lat') as string) || null
@@ -50,7 +54,7 @@ export async function saveWeddingSetup(formData: FormData) {
     .eq('user_id', user.id)
     .single() as { data: Pick<WeddingRow, 'id'> | null }
 
-  const payload = { slug, wedding_date, venue_name, bride_instagram, groom_instagram, venue_address, venue_state, venue_lat, venue_lng, bank_name, bank_code, account_number, account_name, currency, crypto_chain, crypto_address }
+  const payload = { slug, wedding_date, venue_name, bride_instagram, groom_instagram, ceremony_time, doors_time, dress_code, rsvp_deadline, venue_address, venue_state, venue_lat, venue_lng, bank_name, bank_code, account_number, account_name, currency, crypto_chain, crypto_address }
 
   if (existing) {
     const { error } = await supabase.from('weddings').update(payload).eq('id', existing.id)

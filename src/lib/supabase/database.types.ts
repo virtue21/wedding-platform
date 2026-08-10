@@ -49,6 +49,10 @@ export type Database = {
           crypto_address: string | null
           rsvp_enabled: boolean
           rsvp_limit: number | null
+          ceremony_time: string | null
+          doors_time: string | null
+          dress_code: string | null
+          rsvp_deadline: string | null
           wishes_public: boolean
           bride_instagram: string | null
           groom_instagram: string | null
@@ -75,6 +79,10 @@ export type Database = {
           crypto_address?: string | null
           rsvp_enabled?: boolean
           rsvp_limit?: number | null
+          ceremony_time?: string | null
+          doors_time?: string | null
+          dress_code?: string | null
+          rsvp_deadline?: string | null
           wishes_public?: boolean
           bride_instagram?: string | null
           groom_instagram?: string | null
@@ -99,6 +107,10 @@ export type Database = {
           crypto_address?: string | null
           rsvp_enabled?: boolean
           rsvp_limit?: number | null
+          ceremony_time?: string | null
+          doors_time?: string | null
+          dress_code?: string | null
+          rsvp_deadline?: string | null
           wishes_public?: boolean
           bride_instagram?: string | null
           groom_instagram?: string | null
