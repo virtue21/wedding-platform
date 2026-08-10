@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import type { WeddingRow } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
+
+const TOAST_MS = 7000
 
 /* ── line icons (replacing emoji) ─────────────────────────────────── */
 const stroke = { fill: 'none', stroke: '#fb7185', strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
@@ -80,6 +82,7 @@ export default function GuestHome({
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
+  const [showToast, setShowToast] = useState(confirmed && wedding.rsvp_enabled)
 
   useEffect(() => {
     if (!justRsvpd) return
@@ -87,6 +90,13 @@ export default function GuestHome({
     // Drop ?rsvp=1 so a refresh or share of this URL doesn't re-fire it.
     router.replace(pathname)
   }, [justRsvpd, slug, pathname, router])
+
+  useEffect(() => {
+    if (!(confirmed && wedding.rsvp_enabled)) return
+    setShowToast(true)
+    const t = setTimeout(() => setShowToast(false), TOAST_MS)
+    return () => clearTimeout(t)
+  }, [confirmed, wedding.rsvp_enabled])
 
   const countdown = daysAway(wedding.wedding_date)
   const deadline = formatDeadline(wedding.rsvp_deadline)
@@ -140,18 +150,41 @@ export default function GuestHome({
         </div>
       </div>
 
-      <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        {/* Confirmed state now lives here rather than only on a separate page */}
-        {confirmed && wedding.rsvp_enabled && (
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: 16, borderRadius: 16, background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
-            <CheckIcon />
-            <div style={{ fontSize: 12, lineHeight: 1.5, color: '#047857' }}>
-              We&apos;ve let {brideName} and {groomName} know.
-              {deadline && <> You can change this until {deadline}.</>}
-            </div>
+      {/* Confirmation toast — auto-dismisses after 7s, dismissible early.
+          A permanent banner would repeat "we told them" on every future
+          visit; the button below (Change your response) already carries
+          the confirmed state without needing to stay on screen. */}
+      {confirmed && wedding.rsvp_enabled && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed', left: 16, right: 16, bottom: showToast ? 16 : -100,
+            zIndex: 50, maxWidth: 460, margin: '0 auto',
+            display: 'flex', gap: 12, alignItems: 'flex-start', padding: 16,
+            borderRadius: 16, background: '#ecfdf5', border: '1px solid #a7f3d0',
+            boxShadow: '0 8px 24px rgba(16,185,129,0.18)',
+            transition: 'bottom .35s ease, opacity .35s ease',
+            opacity: showToast ? 1 : 0,
+            pointerEvents: showToast ? 'auto' : 'none',
+          }}
+        >
+          <CheckIcon />
+          <div style={{ fontSize: 12, lineHeight: 1.5, color: '#047857', flex: 1 }}>
+            We&apos;ve let {brideName} and {groomName} know.
+            {deadline && <> You can change this until {deadline}.</>}
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => setShowToast(false)}
+            aria-label="Dismiss"
+            style={{ background: 'none', border: 'none', color: '#047857', opacity: 0.6, cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 2 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Details */}
         {hasDetails && (

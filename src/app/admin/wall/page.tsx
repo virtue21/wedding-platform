@@ -4,6 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 
+// Notes are read via the service role (see below), and Next.js caches
+// server-side fetches by default — without this, a delete can revalidate
+// the route yet still serve the pre-delete list on refresh.
+export const dynamic = 'force-dynamic'
+
 function serviceClient() {
   return createServiceClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
