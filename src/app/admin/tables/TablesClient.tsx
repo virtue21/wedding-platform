@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
+import { TriangleAlert, Share2 } from 'lucide-react'
 import { saveTable, deleteTable, assignGuestToTable } from './actions'
 import type { SeatTable, Guest, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
@@ -229,7 +230,7 @@ export default function TablesClient({
       {/* Unassigned count */}
       {unassigned.length > 0 && (
         <div className="flex items-center gap-2 mb-5 p-3.5 bg-amber-50 border border-amber-100 rounded-xl">
-          <span className="text-amber-500">⚠️</span>
+          <TriangleAlert size={16} className="text-amber-500 shrink-0" />
           <p className="text-sm text-amber-700">
             <span className="font-medium">{unassigned.length} guest{unassigned.length !== 1 ? 's' : ''}</span> not yet seated
           </p>
@@ -238,7 +239,7 @@ export default function TablesClient({
 
       {tables.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-rose-50">
-          <p className="text-4xl mb-3">🪑</p>
+          <Share2 size={36} className="mx-auto mb-3 text-stone-300" />
           <p className="font-serif text-xl text-stone-700 mb-2">No tables yet</p>
           <p className="text-stone-400 text-sm">Create your first table above to start assigning guests.</p>
         </div>

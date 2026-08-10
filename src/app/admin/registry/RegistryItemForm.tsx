@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { Camera, Image as ImageIconLucide } from 'lucide-react'
 import { saveRegistryItem } from './actions'
 import type { RegistryItem } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
@@ -86,7 +87,7 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose, availab
                 </>
               ) : (
                 <div className="text-center p-4">
-                  <div className="text-3xl mb-2">📷</div>
+                  <Camera size={26} className="mx-auto mb-2 text-stone-300" />
                   <p className="text-sm text-stone-400">Click to upload a photo</p>
                   <p className="text-xs text-stone-300 mt-0.5">JPG, PNG or WEBP · max 5 MB</p>
                 </div>
@@ -102,7 +103,7 @@ export default function RegistryItemForm({ item, nextSortOrder, onClose, availab
             />
             {fileInfo && (
               <div className="flex items-center gap-2 mt-2 text-xs text-stone-500 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2">
-                <span>🖼️</span>
+                <ImageIconLucide size={14} className="text-stone-400" />
                 <span className="font-medium text-stone-700 truncate max-w-[160px]">{fileInfo.name}</span>
                 <span className="text-stone-300">·</span>
                 <span>{fileInfo.size}</span>

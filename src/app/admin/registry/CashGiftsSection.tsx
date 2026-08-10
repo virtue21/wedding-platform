@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import { Banknote } from 'lucide-react'
 import { toggleReceiptConfirmed } from './actions'
 import type { CashGiftReceipt } from '@/lib/supabase/database.types'
 
@@ -156,7 +157,7 @@ export default function CashGiftsSection({ receipts }: { receipts: CashGiftRecei
       {/* Receipt list */}
       {receipts.length === 0 ? (
         <div className="text-center py-14 bg-white rounded-2xl border border-rose-50">
-          <p className="text-3xl mb-3">💸</p>
+          <Banknote size={30} className="mx-auto mb-3 text-stone-300" />
           <p className="font-serif text-lg text-stone-700 mb-1">No cash gifts yet</p>
           <p className="text-stone-400 text-sm">Receipts submitted by guests will appear here.</p>
         </div>

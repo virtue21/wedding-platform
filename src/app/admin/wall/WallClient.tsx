@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { MessageSquare, Image as ImageIcon, Lock, Trash2 } from 'lucide-react'
 import type { WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
 import { deleteNote, deletePhoto } from './actions'
 
@@ -39,7 +40,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
           onClick={() => setActiveTab('notes')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${activeTab === 'notes' ? 'bg-rose-500 text-white' : 'bg-white border border-rose-100 text-stone-500 hover:text-stone-800'}`}
         >
-          💌 Wishes
+          <MessageSquare size={15} /> Wishes
           <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'notes' ? 'bg-white/20 text-white' : 'bg-rose-50 text-rose-500'}`}>
             {notes.length}
           </span>
@@ -54,7 +55,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
               : 'bg-white border border-rose-100 text-stone-500 hover:text-stone-800'
           }`}
         >
-          {momentslocked ? '🔒' : '📸'} Moments
+          {momentslocked ? <Lock size={15} /> : <ImageIcon size={15} />} Moments
           <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === 'photos' ? 'bg-white/20 text-white' : momentslocked ? 'bg-stone-200 text-stone-400' : 'bg-rose-50 text-rose-500'}`}>
             {photos.length}
           </span>
@@ -66,7 +67,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
         <div className="space-y-3">
           {notes.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-rose-50">
-              <p className="text-3xl mb-2">💌</p>
+              <MessageSquare size={28} className="mx-auto mb-2 text-stone-300" />
               <p className="font-serif text-lg text-stone-600">No wishes yet</p>
               <p className="text-sm text-stone-400 mt-1">Guests haven&apos;t posted any messages yet.</p>
             </div>
@@ -88,7 +89,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
                   className="shrink-0 p-2 text-stone-300 hover:text-red-400 transition-colors disabled:opacity-40"
                   title="Delete"
                 >
-                  🗑️
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))
@@ -101,7 +102,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
         <div>
           {photos.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-rose-50">
-              <p className="text-3xl mb-2">📸</p>
+              <ImageIcon size={28} className="mx-auto mb-2 text-stone-300" />
               <p className="font-serif text-lg text-stone-600">No photos yet</p>
               <p className="text-sm text-stone-400 mt-1">Guests haven&apos;t uploaded any photos yet.</p>
             </div>
@@ -122,7 +123,7 @@ export default function WallClient({ notes: initialNotes, photos: initialPhotos,
                       className="p-1.5 bg-black/50 hover:bg-red-500/80 text-white text-xs rounded-lg disabled:opacity-40 transition-colors"
                       title="Delete photo"
                     >
-                      🗑️
+                      <Trash2 size={15} />
                     </button>
                     {photo.uploader_name && (
                       <p className="text-white text-xs font-medium bg-black/40 px-2 py-0.5 rounded-lg truncate max-w-full">

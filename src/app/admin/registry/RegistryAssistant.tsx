@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { saveRegistryPreferences, getSuggestions, acceptSuggestions } from './assistant-actions'
 import { formatPriceRange, type Suggestion } from '@/lib/registryMatcher'
 import { track } from '@/lib/mixpanel'
@@ -92,7 +93,7 @@ export default function RegistryAssistant({ categories, initialPrefs, atRegistry
         title={atRegistryCap ? 'Upgrade your plan to add more items' : undefined}
         className="flex items-center gap-2 px-4 py-2.5 border border-rose-200 hover:border-rose-300 text-rose-500 text-sm font-medium rounded-xl transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        ✨ Get suggestions
+        <Sparkles size={15} className="inline -mt-0.5" /> Get suggestions
       </button>
 
       {open && (
