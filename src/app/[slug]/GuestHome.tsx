@@ -1,7 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import type { WeddingRow } from '@/lib/supabase/database.types'
+import { track } from '@/lib/mixpanel'
 
 /* ── line icons (replacing emoji) ─────────────────────────────────── */
 const stroke = { fill: 'none', stroke: '#fb7185', strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
@@ -37,6 +40,9 @@ type Props = {
   registryRemaining: number
   /** Set once this guest has RSVP'd, from their guest cookie. */
   confirmed: boolean
+  /** True only on the redirect immediately after submitting — fires the
+      completion event once, never on a later return visit. */
+  justRsvpd?: boolean
 }
 
 function daysAway(dateStr: string): string | null {
@@ -70,8 +76,18 @@ const rowValue: React.CSSProperties = {
 
 export default function GuestHome({
   wedding, brideName, groomName, formattedDate, directionsUrl,
-  slug, registryRemaining, confirmed,
+  slug, registryRemaining, confirmed, justRsvpd = false,
 }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (!justRsvpd) return
+    track('rsvp_completed', { wedding_slug: slug })
+    // Drop ?rsvp=1 so a refresh or share of this URL doesn't re-fire it.
+    router.replace(pathname)
+  }, [justRsvpd, slug, pathname, router])
+
   const countdown = daysAway(wedding.wedding_date)
   const deadline = formatDeadline(wedding.rsvp_deadline)
 

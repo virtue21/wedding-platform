@@ -129,5 +129,10 @@ export async function submitRsvp(slug: string, formData: FormData) {
     path: '/',
   })
 
-  redirect(`/${slug}/confirmed?guest_id=${guest.id}`)
+  // Home reads the guest cookie set above and shows the confirmed state
+  // (green banner, "Change your response") — no separate thank-you page.
+  // ?rsvp=1 fires the completion analytics event exactly once, on this
+  // visit only — the cookie alone can't tell "just confirmed" apart from
+  // "returning to check".
+  redirect(`/${slug}?rsvp=1`)
 }
