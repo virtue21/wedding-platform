@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
+import DashboardDateFilter from './DashboardDateFilter'
 
 function serviceClient() {
   return createServiceClient<Database>(
@@ -23,8 +24,62 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(days / 30)}mo ago`
 }
 
-export default async function SuperadminDashboard() {
+function startOfDay(d: Date) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
+const RANGE_LABEL: Record<string, string> = {
+  today: 'today',
+  '7d': 'in the last 7 days',
+  '30d': 'in the last 30 days',
+  all: 'all time',
+  custom: 'in the selected range',
+}
+
+export default async function SuperadminDashboard({
+  searchParams,
+}: {
+  searchParams: { range?: string; from?: string; to?: string }
+}) {
   const sb = serviceClient()
+
+  const range = searchParams.range ?? 'today'
+  const now = new Date()
+  let from: Date | null = null
+  let to: Date | null = null
+
+  if (range === 'today') {
+    from = startOfDay(now)
+  } else if (range === '7d') {
+    from = startOfDay(new Date(now.getTime() - 6 * 86400000))
+  } else if (range === '30d') {
+    from = startOfDay(new Date(now.getTime() - 29 * 86400000))
+  } else if (range === 'custom') {
+    from = searchParams.from ? startOfDay(new Date(searchParams.from)) : null
+    to = searchParams.to ? new Date(new Date(searchParams.to).getTime() + 86400000) : null
+  }
+  // range === 'all' leaves from/to null — no bound applied
+
+  const fromIso = from?.toISOString() ?? null
+  const toIso = to?.toISOString() ?? null
+
+  let totalCustomersQuery = sb.from('weddings').select('*', { count: 'exact', head: true })
+  if (fromIso) totalCustomersQuery = totalCustomersQuery.gte('created_at', fromIso)
+  if (toIso) totalCustomersQuery = totalCustomersQuery.lt('created_at', toIso)
+
+  let subsQuery = sb.from('wedding_subscriptions').select('status, amount_paid, plans(name)').neq('status', 'pending')
+  if (fromIso) subsQuery = subsQuery.gte('activated_at', fromIso)
+  if (toIso) subsQuery = subsQuery.lt('activated_at', toIso)
+
+  let recentWeddingsQuery = sb.from('weddings').select('id, slug, created_at, user_id').order('created_at', { ascending: false })
+  if (fromIso) recentWeddingsQuery = recentWeddingsQuery.gte('created_at', fromIso)
+  if (toIso) recentWeddingsQuery = recentWeddingsQuery.lt('created_at', toIso)
+
+  let planBreakdownQuery = sb.from('wedding_subscriptions').select('status, plans(name)').eq('status', 'active')
+  if (fromIso) planBreakdownQuery = planBreakdownQuery.gte('activated_at', fromIso)
+  if (toIso) planBreakdownQuery = planBreakdownQuery.lt('activated_at', toIso)
 
   const [
     { count: totalCustomers },
@@ -32,17 +87,10 @@ export default async function SuperadminDashboard() {
     { data: recentWeddings },
     { data: planBreakdown },
   ] = await Promise.all([
-    sb.from('weddings').select('*', { count: 'exact', head: true }),
-    sb.from('wedding_subscriptions')
-      .select('status, amount_paid, plans(name)')
-      .neq('status', 'pending'),
-    sb.from('weddings')
-      .select('id, slug, created_at, user_id')
-      .order('created_at', { ascending: false })
-      .limit(8),
-    sb.from('wedding_subscriptions')
-      .select('status, plans(name)')
-      .eq('status', 'active'),
+    totalCustomersQuery,
+    subsQuery,
+    recentWeddingsQuery.limit(8),
+    planBreakdownQuery,
   ])
 
   const activeSubs = subs?.filter(s => s.status === 'active') ?? []
@@ -70,8 +118,16 @@ export default async function SuperadminDashboard() {
   // Signups that never reached Setup have no weddings row, so they're
   // missing from every count that starts from weddings.
   const { data: authList } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 })
-  const totalSignups = authList?.users.length ?? 0
+  const signupsInRange = (authList?.users ?? []).filter(u => {
+    const at = new Date(u.created_at)
+    if (fromIso && at < new Date(fromIso)) return false
+    if (toIso && at >= new Date(toIso)) return false
+    return true
+  })
+  const totalSignups = signupsInRange.length
   const incompleteSetup = Math.max(0, totalSignups - (totalCustomers ?? 0))
+
+  const periodLabel = RANGE_LABEL[range] ?? 'today'
 
   const kpis = [
     {
@@ -80,19 +136,19 @@ export default async function SuperadminDashboard() {
       icon: '👥',
       sub: incompleteSetup > 0
         ? `${incompleteSetup} more signed up, not set up`
-        : 'couples set up',
+        : `couples set up ${periodLabel}`,
     },
     {
       label: 'Paying Customers',
       value: payingCustomers,
       icon: '💳',
-      sub: 'active subscriptions',
+      sub: `active subscriptions ${periodLabel}`,
     },
     {
       label: 'Total Revenue',
       value: formatCurrency(totalRevenue),
       icon: '💰',
-      sub: 'all time',
+      sub: periodLabel,
     },
     {
       label: 'Conversion Rate',
@@ -104,9 +160,12 @@ export default async function SuperadminDashboard() {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-white text-2xl font-semibold">Dashboard</h1>
-        <p className="text-stone-400 text-sm mt-1">Platform overview across all customers</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-white text-2xl font-semibold">Dashboard</h1>
+          <p className="text-stone-400 text-sm mt-1">Platform overview across all customers</p>
+        </div>
+        <DashboardDateFilter />
       </div>
 
       {/* KPI cards */}
@@ -128,7 +187,7 @@ export default async function SuperadminDashboard() {
         <div className="xl:col-span-2 bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <h2 className="text-white text-sm font-semibold mb-4">Recent Customers</h2>
           {(recentWeddings ?? []).length === 0 ? (
-            <p className="text-stone-500 text-sm">No customers yet</p>
+            <p className="text-stone-500 text-sm">No customers {periodLabel}</p>
           ) : (
             <div className="space-y-1">
               {(recentWeddings ?? []).map(w => {
@@ -161,7 +220,7 @@ export default async function SuperadminDashboard() {
         <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
           <h2 className="text-white text-sm font-semibold mb-4">Plan Distribution</h2>
           {Object.keys(planCounts).length === 0 ? (
-            <p className="text-stone-500 text-sm">No active plans</p>
+            <p className="text-stone-500 text-sm">No active plans {periodLabel}</p>
           ) : (
             <div className="space-y-3">
               {Object.entries(planCounts)
