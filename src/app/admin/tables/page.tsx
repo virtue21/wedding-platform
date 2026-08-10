@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import TablesClient from './TablesClient'
 import SectionGuide from '@/components/SectionGuide'
+import { Share2 } from 'lucide-react'
 import type { SeatTable, Guest, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 type TableWithGuests = SeatTable & { guests: Pick<Guest, 'id' | 'full_name' | 'side'>[] }
@@ -61,7 +62,7 @@ export default async function TablesPage() {
       </div>
 
       <SectionGuide
-        icon="🪑"
+        icon={Share2}
         title="Table assignments — not individual seats"
         body="Here you create tables (e.g. Table 1, Head Table, Family Table) and assign confirmed guests to them. This organises who sits with who — it doesn't assign specific chairs within a table. Do this after your RSVP list is mostly finalised."
         tip="Wait until most RSVPs are in before arranging seating. Use the Guests page to see who's confirmed first."

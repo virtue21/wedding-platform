@@ -5,6 +5,7 @@ import { getWeddingPlanInfo } from '@/lib/plans'
 import RsvpSettingsClient from './RsvpSettingsClient'
 import WishesVisibility from './WishesVisibility'
 import SectionGuide from '@/components/SectionGuide'
+import { Settings as SettingsIcon } from 'lucide-react'
 
 function UsageRow({ label, used, cap }: { label: string; used: number; cap: number | null }) {
   if (cap === null) return (
@@ -52,7 +53,7 @@ export default async function SettingsPage() {
       </div>
 
       <SectionGuide
-        icon="🔧"
+        icon={SettingsIcon}
         title="Control what guests can see"
         body="Use RSVP toggle to open or close attendance confirmation — turn it off once you've reached your headcount or after the RSVP deadline. Your plan controls how many guests, registry items, and tables you can have."
         tip="You can re-open RSVP at any time if you need to let a few more people in."
