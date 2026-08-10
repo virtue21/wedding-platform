@@ -59,7 +59,6 @@ function getPlanFeatures(plan: Plan): { label: string; included: boolean }[] {
     { label: momentsLabel, included: plan.has_moments },
     { label: 'Share photos to socials', included: plan.has_moments },
     { label: 'Google Drive photo backup', included: plan.has_moments },
-    { label: 'AI story illustrations', included: plan.has_story_images },
     { label: 'Cover image', included: plan.has_cover_image },
     { label: 'Digital invite + QR code', included: plan.has_digital_iv },
   ]
