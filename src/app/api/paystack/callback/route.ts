@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { sendPaymentConfirmationEmail } from '@/lib/email/sendPaymentConfirmation'
 import { logAudit } from '@/lib/audit'
+
+function serviceClient() {
+  return createServiceClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -33,9 +39,16 @@ export async function GET(req: NextRequest) {
 
   const { wedding_id, plan_id } = data.data.metadata
   const amountKobo: number = data.data.amount ?? 0
-  const supabase = createClient()
+  // Service role, not the request-scoped client: this is a system-to-system
+  // reconciliation against Paystack's own verified response, not a
+  // user-initiated write. The couple's browser session may well have
+  // expired while they were away on Paystack's checkout page for a couple
+  // of minutes — an RLS-gated write would then silently fail (its result
+  // was never even checked), while everything after it, including the
+  // "payment confirmed" email, kept firing regardless.
+  const sb = serviceClient()
 
-  await supabase.from('wedding_subscriptions').upsert({
+  const { error: subError } = await sb.from('wedding_subscriptions').upsert({
     wedding_id,
     plan_id,
     paystack_reference: reference,
@@ -44,8 +57,13 @@ export async function GET(req: NextRequest) {
     activated_at: new Date().toISOString(),
   }, { onConflict: 'wedding_id' })
 
+  if (subError) {
+    console.error('[Paystack callback] Failed to activate subscription:', subError, { wedding_id, plan_id, reference })
+    return NextResponse.redirect(`${baseUrl}/admin/plans?error=activation_failed`)
+  }
+
   // Enable RSVP automatically on subscription activation
-  await supabase.from('weddings').update({ rsvp_enabled: true }).eq('id', wedding_id)
+  await sb.from('weddings').update({ rsvp_enabled: true }).eq('id', wedding_id)
 
   await logAudit({
     actorType: 'couple',
@@ -56,10 +74,6 @@ export async function GET(req: NextRequest) {
 
   // Send payment confirmation email (fire-and-forget, don't block redirect)
   try {
-    const sb = createServiceClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
     const [{ data: wedding }, { data: plan }] = await Promise.all([
       sb.from('weddings').select('user_id').eq('id', wedding_id).single(),
       sb.from('plans')
