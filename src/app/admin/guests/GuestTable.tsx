@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Users } from 'lucide-react'
 import { removeGuest, saveGuestNotes } from './actions'
 import type { Guest, RelationshipCategory } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
@@ -135,7 +136,7 @@ export default function GuestTable({ guests }: Props) {
 
       {filtered.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-rose-50">
-          <p className="text-3xl mb-3">💌</p>
+          <Users size={30} className="mx-auto mb-3 text-stone-300" />
           <p className="font-serif text-lg text-stone-600 mb-1">
             {search || sideFilter !== 'all' ? 'No guests match your filters' : 'No guests yet'}
           </p>

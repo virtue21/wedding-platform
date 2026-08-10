@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Gift, Banknote } from 'lucide-react'
 import RegistryClient from './RegistryClient'
 import { toggleReceiptConfirmed } from './actions'
 import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/database.types'
@@ -213,7 +214,7 @@ export default function AdminRegistryTabs({
               : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          🎁 Gifts
+          <Gift size={15} className="inline -mt-0.5" /> Gifts
         </button>
         <button
           onClick={() => setTab('cash')}
@@ -223,7 +224,7 @@ export default function AdminRegistryTabs({
               : 'text-stone-400 hover:text-stone-600'
           }`}
         >
-          💸 Cash
+          <Banknote size={15} className="inline -mt-0.5" /> Cash
           {receipts.filter(r => !r.is_confirmed).length > 0 && (
             <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 bg-amber-400 text-white text-[10px] font-bold rounded-full">
               {receipts.filter(r => !r.is_confirmed).length}

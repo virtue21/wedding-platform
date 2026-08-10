@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CreditCard } from 'lucide-react'
 import { saveRsvpSettings } from './actions'
 
 type Props = {
@@ -137,7 +138,7 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
       {showPlansModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <p className="text-2xl mb-3 text-center">💳</p>
+            <CreditCard size={26} className="mx-auto mb-3 text-stone-400" />
             <h3 className="font-serif text-xl text-stone-800 text-center mb-2">Activate RSVP</h3>
             <p className="text-sm text-stone-400 text-center mb-1">Enabling RSVP requires an active plan.</p>
             <p className="text-xs text-emerald-600 bg-emerald-50 rounded-xl px-3 py-2 text-center mb-5">

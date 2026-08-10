@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AdminRegistryTabs from './AdminRegistryTabs'
 import SectionGuide from '@/components/SectionGuide'
-import { Gift } from 'lucide-react'
+import { Gift, TriangleAlert } from 'lucide-react'
 import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/database.types'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
@@ -19,7 +19,7 @@ export default async function RegistryPage() {
   if (!wedding) {
     return (
       <div className="text-center py-24">
-        <p className="text-4xl mb-4">🎁</p>
+        <Gift size={40} className="mx-auto mb-4 text-stone-300" />
         <h2 className="font-serif text-2xl text-stone-800 mb-2">Set up your wedding first</h2>
         <Link href="/setup" className="btn-primary">Go to Setup</Link>
       </div>
@@ -83,7 +83,7 @@ export default async function RegistryPage() {
 
       {atRegistryCap && (
         <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center justify-between gap-4">
-          <span>⚠️ You&apos;ve reached your plan limit of {registryCap} registry items. Upgrade to add more.</span>
+          <span className="flex items-center gap-1.5"><TriangleAlert size={15} /> You&apos;ve reached your plan limit of {registryCap} registry items. Upgrade to add more.</span>
           <Link href="/admin/plans" className="text-amber-700 font-medium underline whitespace-nowrap">Upgrade →</Link>
         </div>
       )}

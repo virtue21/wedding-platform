@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { Gem } from 'lucide-react'
 import GuestTable from './GuestTable'
 import AddGuestForm from './AddGuestForm'
 import OnboardingChecklist from '@/components/OnboardingChecklist'
@@ -24,7 +25,7 @@ export default async function GuestsPage() {
   if (!wedding) {
     return (
       <div className="text-center py-24">
-        <p className="text-4xl mb-4">💍</p>
+        <Gem size={36} className="mx-auto mb-4 text-stone-300" />
         <h2 className="font-serif text-2xl text-stone-800 mb-2">Set up your wedding first</h2>
         <p className="text-stone-400 text-sm mb-6">Add your details to generate your guest link.</p>
         <Link href="/setup" className="btn-primary">Go to Setup</Link>

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import TablesClient from './TablesClient'
 import SectionGuide from '@/components/SectionGuide'
-import { Share2 } from 'lucide-react'
+import { Share2, TriangleAlert } from 'lucide-react'
 import type { SeatTable, Guest, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 
 type TableWithGuests = SeatTable & { guests: Pick<Guest, 'id' | 'full_name' | 'side'>[] }
@@ -69,7 +69,7 @@ export default async function TablesPage() {
       />
       {atTableCap && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-sm text-amber-700 flex items-center justify-between gap-4">
-          <span>⚠️ You&apos;ve reached your plan limit of {tableCap} tables. Upgrade to add more.</span>
+          <span className="flex items-center gap-1.5"><TriangleAlert size={15} /> You&apos;ve reached your plan limit of {tableCap} tables. Upgrade to add more.</span>
           <Link href="/admin/plans" className="text-amber-700 font-medium underline whitespace-nowrap">Upgrade →</Link>
         </div>
       )}

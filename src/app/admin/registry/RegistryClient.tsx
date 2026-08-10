@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
+import { Gift } from 'lucide-react'
 import { deleteRegistryItem, toggleReceived } from './actions'
 import RegistryItemForm from './RegistryItemForm'
 import RegistryAssistant from './RegistryAssistant'
@@ -47,7 +48,7 @@ export default function RegistryClient({ items, atRegistryCap, availableCurrenci
 
       {items.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-rose-50">
-          <p className="text-4xl mb-3">🎁</p>
+          <Gift size={36} className="mx-auto mb-3 text-stone-300" />
           <p className="font-serif text-xl text-stone-700 mb-2">No registry items yet</p>
           <p className="text-stone-400 text-sm mb-5">Add items guests can buy or send cash for.</p>
           <button onClick={() => setAdding(true)} className="btn-primary">Add first item</button>
@@ -63,7 +64,9 @@ export default function RegistryClient({ items, atRegistryCap, availableCurrenci
                       <Image src={item.image_url} alt={item.name} fill className="object-cover" />
                     </div>
                   ) : (
-                    <div className="w-20 h-20 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center text-3xl">🎁</div>
+                    <div className="w-20 h-20 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center">
+                      <Gift size={26} className="text-rose-300" />
+                    </div>
                   )}
 
                   <div className="flex-1 min-w-0">

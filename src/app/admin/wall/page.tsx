@@ -12,7 +12,7 @@ function serviceClient() {
 }
 import WallClient from './WallClient'
 import SectionGuide from '@/components/SectionGuide'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, FolderOpen, Lock } from 'lucide-react'
 import type { WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
 
 export default async function WallPage() {
@@ -60,7 +60,7 @@ export default async function WallPage() {
       {hasMoments && driveFolderUrl && (
         <div className="flex items-center justify-between gap-4 p-4 bg-white border border-rose-50 rounded-2xl shadow-sm">
           <div className="flex items-center gap-3">
-            <span className="text-xl">📁</span>
+            <FolderOpen size={20} className="text-stone-400" />
             <div>
               <p className="text-sm font-medium text-stone-700">All guest photos, saved to Google Drive</p>
               <p className="text-xs text-stone-400 mt-0.5">
@@ -83,7 +83,7 @@ export default async function WallPage() {
       {!hasMoments && (
         <div className="flex items-center justify-between gap-4 p-4 bg-stone-50 border border-stone-200 rounded-2xl">
           <div className="flex items-center gap-3">
-            <span className="text-xl">🔒</span>
+            <Lock size={20} className="text-stone-400" />
             <div>
               <p className="text-sm font-medium text-stone-700">Moments is not on your current plan</p>
               <p className="text-xs text-stone-400 mt-0.5">
