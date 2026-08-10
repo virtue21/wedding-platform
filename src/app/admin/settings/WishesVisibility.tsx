@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Toggle from '@/components/Toggle'
 import { saveWishesVisibility } from './actions'
 
 export default function WishesVisibility({
@@ -38,16 +39,12 @@ export default function WishesVisibility({
             : 'Only you can read the wishes. Guests still leave them, but see just their own confirmation.'}
         </p>
       </div>
-      <button
-        onClick={toggle}
+      <Toggle
+        checked={isPublic}
+        onChange={toggle}
         disabled={saving}
-        aria-label={isPublic ? 'Make wishes private' : 'Share wishes with guests'}
-        className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 ${
-          isPublic ? 'bg-emerald-500' : 'bg-stone-200'
-        }`}
-      >
-        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPublic ? 'translate-x-6' : 'translate-x-1'}`} />
-      </button>
+        label={isPublic ? 'Make wishes private' : 'Share wishes with guests'}
+      />
     </div>
   )
 }
