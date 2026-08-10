@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import CategoriesClient from './CategoriesClient'
 import SectionGuide from '@/components/SectionGuide'
+import { Grid2x2 } from 'lucide-react'
 
 export default async function CategoriesPage() {
   const supabase = createClient()
@@ -15,7 +16,7 @@ export default async function CategoriesPage() {
   return (
     <div>
       <SectionGuide
-        icon="🏷️"
+        icon={Grid2x2}
         title="Guest Categories"
         body="These are the relationship groups guests choose from when they RSVP — things like Family, Church friends, Work colleagues, or University friends. Set them up per side (Bride's side / Groom's side) so you can see exactly how everyone knows you."
         tip="Set these up before sharing your invite link. Guests won't be able to RSVP without at least one category on each side."

@@ -17,6 +17,7 @@ function serviceClient() {
 }
 import WallClient from './WallClient'
 import SectionGuide from '@/components/SectionGuide'
+import { MessageSquare } from 'lucide-react'
 import type { WeddingNote, WeddingPhoto } from '@/lib/supabase/database.types'
 
 export default async function WallPage() {
@@ -54,7 +55,7 @@ export default async function WallPage() {
       </div>
 
       <SectionGuide
-        icon="💌"
+        icon={MessageSquare}
         title="Wishes & Moments"
         body="This is everything your guests have shared on your wedding page — written wishes from the Wishes tab and photos they've uploaded in Moments. You can delete anything that shouldn't be there."
         tip="Guests post directly from your invite page — no login needed. Share the link to encourage them to leave a message before the big day."

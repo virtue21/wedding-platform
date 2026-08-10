@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AdminRegistryTabs from './AdminRegistryTabs'
 import SectionGuide from '@/components/SectionGuide'
+import { Gift } from 'lucide-react'
 import type { RegistryItem, GiftClaim, CashGiftReceipt } from '@/lib/supabase/database.types'
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
@@ -74,7 +75,7 @@ export default async function RegistryPage() {
       </div>
 
       <SectionGuide
-        icon="🎁"
+        icon={Gift}
         title="How the registry works"
         body="Add items you'd love as gifts. For each item, guests can either buy it directly (if you add a shop link) or send the cash equivalent to your bank account. Add your bank details in Setup so guests can see where to transfer to."
         tip="Add a variety of price points — not everyone has the same budget. Items stay visible even after they're fully claimed."
