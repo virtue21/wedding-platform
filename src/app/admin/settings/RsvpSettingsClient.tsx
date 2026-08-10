@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CreditCard } from 'lucide-react'
+import Toggle from '@/components/Toggle'
 import { saveRsvpSettings } from './actions'
 
 type Props = {
@@ -71,14 +72,12 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
               <p className="text-xs text-amber-500 mt-2">RSVP is disabled. Guests can only view the registry.</p>
             )}
           </div>
-          {/* Toggle switch */}
-          <button
-            onClick={() => enabled ? handleDisable() : (hasActivePlan ? setShowPlansModal(true) : router.push('/admin/plans'))}
+          <Toggle
+            checked={enabled}
+            onChange={() => enabled ? handleDisable() : (hasActivePlan ? setShowPlansModal(true) : router.push('/admin/plans'))}
             disabled={saving}
-            className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${enabled ? 'bg-emerald-500' : 'bg-stone-200'}`}
-          >
-            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-          </button>
+            label={enabled ? 'Disable RSVP' : 'Enable RSVP'}
+          />
         </div>
 
         {/* RSVP Limit + Deadline */}
