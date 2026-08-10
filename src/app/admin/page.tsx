@@ -85,7 +85,7 @@ export default async function AdminOverviewPage() {
     .slice(0, 5)
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-3xl text-stone-800 mb-1">Overview</h1>
