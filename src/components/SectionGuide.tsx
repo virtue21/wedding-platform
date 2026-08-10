@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { LucideIcon } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Lightbulb, X } from 'lucide-react'
 
 type Props = {
   id: string
-  icon: LucideIcon
+  icon: ReactNode
   title: string
   body: string
   tip?: string
@@ -16,7 +15,7 @@ function storageKey(id: string) {
   return `nemi_guide_dismissed_${id}`
 }
 
-export default function SectionGuide({ id, icon: Icon, title, body, tip }: Props) {
+export default function SectionGuide({ id, icon, title, body, tip }: Props) {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export default function SectionGuide({ id, icon: Icon, title, body, tip }: Props
 
   return (
     <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-4 flex gap-3 mb-6">
-      <Icon size={18} className="flex-shrink-0 mt-0.5 text-amber-500" />
+      <div className="flex-shrink-0 mt-0.5 text-amber-500">{icon}</div>
       <div className="text-sm flex-1 min-w-0">
         <p className="font-medium text-stone-700">{title}</p>
         <p className="text-stone-500 mt-0.5 leading-relaxed">{body}</p>
