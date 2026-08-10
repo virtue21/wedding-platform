@@ -34,10 +34,16 @@ export async function POST(req: NextRequest) {
   // Short readable reference: nemi-<slug>-<last6 of timestamp>
   const shortTs = String(Date.now()).slice(-6)
   const reference = `nemi-${wedding.slug}-${shortTs}`
-  // Always use the production URL for the callback — never localhost
-  const baseUrl = process.env.PAYSTACK_CALLBACK_BASE_URL
-    ?? process.env.NEXT_PUBLIC_APP_URL
-    ?? 'https://nemiplanner.xyz'
+  // Send the couple back to whichever environment they actually checked
+  // out from (production vs uat) — a static env var can't tell those
+  // apart and previously sent every environment's callback to whatever
+  // single URL it was configured with. Paystack can't reach localhost,
+  // so that's the one case that still needs the env var fallback.
+  const requestOrigin = req.nextUrl.origin
+  const isLocal = requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1')
+  const baseUrl = isLocal
+    ? (process.env.PAYSTACK_CALLBACK_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://nemiplanner.xyz')
+    : requestOrigin
 
   const res = await fetch('https://api.paystack.co/transaction/initialize', {
     method: 'POST',

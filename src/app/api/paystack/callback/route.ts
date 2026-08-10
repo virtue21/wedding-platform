@@ -8,9 +8,16 @@ import { logAudit } from '@/lib/audit'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const reference = searchParams.get('reference')
-  const baseUrl = process.env.PAYSTACK_CALLBACK_BASE_URL
-    ?? process.env.NEXT_PUBLIC_APP_URL
-    ?? 'https://nemiplanner.xyz'
+  // This route is hit at whatever origin initialize sent Paystack as the
+  // callback_url, so it's already the right environment (prod vs uat) —
+  // no need to guess from a static env var here. Only Paystack calling
+  // back to a dev tunnel/localhost would need the fallback, and Paystack
+  // can't reach localhost anyway.
+  const requestOrigin = req.nextUrl.origin
+  const isLocal = requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1')
+  const baseUrl = isLocal
+    ? (process.env.PAYSTACK_CALLBACK_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://nemiplanner.xyz')
+    : requestOrigin
 
   if (!reference) return NextResponse.redirect(`${baseUrl}/admin/plans?error=missing_reference`)
 
