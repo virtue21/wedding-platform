@@ -26,6 +26,7 @@ type Props = {
   momentsCount?: number
   registryRemaining?: number
   confirmed?: boolean
+  justRsvpd?: boolean
 }
 
 export default function WeddingPageClient({
@@ -44,6 +45,7 @@ export default function WeddingPageClient({
   momentsCount,
   registryRemaining = 0,
   confirmed = false,
+  justRsvpd = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('home')
 
@@ -86,6 +88,7 @@ export default function WeddingPageClient({
             slug={slug}
             registryRemaining={registryRemaining}
             confirmed={confirmed}
+            justRsvpd={justRsvpd}
           />
         )}
 

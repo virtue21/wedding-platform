@@ -11,7 +11,13 @@ function formatDate(dateStr: string) {
   })
 }
 
-export default async function WeddingPage({ params }: { params: { slug: string } }) {
+export default async function WeddingPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string }
+  searchParams: { rsvp?: string }
+}) {
   const supabase = createClient()
   const { data: wedding } = await supabase
     .from('weddings').select('*').eq('slug', params.slug).single() as { data: WeddingRow | null }
@@ -72,6 +78,7 @@ export default async function WeddingPage({ params }: { params: { slug: string }
       momentsCount={momentsCount}
       registryRemaining={registryRemaining}
       confirmed={confirmed}
+      justRsvpd={searchParams.rsvp === '1'}
     />
   )
 }
