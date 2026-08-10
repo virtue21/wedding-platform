@@ -489,7 +489,7 @@ export default function CategoriesClient({ weddingId }: { weddingId: string }) {
     <div className="space-y-8">
       {/* Page header */}
       <div>
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Relationship Categories</h1>
+        <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Relationship Categories</h1>
         <p className="text-stone-400 text-sm">
           Guests pick a category when RSVPing. Add optional sub-categories to drill down further.
         </p>

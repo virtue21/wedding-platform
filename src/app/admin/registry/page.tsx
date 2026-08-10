@@ -70,7 +70,7 @@ export default async function RegistryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Gift Registry</h1>
+        <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Gift Registry</h1>
         <p className="text-stone-400 text-sm">Manage gift items and track cash transfers from guests</p>
       </div>
 

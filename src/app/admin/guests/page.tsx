@@ -121,7 +121,7 @@ export default async function GuestsPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-stone-800 mb-1">Guest List</h1>
+          <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Guest List</h1>
           <p className="text-stone-400 text-sm">
             {total === 0
               ? 'No guests yet — share your link to get RSVPs'

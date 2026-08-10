@@ -59,7 +59,7 @@ export default async function SetupPage({
     <AdminShell>
       <SetupTracker saved={!!searchParams.saved} />
       <div className="mb-6">
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Setup</h1>
+        <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Setup</h1>
         <p className="text-stone-400 text-sm">Your wedding details, payments, and story — shown to guests.</p>
       </div>
 
