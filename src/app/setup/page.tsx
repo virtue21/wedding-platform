@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import AdminShell from '@/app/admin/AdminShell'
+import { CreditCard, Mail } from 'lucide-react'
 import { saveWeddingSetup } from './actions'
 import { slugify } from '@/lib/slugify'
 import SlugField from './SlugField'
@@ -54,18 +56,14 @@ export default async function SetupPage({
   const guestUrl = `${baseUrl}/${defaultSlug}`
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <AdminShell>
       <SetupTracker saved={!!searchParams.saved} />
-      <header className="bg-white border-b border-rose-50">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-serif text-stone-800 text-base">💍 Wedding Setup</span>
-          <a href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
-            Dashboard →
-          </a>
-        </div>
-      </header>
+      <div className="mb-6">
+        <h1 className="font-serif text-3xl text-stone-800 mb-1">Setup</h1>
+        <p className="text-stone-400 text-sm">Your wedding details, payments, and story — shown to guests.</p>
+      </div>
 
-      <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-3xl space-y-6">
         {searchParams.error && (
           <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-sm text-red-700">
             {searchParams.error}
@@ -81,7 +79,7 @@ export default async function SetupPage({
         {wedding && !subActive && (
           <div className="flex items-center justify-between gap-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
             <div className="flex items-center gap-3">
-              <span className="text-xl">💳</span>
+              <CreditCard size={20} className="text-amber-500" />
               <div>
                 <p className="text-sm font-medium text-amber-800">Your guests can&apos;t RSVP yet</p>
                 <p className="text-xs text-amber-700/80 mt-0.5">
@@ -108,7 +106,7 @@ export default async function SetupPage({
                 Account email
               </label>
               <div className="flex items-center gap-2 px-3.5 py-2.5 border border-stone-200 rounded-xl bg-stone-50 text-sm text-stone-500">
-                <span>✉️</span>
+                <Mail size={15} className="text-stone-400" />
                 <span className="truncate">{user.email}</span>
               </div>
               <p className="mt-1 text-xs text-stone-400">
@@ -245,7 +243,7 @@ export default async function SetupPage({
             <QRDownload url={guestUrl} />
           </section>
         )}
-      </main>
-    </div>
+      </div>
+    </AdminShell>
   )
 }

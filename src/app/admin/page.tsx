@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import ShareInviteButton from './ShareInviteButton'
 
 function StatCard({ label, value, sub, tone }: { label: string; value: string | number; sub: string; tone?: 'green' | 'amber' | 'default' }) {
   const valueColor = tone === 'green' ? 'text-emerald-600' : tone === 'amber' ? 'text-amber-600' : 'text-stone-800'
@@ -56,14 +57,7 @@ export default async function AdminOverviewPage() {
             {wedding.rsvp_deadline && ` · replies close ${new Date(wedding.rsvp_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
           </p>
         </div>
-        {inviteUrl && (
-          <Link
-            href="/admin/settings"
-            className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl transition-colors"
-          >
-            Share your invite link
-          </Link>
-        )}
+        {inviteUrl && <ShareInviteButton url={inviteUrl} />}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

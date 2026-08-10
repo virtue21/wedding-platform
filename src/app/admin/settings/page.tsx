@@ -53,6 +53,7 @@ export default async function SettingsPage() {
       </div>
 
       <SectionGuide
+        id="settings"
         icon={SettingsIcon}
         title="Control what guests can see"
         body="Use RSVP toggle to open or close attendance confirmation — turn it off once you've reached your headcount or after the RSVP deadline. Your plan controls how many guests, registry items, and tables you can have."
