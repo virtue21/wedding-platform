@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   // that requested the link, so cross-device resets fail without this.
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/admin/guests'
+  const next = searchParams.get('next') ?? '/admin'
 
   const supabase = createClient()
   let authError: string | null = null
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   if (!authError) {
     // Password reset (or any explicit destination) — honour it.
-    if (next !== '/admin/guests') {
+    if (next !== '/admin') {
       return NextResponse.redirect(`${origin}${next}`)
     }
 

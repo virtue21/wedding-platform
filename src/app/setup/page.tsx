@@ -59,7 +59,7 @@ export default async function SetupPage({
       <header className="bg-white border-b border-rose-50">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <span className="font-serif text-stone-800 text-base">💍 Wedding Setup</span>
-          <a href="/admin/guests" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
+          <a href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">
             Dashboard →
           </a>
         </div>

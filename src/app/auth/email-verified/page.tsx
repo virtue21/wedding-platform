@@ -38,7 +38,7 @@ export default function EmailVerifiedPage() {
 
           <p className="text-xs text-stone-300 mt-5">
             Already signed in?{' '}
-            <Link href="/admin/guests" className="text-rose-400 hover:text-rose-500 transition-colors">
+            <Link href="/admin" className="text-rose-400 hover:text-rose-500 transition-colors">
               Go to dashboard
             </Link>
           </p>

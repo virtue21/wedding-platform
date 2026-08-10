@@ -30,7 +30,7 @@ export default async function SettingsPage() {
   if (!user) redirect('/auth/login')
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, rsvp_enabled, rsvp_limit, wishes_public')
+    .select('id, rsvp_enabled, rsvp_limit, rsvp_deadline, wishes_public')
     .eq('user_id', user.id)
     .single()
   if (!wedding) redirect('/setup')
@@ -91,6 +91,7 @@ export default async function SettingsPage() {
         weddingId={wedding.id}
         initialEnabled={wedding.rsvp_enabled ?? true}
         initialLimit={wedding.rsvp_limit ?? null}
+        initialDeadline={wedding.rsvp_deadline ?? null}
         currentCount={count ?? 0}
         hasActivePlan={planInfo.isActive}
       />

@@ -83,7 +83,7 @@ export async function saveWeddingSetup(formData: FormData) {
   }
 
   revalidatePath('/setup')
-  revalidatePath('/admin/guests')
+  revalidatePath('/admin')
   redirect('/setup?saved=1')
 }
 
