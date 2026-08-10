@@ -8,20 +8,22 @@ type Props = {
   weddingId: string
   initialEnabled: boolean
   initialLimit: number | null
+  initialDeadline: string | null
   currentCount: number
   hasActivePlan?: boolean
 }
 
-export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, currentCount, hasActivePlan }: Props) {
+export default function RsvpSettingsClient({ weddingId, initialEnabled, initialLimit, initialDeadline, currentCount, hasActivePlan }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const [limit, setLimit] = useState<number | null>(initialLimit)
+  const [deadline, setDeadline] = useState<string | null>(initialDeadline)
   const [saving, setSaving] = useState(false)
   const [showPlansModal, setShowPlansModal] = useState(false)
   const router = useRouter()
 
   async function handleEnable() {
     setSaving(true)
-    await saveRsvpSettings(weddingId, true, limit)
+    await saveRsvpSettings(weddingId, true, limit, deadline)
     setEnabled(true)
     setShowPlansModal(false)
     setSaving(false)
@@ -29,14 +31,14 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
 
   async function handleDisable() {
     setSaving(true)
-    await saveRsvpSettings(weddingId, false, limit)
+    await saveRsvpSettings(weddingId, false, limit, deadline)
     setEnabled(false)
     setSaving(false)
   }
 
   async function handleSaveLimit() {
     setSaving(true)
-    await saveRsvpSettings(weddingId, enabled, limit)
+    await saveRsvpSettings(weddingId, enabled, limit, deadline)
     setSaving(false)
   }
 
@@ -75,32 +77,58 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
           </button>
         </div>
 
-        {/* RSVP Limit */}
+        {/* RSVP Limit + Deadline */}
         {enabled && (
-          <div className="mt-5 pt-5 border-t border-rose-50">
-            <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">RSVP Limit (optional)</label>
-            <div className="flex gap-3 items-center">
-              <input
-                type="number"
-                min={1}
-                value={limit ?? ''}
-                onChange={e => setLimit(e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="No limit"
-                className="w-32 px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
-              />
-              <button
-                onClick={handleSaveLimit}
-                disabled={saving}
-                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
-              >
-                {saving ? 'Saving…' : 'Save'}
-              </button>
+          <div className="mt-5 pt-5 border-t border-rose-50 space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">RSVP Limit (optional)</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="number"
+                  min={1}
+                  value={limit ?? ''}
+                  onChange={e => setLimit(e.target.value ? parseInt(e.target.value) : null)}
+                  placeholder="No limit"
+                  className="w-32 px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                />
+                <button
+                  onClick={handleSaveLimit}
+                  disabled={saving}
+                  className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+              <p className="text-xs text-stone-400 mt-1.5">
+                {limit
+                  ? `RSVP will close after ${limit} confirmations. Currently ${currentCount}/${limit} used.`
+                  : 'Guests can RSVP without limit.'}
+              </p>
             </div>
-            <p className="text-xs text-stone-400 mt-1.5">
-              {limit
-                ? `RSVP will close after ${limit} confirmations. Currently ${currentCount}/${limit} used.`
-                : 'Guests can RSVP without limit.'}
-            </p>
+
+            <div>
+              <label className="block text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">RSVP Closing Date (optional)</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="date"
+                  value={deadline ?? ''}
+                  onChange={e => setDeadline(e.target.value || null)}
+                  className="px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-rose-200"
+                />
+                <button
+                  onClick={handleSaveLimit}
+                  disabled={saving}
+                  className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+              <p className="text-xs text-stone-400 mt-1.5">
+                {deadline
+                  ? `Replies close on ${new Date(deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`
+                  : 'No closing date set — guests can RSVP any time.'}
+              </p>
+            </div>
           </div>
         )}
       </div>

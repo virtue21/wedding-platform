@@ -345,7 +345,7 @@ export default async function RootPage({
 
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/admin/guests')
+  if (user) redirect('/admin')
 
   const problems = [
     { Icon: Users,          text: "You need a number for the caterer and all you have is maybes" },

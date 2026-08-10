@@ -75,7 +75,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/admin/guests')
+  redirect('/admin')
 }
 
 export async function forgotPassword(formData: FormData) {
