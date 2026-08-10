@@ -139,10 +139,6 @@ export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: 
             // Hide downgrade options — one-off payment, can't go backwards
             if (isDowngrade) return null
 
-            const upgradeDelta = planInfo.isActive && isUpgrade && planInfo.plan
-              ? plan.price - planInfo.plan.price
-              : null
-
             let ctaLabel = 'Get started'
             if (isLoading) ctaLabel = 'Redirecting…'
             else if (planInfo.isActive && isUpgrade) ctaLabel = 'Upgrade'
@@ -216,11 +212,6 @@ export default function PlansClient({ plans, planInfo, weddingId: _weddingId }: 
                     >
                       {ctaLabel}
                     </button>
-                  )}
-                  {upgradeDelta !== null && upgradeDelta > 0 && (
-                    <p className={`text-xs text-center mt-2 ${isCurrent || isHighlighted ? 'text-white/60' : 'text-stone-400'}`}>
-                      You&apos;ll be charged {formatPrice(upgradeDelta)} — the difference from your current plan.
-                    </p>
                   )}
                 </div>
               </div>
