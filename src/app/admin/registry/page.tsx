@@ -75,6 +75,7 @@ export default async function RegistryPage() {
       </div>
 
       <SectionGuide
+        id="registry"
         icon={Gift}
         title="How the registry works"
         body="Add items you'd love as gifts. For each item, guests can either buy it directly (if you add a shop link) or send the cash equivalent to your bank account. Add your bank details in Setup so guests can see where to transfer to."

@@ -16,6 +16,7 @@ export default async function CategoriesPage() {
   return (
     <div>
       <SectionGuide
+        id="categories"
         icon={Grid2x2}
         title="Guest Categories"
         body="These are the relationship groups guests choose from when they RSVP — things like Family, Church friends, Work colleagues, or University friends. Set them up per side (Bride's side / Groom's side) so you can see exactly how everyone knows you."

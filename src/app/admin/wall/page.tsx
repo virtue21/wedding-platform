@@ -55,6 +55,7 @@ export default async function WallPage() {
       </div>
 
       <SectionGuide
+        id="wall"
         icon={MessageSquare}
         title="Wishes & Moments"
         body="This is everything your guests have shared on your wedding page — written wishes from the Wishes tab and photos they've uploaded in Moments. You can delete anything that shouldn't be there."
