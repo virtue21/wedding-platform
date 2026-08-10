@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { reconcilePayment } from './actions'
 
 type Sub = {
   id: string
@@ -37,6 +38,57 @@ function StatusBadge({ status }: { status: string }) {
     <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${styles[status] ?? 'bg-stone-700 text-stone-400'}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
+  )
+}
+
+function ReconcilePaymentForm() {
+  const [reference, setReference] = useState('')
+  const [isPending, startTransition] = useTransition()
+  const [result, setResult] = useState<{ error?: string; success?: boolean; amountKobo?: number } | null>(null)
+
+  function submit() {
+    if (!reference.trim()) return
+    setResult(null)
+    startTransition(async () => {
+      const res = await reconcilePayment(reference.trim())
+      setResult(res)
+      if (res.success) setReference('')
+    })
+  }
+
+  return (
+    <div className="bg-stone-900 border border-stone-800 rounded-2xl p-5">
+      <h2 className="text-white text-sm font-semibold mb-1">Reconcile a stuck payment</h2>
+      <p className="text-stone-500 text-xs mb-3">
+        Couple was charged and got confirmation emails, but shows no active plan. Paste the Paystack reference
+        (from Paystack&apos;s dashboard or the confirmation email) to re-verify and force-activate.
+      </p>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={reference}
+          onChange={e => setReference(e.target.value)}
+          placeholder="nemi-couple-slug-123456"
+          className="flex-1 bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-sm text-stone-200 placeholder:text-stone-600 font-mono"
+        />
+        <button
+          type="button"
+          onClick={submit}
+          disabled={isPending || !reference.trim()}
+          className="px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+        >
+          {isPending ? 'Verifying…' : 'Verify & activate'}
+        </button>
+      </div>
+      {result?.error && (
+        <p className="text-red-400 text-xs mt-2">{result.error}</p>
+      )}
+      {result?.success && (
+        <p className="text-green-400 text-xs mt-2">
+          Activated — {result.amountKobo ? formatCurrency(result.amountKobo) : 'amount unknown'} confirmed with Paystack.
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -117,6 +169,8 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
         <h1 className="text-white text-2xl font-semibold">Subscriptions</h1>
         <p className="text-stone-400 text-sm mt-1">All plan activations — paid and free trials</p>
       </div>
+
+      <ReconcilePaymentForm />
 
       {/* Date filter */}
       <div className="flex flex-wrap items-center gap-2">
