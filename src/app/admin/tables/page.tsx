@@ -54,7 +54,7 @@ export default async function TablesPage() {
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="font-serif text-3xl text-stone-800 mb-1">Seating Plan</h1>
+          <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Seating Plan</h1>
           <p className="text-stone-400 text-sm">
             {totalSeated} of {(guests ?? []).length} guests assigned to a table
           </p>

@@ -99,7 +99,7 @@ export default async function AdminOverviewPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-serif text-3xl text-stone-800 mb-1">Overview</h1>
+          <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Overview</h1>
           <p className="text-stone-400 text-sm">
             {daysToGo !== null ? `${daysToGo} ${daysToGo === 1 ? 'day' : 'days'} to go` : 'Set your wedding date in Setup'}
             {wedding.rsvp_deadline && ` · replies close ${new Date(wedding.rsvp_deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`}

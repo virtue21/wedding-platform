@@ -50,7 +50,7 @@ export default async function WallPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Guest Wall</h1>
+        <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Guest Wall</h1>
         <p className="text-stone-400 text-sm">Wishes and moments shared by your guests</p>
       </div>
 

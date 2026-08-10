@@ -48,7 +48,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-stone-800 mb-1">Settings</h1>
+        <h1 className="font-serif text-3xl font-bold text-stone-800 mb-1">Settings</h1>
         <p className="text-stone-400 text-sm">Control your wedding page features</p>
       </div>
 
