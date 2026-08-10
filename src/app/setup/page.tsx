@@ -63,7 +63,7 @@ export default async function SetupPage({
         <p className="text-stone-400 text-sm">Your wedding details, payments, and story — shown to guests.</p>
       </div>
 
-      <div className="max-w-4xl space-y-6">
+      <div className="space-y-6">
         {searchParams.error && (
           <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-sm text-red-700">
             {searchParams.error}

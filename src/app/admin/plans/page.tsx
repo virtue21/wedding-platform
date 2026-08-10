@@ -20,7 +20,7 @@ export default async function PlansPage({ searchParams }: { searchParams: { succ
   const plans = (plansResult.data ?? []) as Plan[]
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-serif text-3xl text-stone-800 mb-1">Plans</h1>
         <p className="text-stone-400 text-sm">Choose a plan that fits your wedding size</p>
