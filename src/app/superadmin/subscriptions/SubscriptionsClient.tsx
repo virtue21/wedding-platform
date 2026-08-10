@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 
 type Sub = {
@@ -39,8 +40,54 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+type RangeKey = 'today' | '7d' | '30d' | 'all' | 'custom'
+
+const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: '7d', label: '7 days' },
+  { key: '30d', label: '30 days' },
+  { key: 'all', label: 'All time' },
+  { key: 'custom', label: 'Custom' },
+]
+
+function startOfDay(d: Date) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
+
 export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
-  const paidSubs = subs.filter(s => (s.amount_paid ?? 0) > 0)
+  const [range, setRange] = useState<RangeKey>('today')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
+
+  const filteredSubs = useMemo(() => {
+    if (range === 'all') return subs
+
+    const now = new Date()
+    let from: Date | null = null
+    let to: Date | null = null
+
+    if (range === 'today') {
+      from = startOfDay(now)
+    } else if (range === '7d') {
+      from = startOfDay(new Date(now.getTime() - 6 * 86400000))
+    } else if (range === '30d') {
+      from = startOfDay(new Date(now.getTime() - 29 * 86400000))
+    } else if (range === 'custom') {
+      from = customFrom ? startOfDay(new Date(customFrom)) : null
+      to = customTo ? new Date(new Date(customTo).getTime() + 86400000) : null
+    }
+
+    return subs.filter(s => {
+      const at = new Date(s.activated_at ?? s.created_at)
+      if (from && at < from) return false
+      if (to && at >= to) return false
+      return true
+    })
+  }, [subs, range, customFrom, customTo])
+
+  const paidSubs = filteredSubs.filter(s => (s.amount_paid ?? 0) > 0)
   const revenue = paidSubs
     .filter(s => s.status === 'active' || s.status === 'expired')
     .reduce((sum, s) => sum + (s.amount_paid ?? 0), 0)
@@ -48,17 +95,17 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
   const stats = [
     {
       label: 'Paid & Active',
-      value: subs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) > 0).length,
+      value: filteredSubs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) > 0).length,
       color: 'text-green-400',
     },
     {
       label: 'Free Trials',
-      value: subs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) === 0).length,
+      value: filteredSubs.filter(s => s.status === 'active' && (s.amount_paid ?? 0) === 0).length,
       color: 'text-blue-400',
     },
     {
       label: 'Incomplete',
-      value: subs.filter(s => s.status === 'pending').length,
+      value: filteredSubs.filter(s => s.status === 'pending').length,
       color: 'text-yellow-400',
     },
     { label: 'Revenue', value: formatCurrency(revenue), color: 'text-rose-400' },
@@ -69,6 +116,41 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
       <div>
         <h1 className="text-white text-2xl font-semibold">Subscriptions</h1>
         <p className="text-stone-400 text-sm mt-1">All plan activations — paid and free trials</p>
+      </div>
+
+      {/* Date filter */}
+      <div className="flex flex-wrap items-center gap-2">
+        {RANGE_OPTIONS.map(opt => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setRange(opt.key)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              range === opt.key
+                ? 'bg-rose-500 border-rose-500 text-white'
+                : 'bg-stone-900 border-stone-800 text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+        {range === 'custom' && (
+          <div className="flex items-center gap-2 ml-1">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={e => setCustomFrom(e.target.value)}
+              className="bg-stone-900 border border-stone-800 rounded-lg px-2.5 py-1.5 text-xs text-stone-200"
+            />
+            <span className="text-stone-500 text-xs">to</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={e => setCustomTo(e.target.value)}
+              className="bg-stone-900 border border-stone-800 rounded-lg px-2.5 py-1.5 text-xs text-stone-200"
+            />
+          </div>
+        )}
       </div>
 
       {/* Stats row */}
@@ -94,7 +176,7 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
             </tr>
           </thead>
           <tbody>
-            {subs.map(s => (
+            {filteredSubs.map(s => (
               <tr key={s.id} className="border-b border-stone-800/50 hover:bg-stone-800/20 transition-colors">
                 <td className="px-5 py-3.5">
                   {s.wedding_id ? (
@@ -125,8 +207,10 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
             ))}
           </tbody>
         </table>
-        {subs.length === 0 && (
-          <div className="text-center py-12 text-stone-500 text-sm">No payments yet</div>
+        {filteredSubs.length === 0 && (
+          <div className="text-center py-12 text-stone-500 text-sm">
+            {subs.length === 0 ? 'No payments yet' : 'No activity in this date range'}
+          </div>
         )}
       </div>
     </div>
