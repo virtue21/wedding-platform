@@ -21,21 +21,24 @@ function assertSuperadmin() {
 export async function pauseSubscription(subId: string) {
   assertSuperadmin()
   const sb = serviceClient()
-  await sb.from('wedding_subscriptions').update({ status: 'paused' }).eq('id', subId)
+  const { data } = await sb.from('wedding_subscriptions').update({ status: 'paused' }).eq('id', subId).select('wedding_id').single()
+  if (data) await sb.from('weddings').update({ rsvp_enabled: false }).eq('id', data.wedding_id)
   revalidatePath('/superadmin/subscriptions')
 }
 
 export async function resumeSubscription(subId: string) {
   assertSuperadmin()
   const sb = serviceClient()
-  await sb.from('wedding_subscriptions').update({ status: 'active' }).eq('id', subId)
+  const { data } = await sb.from('wedding_subscriptions').update({ status: 'active' }).eq('id', subId).select('wedding_id').single()
+  if (data) await sb.from('weddings').update({ rsvp_enabled: true }).eq('id', data.wedding_id)
   revalidatePath('/superadmin/subscriptions')
 }
 
 export async function cancelSubscription(subId: string) {
   assertSuperadmin()
   const sb = serviceClient()
-  await sb.from('wedding_subscriptions').update({ status: 'cancelled' }).eq('id', subId)
+  const { data } = await sb.from('wedding_subscriptions').update({ status: 'cancelled' }).eq('id', subId).select('wedding_id').single()
+  if (data) await sb.from('weddings').update({ rsvp_enabled: false }).eq('id', data.wedding_id)
   revalidatePath('/superadmin/subscriptions')
 }
 
