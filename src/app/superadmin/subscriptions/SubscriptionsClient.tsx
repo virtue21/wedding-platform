@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { reconcilePayment } from './actions'
+import { reconcilePayment, pauseSubscription, resumeSubscription, cancelSubscription } from './actions'
 
 type Sub = {
   id: string
@@ -38,6 +38,52 @@ function StatusBadge({ status }: { status: string }) {
     <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${styles[status] ?? 'bg-stone-700 text-stone-400'}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
+  )
+}
+
+function SubActions({ sub }: { sub: Sub }) {
+  const [isPending, startTransition] = useTransition()
+
+  function run(action: (id: string) => Promise<void>) {
+    if (isPending) return
+    startTransition(() => action(sub.id))
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {sub.status === 'active' && (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => run(pauseSubscription)}
+          className="px-2.5 py-1 text-xs rounded-lg border border-stone-700 text-stone-300 hover:border-amber-500/50 hover:text-amber-400 disabled:opacity-50 transition-colors"
+        >
+          Pause
+        </button>
+      )}
+      {sub.status === 'paused' && (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => run(resumeSubscription)}
+          className="px-2.5 py-1 text-xs rounded-lg border border-stone-700 text-stone-300 hover:border-green-500/50 hover:text-green-400 disabled:opacity-50 transition-colors"
+        >
+          Resume
+        </button>
+      )}
+      {(sub.status === 'active' || sub.status === 'paused') && (
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            if (confirm(`Cancel ${sub.coupleName}'s ${sub.planName} plan? This turns off RSVP and paid features.`)) run(cancelSubscription)
+          }}
+          className="px-2.5 py-1 text-xs rounded-lg border border-stone-700 text-stone-300 hover:border-red-500/50 hover:text-red-400 disabled:opacity-50 transition-colors"
+        >
+          Cancel
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -227,6 +273,7 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Status</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Date</th>
               <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Ref</th>
+              <th className="text-left text-stone-400 text-xs font-medium px-5 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -256,6 +303,9 @@ export default function SubscriptionsClient({ subs }: { subs: Sub[] }) {
                 <td className="px-5 py-3.5 text-stone-400 text-xs">{formatDate(s.activated_at ?? s.created_at)}</td>
                 <td className="px-5 py-3.5 text-stone-500 text-xs font-mono">
                   {s.paystack_reference ? s.paystack_reference.slice(0, 12) + '…' : '—'}
+                </td>
+                <td className="px-5 py-3.5">
+                  <SubActions sub={s} />
                 </td>
               </tr>
             ))}
