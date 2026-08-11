@@ -75,7 +75,7 @@ export default function WeddingPageClient({
       </header>
 
       {/* Main content */}
-      <div className={activeTab === 'home' ? 'pb-20' : 'pt-14 pb-20'}>
+      <div className={activeTab === 'home' ? 'pb-28' : 'pt-14 pb-28'}>
 
         {/* ── HOME TAB ── */}
         {activeTab === 'home' && (
@@ -109,21 +109,24 @@ export default function WeddingPageClient({
       </div>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-rose-50">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-rose-50"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
         <div className="max-w-lg mx-auto flex">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5"
+              className="flex-1 flex flex-col items-center justify-center py-3.5 gap-2"
             >
               <span
                 className="rounded-full"
-                style={{ width: 5, height: 5, background: activeTab === tab.id ? '#e11d48' : '#d6d3d1' }}
+                style={{ width: 6, height: 6, background: activeTab === tab.id ? '#e11d48' : '#d6d3d1' }}
               />
               <span
                 className="font-semibold"
-                style={{ fontSize: 11, letterSpacing: '0.04em', color: activeTab === tab.id ? '#e11d48' : '#a8a29e' }}
+                style={{ fontSize: 12, letterSpacing: '0.04em', color: activeTab === tab.id ? '#e11d48' : '#a8a29e' }}
               >
                 {tab.label}
               </span>
@@ -131,10 +134,10 @@ export default function WeddingPageClient({
           ))}
           <Link
             href={`/${slug}/registry`}
-            className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1.5"
+            className="flex-1 flex flex-col items-center justify-center py-3.5 gap-2"
           >
-            <span className="rounded-full" style={{ width: 5, height: 5, background: '#d6d3d1' }} />
-            <span className="font-semibold" style={{ fontSize: 11, letterSpacing: '0.04em', color: '#a8a29e' }}>
+            <span className="rounded-full" style={{ width: 6, height: 6, background: '#d6d3d1' }} />
+            <span className="font-semibold" style={{ fontSize: 12, letterSpacing: '0.04em', color: '#a8a29e' }}>
               Registry
             </span>
           </Link>
