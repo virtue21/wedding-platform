@@ -53,13 +53,13 @@ export default function SideAndCategory({ brideCategories, groomCategories, subc
               key={s}
               type="button"
               onClick={() => handleSideChange(s)}
-              className={`py-2.5 px-3 rounded-xl border text-sm font-medium transition-colors ${
+              className={`py-2.5 px-2 rounded-xl border text-sm font-medium whitespace-nowrap transition-colors ${
                 side === s
                   ? 'bg-rose-500 border-rose-500 text-white shadow-sm shadow-rose-200'
                   : 'border-rose-100 text-stone-500 hover:border-rose-200 bg-white'
               }`}
             >
-              {s === 'bride' ? 'The Bride' : s === 'groom' ? 'The Groom' : 'Both'}
+              {s === 'bride' ? 'Bride' : s === 'groom' ? 'Groom' : 'Both'}
             </button>
           ))}
         </div>
