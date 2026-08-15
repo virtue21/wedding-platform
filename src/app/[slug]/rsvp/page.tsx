@@ -8,6 +8,8 @@ import RsvpPageTracker from './RsvpPageTracker'
 import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 import { getWeddingEntitlements } from '@/lib/subscription'
 
+export const dynamic = 'force-dynamic'
+
 export default async function RsvpPage({
   params,
   searchParams,

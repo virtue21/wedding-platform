@@ -5,6 +5,8 @@ import RegistryTabs from './RegistryTabs'
 import RegistryViewTracker from './RegistryViewTracker'
 import type { WeddingRow, RegistryItem, Guest, WeddingPaymentMethod } from '@/lib/supabase/database.types'
 
+export const dynamic = 'force-dynamic'
+
 export default async function RegistryPage({
   params,
   searchParams,
