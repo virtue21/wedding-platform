@@ -5,6 +5,12 @@ import { getWeddingEntitlements } from '@/lib/subscription'
 import WeddingPageClient from './WeddingPageClient'
 import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@/lib/supabase/database.types'
 
+// A guest's very first visit — often before the couple has finished Setup —
+// can get cached with placeholder "Bride"/"Groom" fallback text baked in.
+// Without this, that stale render can keep serving to some visitors
+// indefinitely, inconsistently across browsers/edge nodes.
+export const dynamic = 'force-dynamic'
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-NG', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
