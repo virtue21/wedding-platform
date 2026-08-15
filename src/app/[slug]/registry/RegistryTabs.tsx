@@ -1,10 +1,32 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { Gift } from 'lucide-react'
 import BankDetails from './BankDetails'
 import ClaimButton from './ClaimButton'
 import type { RegistryItem, WeddingPaymentMethod } from '@/lib/supabase/database.types'
+
+// Catalog-sourced items can carry an image_url from anywhere (a retailer's
+// own CDN), which next/image's domain allowlist rejects — that showed up
+// as a broken-image icon with the alt text bleeding through. A plain
+// <img> with onError sidesteps the allowlist and falls back to the same
+// placeholder used for items with no image at all.
+function ItemImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return (
+      <div className="w-20 h-20 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
+        <Gift size={26} className="text-stone-300" />
+      </div>
+    )
+  }
+  return (
+    <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-stone-100">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setFailed(true)} />
+    </div>
+  )
+}
 
 type Props = {
   weddingId: string
@@ -78,12 +100,10 @@ export default function RegistryTabs({ weddingId, paymentMethods, items: initial
                   className={`bg-white rounded-2xl border p-4 flex gap-4 shadow-sm ${isClaimed ? 'opacity-60 border-stone-100' : 'border-rose-50'}`}
                 >
                   {item.image_url ? (
-                    <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-stone-100">
-                      <Image src={item.image_url} alt={item.name} fill className="object-cover" />
-                    </div>
+                    <ItemImage src={item.image_url} alt={item.name} />
                   ) : (
-                    <div className="w-20 h-20 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center text-2xl">
-                      🎁
+                    <div className="w-20 h-20 shrink-0 rounded-xl bg-stone-100 flex items-center justify-center">
+                      <Gift size={26} className="text-stone-300" />
                     </div>
                   )}
 
