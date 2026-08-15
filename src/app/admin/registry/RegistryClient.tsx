@@ -1,13 +1,35 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Image from 'next/image'
 import { Gift } from 'lucide-react'
 import { deleteRegistryItem, toggleReceived } from './actions'
 import RegistryItemForm from './RegistryItemForm'
 import RegistryAssistant from './RegistryAssistant'
 import type { RegistryItem, GiftClaim } from '@/lib/supabase/database.types'
 import { track } from '@/lib/mixpanel'
+
+// Catalog-sourced items can carry an image_url from anywhere (a retailer's
+// own CDN, not just our Supabase bucket or Unsplash), so next/image's
+// domain allowlist rejects most of them — that showed up as a broken-image
+// icon with the alt text bleeding through instead of any kind of graceful
+// fallback. A plain <img> with onError sidesteps the allowlist and falls
+// back to the same placeholder used for items with no image at all.
+function ItemImage({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return (
+      <div className="w-20 h-20 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center">
+        <Gift size={26} className="text-rose-300" />
+      </div>
+    )
+  }
+  return (
+    <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-rose-50">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setFailed(true)} />
+    </div>
+  )
+}
 
 type ItemWithClaims = RegistryItem & { gift_claims: GiftClaim[] }
 
@@ -60,9 +82,7 @@ export default function RegistryClient({ items, atRegistryCap, availableCurrenci
               <div key={item.id} className="bg-white rounded-2xl border border-rose-50 shadow-sm overflow-hidden">
                 <div className="flex gap-4 p-5">
                   {item.image_url ? (
-                    <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-rose-50">
-                      <Image src={item.image_url} alt={item.name} fill className="object-cover" />
-                    </div>
+                    <ItemImage src={item.image_url} alt={item.name} />
                   ) : (
                     <div className="w-20 h-20 shrink-0 rounded-xl bg-rose-50 flex items-center justify-center">
                       <Gift size={26} className="text-rose-300" />
