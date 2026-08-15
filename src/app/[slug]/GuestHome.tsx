@@ -82,7 +82,11 @@ export default function GuestHome({
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
-  const [showToast, setShowToast] = useState(confirmed && wedding.rsvp_enabled)
+  // justRsvpd (the one-time ?rsvp=1 flag) is the only thing that should
+  // ever show this toast — confirmed is the guest's persistent cookie
+  // state and stays true on every future visit, which used to re-fire the
+  // "we've let them know" toast on every refresh or page change.
+  const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     if (!justRsvpd) return
@@ -92,11 +96,11 @@ export default function GuestHome({
   }, [justRsvpd, slug, pathname, router])
 
   useEffect(() => {
-    if (!(confirmed && wedding.rsvp_enabled)) return
+    if (!(justRsvpd && confirmed && wedding.rsvp_enabled)) return
     setShowToast(true)
     const t = setTimeout(() => setShowToast(false), TOAST_MS)
     return () => clearTimeout(t)
-  }, [confirmed, wedding.rsvp_enabled])
+  }, [justRsvpd, confirmed, wedding.rsvp_enabled])
 
   const countdown = daysAway(wedding.wedding_date)
   const deadline = formatDeadline(wedding.rsvp_deadline)
