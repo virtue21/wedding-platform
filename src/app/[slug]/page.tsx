@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getWeddingEntitlements } from '@/lib/subscription'
+import { getCoupleNames } from '@/lib/coupleNames'
 import WeddingPageClient from './WeddingPageClient'
 import type { WeddingRow, WeddingNote, WeddingPhoto, WeddingStorySlide } from '@/lib/supabase/database.types'
 
@@ -29,8 +30,8 @@ export default async function WeddingPage({
     .from('weddings').select('*').eq('slug', params.slug).single() as { data: WeddingRow | null }
   if (!wedding) notFound()
 
-  const [profileResult, notesResult, photosResult, slidesResult, registryResult, entitlements] = await Promise.all([
-    supabase.from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single(),
+  const [coupleNames, notesResult, photosResult, slidesResult, registryResult, entitlements] = await Promise.all([
+    getCoupleNames(wedding.user_id),
     supabase.from('wedding_notes').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_photos').select('*').eq('wedding_id', wedding.id).order('created_at', { ascending: false }).limit(50),
     supabase.from('wedding_story_slides').select('*').eq('wedding_id', wedding.id).order('slide_number'),
@@ -57,8 +58,7 @@ export default async function WeddingPage({
   // Set when this guest RSVP'd, so we greet them instead of re-asking
   const confirmed = !!cookies().get(`nemi_guest_${wedding.id}`)?.value
 
-  const brideName = profileResult.data?.bride_name ?? 'Bride'
-  const groomName = profileResult.data?.groom_name ?? 'Groom'
+  const { brideName, groomName } = coupleNames
   const hasMap = wedding.venue_lat != null && wedding.venue_lng != null
   const mapQuery = wedding.venue_address ?? wedding.venue_name
   const directionsUrl = hasMap

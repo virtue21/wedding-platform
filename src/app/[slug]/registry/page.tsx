@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import RegistryTabs from './RegistryTabs'
 import RegistryViewTracker from './RegistryViewTracker'
 import type { WeddingRow, RegistryItem, Guest, WeddingPaymentMethod } from '@/lib/supabase/database.types'
+import { getCoupleNames } from '@/lib/coupleNames'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,11 +25,7 @@ export default async function RegistryPage({
 
   if (!wedding) notFound()
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('bride_name, groom_name')
-    .eq('id', wedding.user_id)
-    .single()
+  const coupleNames = await getCoupleNames(wedding.user_id)
 
   const { data: items } = await supabase
     .from('registry_items')
@@ -74,8 +71,7 @@ export default async function RegistryPage({
     sessionGuest = data
   }
 
-  const brideName = profile?.bride_name ?? 'Bride'
-  const groomName = profile?.groom_name ?? 'Groom'
+  const { brideName, groomName } = coupleNames
 
   return (
     <div className="min-h-screen bg-[#fdf8f4]">
