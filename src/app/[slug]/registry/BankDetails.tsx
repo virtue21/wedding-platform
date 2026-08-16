@@ -186,7 +186,7 @@ export default function BankDetails({ weddingId, paymentMethods, itemId, price, 
                 value={customAmount}
                 onChange={e => setCustomAmount(e.target.value)}
                 placeholder="Enter amount…"
-                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200"
+                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-base text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200"
               />
             </div>
           )}
@@ -256,7 +256,7 @@ export default function BankDetails({ weddingId, paymentMethods, itemId, price, 
             <div>
               <label className="block text-xs text-stone-500 mb-1">Your name *</label>
               <input name="guest_name" required value={name} onChange={e => setName(e.target.value)} placeholder="Ada Okafor"
-                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
+                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-base text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
             </div>
           )}
           {guestName && <input type="hidden" name="guest_name" value={guestName} />}
@@ -265,7 +265,7 @@ export default function BankDetails({ weddingId, paymentMethods, itemId, price, 
             <div>
               <label className="block text-xs text-stone-500 mb-1">Phone number</label>
               <input name="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+2348012345678"
-                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
+                className="w-full px-3 py-2 border border-stone-200 rounded-xl text-base text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
             </div>
           )}
           {guestPhone && <input type="hidden" name="phone" value={guestPhone} />}
@@ -288,7 +288,7 @@ export default function BankDetails({ weddingId, paymentMethods, itemId, price, 
           <div>
             <label className="block text-xs text-stone-500 mb-1">Note (optional)</label>
             <input name="note" value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Sent from GTBank app"
-              className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
+              className="w-full px-3 py-2 border border-stone-200 rounded-xl text-base text-stone-800 bg-white focus:outline-none focus:ring-2 focus:ring-rose-200" />
           </div>
 
           {error && <p className="text-xs text-red-500">{error}</p>}
