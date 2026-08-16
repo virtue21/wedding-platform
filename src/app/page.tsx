@@ -2,12 +2,31 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Users, MessageSquare, Send, Gift, ArrowRight, LayoutGrid } from 'lucide-react'
+import { Users, MessageSquare, Send, Gift, ArrowRight, LayoutGrid, Check } from 'lucide-react'
+import type { Plan } from '@/lib/supabase/database.types'
 import LandingTracking from './landing/LandingTracking'
 import LandingCTA from './landing/LandingCTA'
 import SiteFooter from '@/components/SiteFooter'
 
 // ── Phone mockup — RSVP form ───────────────────────────────────────────────
+
+function formatPrice(kobo: number): string {
+  return `₦${(kobo / 100).toLocaleString('en-NG')}`
+}
+
+function planFeatureLines(plan: Plan): string[] {
+  const lines = [
+    plan.guest_cap ? `${plan.guest_cap} guests` : 'Unlimited guests',
+    plan.registry_item_cap ? `${plan.registry_item_cap} registry items` : 'Unlimited registry items',
+    plan.table_cap ? `${plan.table_cap} tables` : 'Unlimited tables',
+  ]
+  if (plan.has_moments) {
+    lines.push(plan.moments_upload_cap ? `${plan.moments_upload_cap} guest photo uploads` : 'Unlimited guest photo uploads')
+  }
+  if (plan.has_cover_image) lines.push('Cover image')
+  if (plan.has_digital_iv) lines.push('Digital invite + QR code')
+  return lines
+}
 
 function PhoneMockup() {
   return (
@@ -347,6 +366,12 @@ export default async function RootPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/admin')
 
+  const { data: plans } = await supabase
+    .from('plans')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order') as { data: Plan[] | null }
+
   const problems = [
     { Icon: Users,          text: "You need a number for the caterer and all you have is maybes" },
     { Icon: MessageSquare,  text: "Your guest list is in three WhatsApp chats and your mum's head" },
@@ -368,12 +393,20 @@ export default async function RootPage({
       <nav className="border-b border-stone-100 bg-white sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
           <a href="#" className="font-serif text-[1.1rem] text-stone-900 tracking-tight hover:opacity-80 transition-opacity">NemiPlanner</a>
-          <Link
-            href="/auth/signup"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
-          >
-            Get Started
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 text-stone-600 hover:text-stone-900 rounded-lg transition-colors"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/auth/signup"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors"
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -518,6 +551,48 @@ export default async function RootPage({
           </div>
         </div>
       </section>
+
+      {/* ── SECTION 4.5: PRICING ── */}
+      {plans && plans.length > 0 && (
+        <section className="py-16 sm:py-20 bg-white">
+          <div className="max-w-5xl mx-auto px-5">
+            <h2 className="font-serif text-2xl sm:text-3xl text-stone-800 text-center mb-2">
+              Simple, one-time pricing.
+            </h2>
+            <p className="text-stone-400 text-center text-sm mb-10">
+              No subscriptions. Pay once, use it through your wedding day.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {plans.map(plan => (
+                <div
+                  key={plan.id}
+                  className="rounded-2xl border border-stone-100 p-6 flex flex-col bg-[#fdf8f4]"
+                >
+                  <h3 className="font-serif text-xl text-stone-800 mb-1">{plan.name}</h3>
+                  <p className="mb-5">
+                    <span className="text-2xl font-bold text-stone-900">{formatPrice(plan.price)}</span>
+                    <span className="text-stone-400 text-sm"> one-time</span>
+                  </p>
+                  <ul className="space-y-2.5 mb-6 flex-1">
+                    {planFeatureLines(plan).map(line => (
+                      <li key={line} className="flex items-start gap-2 text-sm text-stone-600">
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" strokeWidth={2.5} />
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/auth/signup"
+                    className="text-center px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── SECTION 5: BOTTOM CTA ── */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
