@@ -7,6 +7,7 @@ import SideAndCategory from './SideAndCategory'
 import RsvpPageTracker from './RsvpPageTracker'
 import type { WeddingRow, RelationshipCategory, RelationshipSubcategory } from '@/lib/supabase/database.types'
 import { getWeddingEntitlements } from '@/lib/subscription'
+import { getCoupleNames } from '@/lib/coupleNames'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,11 +55,7 @@ export default async function RsvpPage({
     if ((guestCount ?? 0) >= guestCap) rsvpFull = true
   }
 
-  const { data: profile } = await supabase
-    .from('user_profiles').select('bride_name, groom_name').eq('id', wedding.user_id).single()
-
-  const brideName = profile?.bride_name ?? 'Bride'
-  const groomName = profile?.groom_name ?? 'Groom'
+  const { brideName, groomName } = await getCoupleNames(wedding.user_id)
 
   const { data: categories } = await supabase
     .from('relationship_categories')

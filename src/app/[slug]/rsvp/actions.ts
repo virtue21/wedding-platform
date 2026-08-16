@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { WeddingRow, GuestRow } from '@/lib/supabase/database.types'
 import { sendInvitationEmail } from '@/lib/email/sendInvitation'
 import { isSubscriptionActive } from '@/lib/subscription'
+import { getCoupleNames } from '@/lib/coupleNames'
 
 export async function submitRsvp(slug: string, formData: FormData) {
   const supabase = createClient()
@@ -23,14 +24,7 @@ export async function submitRsvp(slug: string, formData: FormData) {
     redirect(`/${slug}`)
   }
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('bride_name, groom_name')
-    .eq('id', wedding.user_id)
-    .single()
-
-  const brideName = profile?.bride_name ?? 'Bride'
-  const groomName = profile?.groom_name ?? 'Groom'
+  const { brideName, groomName } = await getCoupleNames(wedding.user_id)
 
   const phone = (formData.get('phone') as string).trim()
   const email = ((formData.get('email') as string) || '').trim().toLowerCase() || null
