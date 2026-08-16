@@ -24,7 +24,7 @@ export default function PhoneInput() {
           className="phone-input-unified flex-1 flex items-center"
           numberInputProps={{
             className:
-              'flex-1 min-w-0 px-3 py-2.5 border-0 text-sm text-stone-900 placeholder:text-stone-400 bg-transparent focus:outline-none focus:ring-0',
+              'flex-1 min-w-0 px-3 py-2.5 border-0 text-base text-stone-900 placeholder:text-stone-400 bg-transparent focus:outline-none focus:ring-0',
             placeholder: '080 1234 5678',
           }}
         />

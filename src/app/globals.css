@@ -41,9 +41,11 @@
 }
 
 @layer components {
-  /* Shared input style */
+  /* Shared input style. text-base (16px), not text-sm — iOS Safari
+     auto-zooms on focus for any input under 16px, which guests then had
+     to manually zoom back out of on every field. */
   .input {
-    @apply w-full px-3.5 py-2.5 border border-rose-100 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow;
+    @apply w-full px-3.5 py-2.5 border border-rose-100 rounded-xl text-base text-stone-900 placeholder:text-stone-400 bg-white focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-shadow;
   }
 
   /* Primary button */
