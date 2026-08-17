@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreditCard } from 'lucide-react'
 import Toggle from '@/components/Toggle'
 import { saveRsvpSettings } from './actions'
 
@@ -23,14 +22,12 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
   )
   const [deadline, setDeadline] = useState<string | null>(initialDeadline)
   const [saving, setSaving] = useState(false)
-  const [showPlansModal, setShowPlansModal] = useState(false)
   const router = useRouter()
 
   async function handleEnable() {
     setSaving(true)
     await saveRsvpSettings(weddingId, true, limit, deadline)
     setEnabled(true)
-    setShowPlansModal(false)
     setSaving(false)
   }
 
@@ -68,13 +65,18 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
             {enabled && currentCount > 0 && (
               <p className="text-xs text-emerald-600 mt-2">{currentCount} guests confirmed so far</p>
             )}
-            {!enabled && (
+            {!enabled && !hasActivePlan && (
+              <p className="text-xs text-amber-500 mt-2">
+                Subscribe to a plan to turn RSVP on — see <a href="/admin/plans" className="underline">Plans</a>.
+              </p>
+            )}
+            {!enabled && hasActivePlan && (
               <p className="text-xs text-amber-500 mt-2">RSVP is disabled. Guests can only view the registry.</p>
             )}
           </div>
           <Toggle
             checked={enabled}
-            onChange={() => enabled ? handleDisable() : (hasActivePlan ? setShowPlansModal(true) : router.push('/admin/plans'))}
+            onChange={() => enabled ? handleDisable() : (hasActivePlan ? handleEnable() : router.push('/admin/plans'))}
             disabled={saving}
             label={enabled ? 'Disable RSVP' : 'Enable RSVP'}
           />
@@ -146,35 +148,6 @@ export default function RsvpSettingsClient({ weddingId, initialEnabled, initialL
           </div>
         )}
       </div>
-
-      {/* Plans modal */}
-      {showPlansModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <CreditCard size={26} className="mx-auto mb-3 text-stone-400" />
-            <h3 className="font-serif text-xl text-stone-800 text-center mb-2">Activate RSVP</h3>
-            <p className="text-sm text-stone-400 text-center mb-1">Enabling RSVP requires an active plan.</p>
-            <p className="text-xs text-emerald-600 bg-emerald-50 rounded-xl px-3 py-2 text-center mb-5">
-              🎉 You&apos;re on the free beta — RSVP is free to use right now. Subscribe on the <a href="/admin/plans" className="underline">Plans page</a> to unlock full features.
-            </p>
-            <div className="space-y-2">
-              <button
-                onClick={handleEnable}
-                disabled={saving}
-                className="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
-              >
-                {saving ? 'Enabling…' : 'Enable RSVP (Free Beta)'}
-              </button>
-              <button
-                onClick={() => setShowPlansModal(false)}
-                className="w-full py-3 border border-stone-200 text-stone-500 font-medium rounded-xl hover:bg-stone-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
