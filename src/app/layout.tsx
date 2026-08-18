@@ -14,9 +14,33 @@ const playfair = Playfair_Display({
   variable: '--font-playfair',
 })
 
+const title = 'NemiPlanner — Wedding Planning & Guest Management App for Nigerian Weddings'
+const description = 'Plan your Nigerian wedding with one link. Manage RSVPs, guest lists, seating charts, and gift registry — no subscriptions, one-time pricing from ₦35,000.'
+
 export const metadata: Metadata = {
-  title: 'NemiPlanner — Wedding & Event Planning',
-  description: 'Plan your perfect wedding. Manage guests, seating, gift registry, and more.',
+  title,
+  description,
+  openGraph: {
+    title: 'NemiPlanner — Wedding Planning Made Simple',
+    description: 'Digital RSVPs, gift registry, guest management — one link, zero stress.',
+    url: 'https://nemiplanner.xyz',
+    siteName: 'NemiPlanner',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_NG',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NemiPlanner — Wedding Planning Made Simple',
+    description: 'Digital RSVPs, gift registry, guest management — one link, zero stress.',
+    images: ['/og-image.jpg'],
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
