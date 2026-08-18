@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: 'NemiPlanner',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
       },
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'NemiPlanner — Wedding Planning Made Simple',
     description: 'Digital RSVPs, gift registry, guest management — one link, zero stress.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
   icons: {
     icon: [
